@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 — Not Found</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Share+Tech+Mono&display=swap');
+
+  :root {
+    --purple: #C200FB;
+    --purple-dim: #7a0099;
+    --purple-glow: rgba(194,0,251,0.4);
+    --night: #00120B;
+    --night2: #000d08;
+    --orange: #FF6B00;
+    --sky: #00BFFF;
+    --white: #E8E8E8;
+    --gray: #444;
+    --red: #ff3333;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  html, body {
+    width:100%; height:100%;
+    background: var(--night2);
+    color: var(--white);
+    font-family: 'Share Tech Mono', monospace;
+    overflow: hidden;
+    cursor: default;
+    user-select: none;
+  }
+
+  /* scanlines */
+  body::before {
+    content:'';
+    position:fixed; inset:0; z-index:9999;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0px, transparent 2px,
+      rgba(0,0,0,0.15) 2px, rgba(0,0,0,0.15) 4px
+    );
+    pointer-events:none;
+  }
+
+  /* ── SCREENS ─────────────────────────────────────────────── */
+  .screen {
+    position:fixed; inset:0;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    opacity:0; pointer-events:none;
+    transition: opacity 0.5s;
+  }
+  .screen.active { opacity:1; pointer-events:all; }
+
+  /* ══ BOOT ════════════════════════════════════════════════════ */
+  #boot {
+    background:#000;
+    font-size: clamp(10px,1.8vw,14px);
+    color:#0f0;
+    padding:2rem;
+    align-items:flex-start;
+    justify-content:flex-start;
+  }
+  #boot-log {
+    line-height:1.9; max-width:700px;
+    width:100%; margin:auto;
+    overflow-y:auto; max-height:90vh;
+  }
+  #boot-log .err  { color:#ff3333; }
+  #boot-log .warn { color:#ffaa00; }
+  #boot-log .ok   { color:#00ff88; }
+  #boot-log .dim  { color:#555; }
+  #boot-log .hi   { color:var(--purple); }
+
+  /* ══ STORY ═══════════════════════════════════════════════════ */
+  #story { background:var(--night2); padding:2rem; }
+  .story-container { max-width:680px; width:100%; }
+  .story-counter {
+    font-family:'Press Start 2P',monospace;
+    font-size:clamp(8px,1.4vw,10px);
+    color:var(--orange);
+    margin-bottom:1.8rem; letter-spacing:2px;
+  }
+  .story-art {
+    font-family:'Press Start 2P',monospace;
+    font-size:clamp(7px,1.1vw,9px);
+    color:var(--purple); opacity:0.75;
+    text-align:center; line-height:1.9;
+    margin-bottom:1.8rem; white-space:pre;
+  }
+  .story-text {
+    font-size:clamp(12px,2vw,15px);
+    line-height:2.1; color:var(--white);
+    min-height:90px; white-space:pre-wrap;
+  }
+  .story-text::after {
+    content:'▋'; color:var(--purple);
+    animation:blink .7s step-end infinite;
+  }
+  .story-nav {
+    margin-top:2.2rem;
+    display:flex; align-items:center;
+    justify-content:space-between;
+  }
+  .story-dots { display:flex; gap:8px; }
+  .story-dot {
+    width:8px; height:8px;
+    background:var(--gray);
+    clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);
+    transition:background .3s;
+  }
+  .story-dot.active { background:var(--purple); }
+  .story-skip {
+    font-size:10px; color:var(--gray);
+    cursor:pointer; letter-spacing:2px;
+    padding:6px 12px; border:1px solid var(--gray);
+    background:transparent; transition:all .2s;
+  }
+  .story-skip:hover { color:var(--orange); border-color:var(--orange); }
+  .story-next {
+    font-family:'Press Start 2P',monospace;
+    font-size:clamp(8px,1.2vw,10px);
+    color:var(--sky); cursor:pointer;
+    letter-spacing:2px; padding:10px 20px;
+    border:2px solid var(--sky); background:transparent;
+    transition:all .2s; animation:pulse-border 2s ease-in-out infinite;
+  }
+  .story-next:hover { background:rgba(0,191,255,0.1); box-shadow:0 0 15px rgba(0,191,255,0.4); }
+
+  /* ══ MAIN MENU ════════════════════════════════════════════════ */
+  #menu { background:var(--night2); position:relative; overflow:hidden; }
+  #menu::before {
+    content:''; position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(194,0,251,0.04) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(194,0,251,0.04) 1px,transparent 1px);
+    background-size:32px 32px;
+    animation:grid-shift 8s linear infinite;
+  }
+  .menu-wrap {
+    position:relative; z-index:2;
+    display:flex; flex-direction:column;
+    align-items:center; width:100%;
+    max-width:500px; padding:1rem;
+  }
+  .player-counter {
+    font-family:'Press Start 2P',monospace;
+    font-size:clamp(8px,1.2vw,10px);
+    color:var(--orange); letter-spacing:3px;
+    margin-bottom:1.4rem;
+    animation:text-glitch .15s steps(2) infinite;
+  }
+  .logo {
+    font-family:'Press Start 2P',monospace;
+    font-size:clamp(48px,12vw,90px);
+    color:var(--purple);
+    text-shadow:0 0 20px var(--purple),0 0 60px var(--purple-glow),4px 4px 0 var(--purple-dim);
+    position:relative; letter-spacing:8px;
+    animation:logo-flicker 6s ease-in-out infinite;
+    line-height:1; margin-bottom:.3rem;
+  }
+  .logo::before,.logo::after {
+    content:'404'; position:absolute; left:0; top:0; width:100%;
+  }
+  .logo::before {
+    color:var(--sky); clip-path:polygon(0 0,100% 0,100% 33%,0 33%);
+    animation:glitch-top 4s steps(2) infinite; opacity:.7;
+  }
+  .logo::after {
+    color:var(--orange); clip-path:polygon(0 66%,100% 66%,100% 100%,0 100%);
+    animation:glitch-bot 5s steps(2) infinite; opacity:.7;
+  }
+  .logo-sub {
+    font-family:'Press Start 2P',monospace;
+    font-size:clamp(7px,1.1vw,9px);
+    color:var(--sky); letter-spacing:6px;
+    margin-bottom:2.5rem; opacity:.7;
+  }
+  .menu-items { width:100%; }
+  .menu-item {
+    display:flex; align-items:center; gap:1rem;
+    padding:13px 20px; margin-bottom:7px;
+    cursor:pointer; position:relative;
+    border:1px solid transparent;
+    transition:all .15s;
+    font-family:'Press Start 2P',monospace;
+    font-size:clamp(9px,1.4vw,11px);
+    letter-spacing:2px; color:#666;
+  }
+  .menu-item::before {
+    content:''; position:absolute;
+    right:0; top:50%; transform:translateY(-50%);
+    width:3px; height:0; background:var(--purple);
+    transition:height .2s;
+  }
+  .menu-item:hover,.menu-item.selected {
+    color:var(--white);
+    border-color:rgba(194,0,251,0.3);
+    background:rgba(194,0,251,0.06);
+    text-shadow:0 0 10px var(--purple-glow);
+  }
+  .menu-item:hover::before,.menu-item.selected::before { height:70%; }
+  .menu-item .item-icon { color:var(--purple); min-width:16px; opacity:0; transition:opacity .15s; }
+  .menu-item:hover .item-icon,.menu-item.selected .item-icon { opacity:1; }
+  .menu-item.broken { color:#2a2a2a; cursor:not-allowed; }
+  .menu-item.broken span:last-child { text-decoration:line-through; text-decoration-color:#ff333333; }
+  .menu-item.broken .broken-tag {
+    font-size:7px; color:#ff333355;
+    letter-spacing:1px; margin-right:auto;
+    animation:text-glitch .4s steps(2) infinite;
+  }
+  .menu-item.broken:hover { color:#2a2a2a; border-color:transparent; background:transparent; }
+  .menu-item.broken:hover::before { height:0; }
+  .menu-footer {
+    margin-top:1.8rem; font-size:9px;
+    color:#2a2a2a; letter-spacing:2px;
+    text-align:center; line-height:2.2;
+  }
+  .menu-footer .corrupt { color:#ff333322; animation:text-glitch .5s steps(2) infinite; }
+
+  /* ══ OVERLAY PANELS (settings / credits / confirm) ════════════ */
+  .overlay-panel {
+    position:fixed; inset:0; z-index:500;
+    background:rgba(0,5,3,0.92);
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none;
+    transition:opacity .3s;
+  }
+  .overlay-panel.open { opacity:1; pointer-events:all; }
+  .panel-box {
+    background:var(--night2);
+    border:1px solid var(--purple);
+    box-shadow:0 0 30px var(--purple-glow);
+    padding:2rem 2.5rem;
+    max-width:480px; width:90%;
+    position:relative;
+  }
+  .panel-title {
+    font-family:'Press Start 2P',monospace;
+    font-size:clamp(10px,1.6vw,12px);
+    color:var(--purple); letter-spacing:3px;
+    margin-bottom:1.8rem;
+    padding-bottom:1rem;
+    border-bottom:1px solid rgba(194,0,251,0.3);
+  }
+  .panel-close {
+    position:absolute; top:1rem; left:1rem;
+    font-size:10px; color:#555; cursor:pointer;
+    letter-spacing:2px; padding:4px 8px;
+    border:1px solid #333; background:transparent;
+    transition:all .2s;
+  }
+  .panel-close:hover { color:var(--red); border-color:var(--red); }
+
+  /* settings rows */
+  .setting-row {
+    display:flex; align-items:center;
+    justify-content:space-between;
+    margin-bottom:1.4rem; gap:1rem;
+  }
+  .setting-label {
+    font-family:'Press Start 2P',monospace;
+    font-size:clamp(8px,1.2vw,9px);
+    color:var(--sky); letter-spacing:2px;
+  }
+  .setting-control { display:flex; align-items:center; gap:10px; }
+  .vol-btn {
+    width:28px; height:28px;
+    background:transparent;
+    border:1px solid var(--purple);
+    color:var(--purple); cursor:pointer;
+    font-size:14px; font-family:'Share Tech Mono',monospace;
+    display:flex; align-items:center; justify-content:center;
+    transition:all .15s;
+  }
+  .vol-btn:hover { background:var(--purple); color:#000; }
+  .vol-bar {
+    display:flex; gap:3px; align-items:center;
+  }
+  .vol-seg {
+    width:8px; height:20px;
+    background:#222; border:1px solid #333;
+    transition:all .2s;
+  }
+  .vol-seg.on { background:var(--purple); border-color:var(--purple); box-shadow:0 0 4px var(--purple); }
+  .vol-num {
+    font-family:'Press Start 2P',monospace;
+    font-size:9px; color:var(--white);
+    min-width:24px; text-align:center;
+  }
+  .setting-divider {
+    border:none; border-top:1px solid #1a1a1a;
+    margin:1rem 0;
+  }
+
+  /* credits */
+  .credits-section { margin-bottom:1.4rem; }
+  .credits-section-title {
+    font-family:'Press Start 2P',monospace;
+    font-size:8px; color:var(--orange);
+    letter-spacing:2px; margin-bottom:.8rem;
+    opacity:.8;
+  }
+  .credits-entry {
+    display:flex; justify-content:space-between;
+    align-items:flex-start; gap:1rem;
+    margin-bottom:.5rem;
+    font-size:clamp(10px,1.5vw,12px);
+    line-height:1.7;
+  }
+  .credits-role { color:#555; font-size:10px; }
+  .credits-name { color:var(--white); }
+  .credits-name.hero {
+    color:var(--purple);
+    font-family:'Press Start 2P',monospace;
+    font-size:clamp(9px,1.4vw,11px);
+  }
+  .credits-tech { color:var(--sky); font-size:11px; }
+  .credits-ver { color:#333; font-size:9px; }
+
+  /* confirm dialog */
+  .confirm-msg {
+    font-size:clamp(11px,1.7vw,13px);
+    color:var(--white); line-height:1.9;
+    margin-bottom:1.8rem; white-space:pre-line;
+  }
+  .confirm-msg .warn-line {
+    color:var(--red); font-family:'Press Start 2P',monospace;
+    font-size:9px; display:block;
+    margin-top:.8rem; letter-spacing:1px;
+  }
+  .confirm-btns { display:flex; gap:1rem; justify-content:flex-end; }
+  .btn-danger {
+    font-family:'Press Start 2P',monospace;
+    font-size:9px; padding:10px 16px;
+    background:transparent; border:2px solid var(--red);
+    color:var(--red); cursor:pointer; letter-spacing:1px;
+    transition:all .15s;
+  }
+  .btn-danger:hover { background:var(--red); color:#000; }
+  .btn-cancel {
+    font-family:'Press Start 2P',monospace;
+    font-size:9px; padding:10px 16px;
+    background:transparent; border:1px solid #444;
+    color:#666; cursor:pointer; letter-spacing:1px;
+    transition:all .15s;
+  }
+  .btn-cancel:hover { border-color:var(--white); color:var(--white); }
+
+  /* ══ ARCHIVIST ════════════════════════════════════════════════ */
+  .archivist {
+    position:fixed; bottom:2rem; left:2rem;
+    max-width:320px;
+    background:rgba(0,10,5,0.97);
+    border:1px solid var(--purple);
+    box-shadow:0 0 20px var(--purple-glow);
+    padding:1rem 1.2rem;
+    font-size:clamp(9px,1.3vw,11px);
+    line-height:1.9; opacity:0;
+    transform:translateY(10px);
+    transition:all .4s; z-index:200;
+    pointer-events:none; white-space:pre-line;
+  }
+  .archivist.show { opacity:1; transform:translateY(0); }
+  .archivist-name {
+    font-family:'Press Start 2P',monospace;
+    font-size:8px; color:var(--purple);
+    margin-bottom:.5rem; letter-spacing:2px;
+  }
+  .archivist-text { color:var(--sky); }
+
+  /* ══ AMBIENT ═════════════════════════════════════════════════ */
+  #glitch-overlay {
+    position:fixed; inset:0; z-index:9998;
+    pointer-events:none; opacity:0;
+    background:linear-gradient(135deg,rgba(194,0,251,0.12),rgba(0,191,255,0.08));
+    transition:opacity .05s;
+  }
+  #scanline {
+    position:fixed; left:0; right:0; height:3px;
+    background:linear-gradient(to right,transparent,var(--purple),transparent);
+    opacity:.35; z-index:9997; pointer-events:none;
+    animation:scanline-sweep 4s linear infinite;
+  }
+
+  /* ══ KEYFRAMES ════════════════════════════════════════════════ */
+  @keyframes blink { 50%{opacity:0;} }
+  @keyframes logo-flicker {
+    0%,94%,100%{opacity:1;} 95%{opacity:.3;} 96%{opacity:1;} 98%{opacity:.1;} 99%{opacity:1;}
+  }
+  @keyframes glitch-top {
+    0%,89%,100%{transform:translateX(0);opacity:0;}
+    90%{transform:translateX(-4px);opacity:.7;}
+    92%{transform:translateX(4px);opacity:.7;}
+    94%{transform:translateX(0);opacity:0;}
+  }
+  @keyframes glitch-bot {
+    0%,84%,100%{transform:translateX(0);opacity:0;}
+    85%{transform:translateX(5px);opacity:.7;}
+    87%{transform:translateX(-3px);opacity:.7;}
+    89%{transform:translateX(0);opacity:0;}
+  }
+  @keyframes text-glitch {
+    0%{transform:translateX(0);}
+    25%{transform:translateX(-2px) skewX(-3deg);}
+    50%{transform:translateX(2px);}
+    75%{transform:translateX(-1px) skewX(2deg);}
+    100%{transform:translateX(0);}
+  }
+  @keyframes grid-shift {
+    0%{background-position:0 0;} 100%{background-position:32px 32px;}
+  }
+  @keyframes pulse-border {
+    0%,100%{box-shadow:0 0 5px rgba(0,191,255,0.2);}
+    50%{box-shadow:0 0 15px rgba(0,191,255,0.6);}
+  }
+  @keyframes scanline-sweep {
+    0%{top:-5%;} 100%{top:105%;}
+  }
+  @keyframes fadeInUp {
+    from{opacity:0;transform:translateY(8px);}
+    to{opacity:1;transform:translateY(0);}
+  }
+
+  @media(max-width:480px){
+    .menu-item{padding:11px 14px;gap:.7rem;}
+    .archivist{left:1rem;right:1rem;bottom:1rem;max-width:100%;}
+    .panel-box{padding:1.5rem;}
+  }
+</style>
+</head>
+<body>
+
+<div id="glitch-overlay"></div>
+<div id="scanline"></div>
+
+<!-- ══ SCREEN: BOOT ════════════════════════════════════════════ -->
+<div class="screen active" id="boot">
+  <div id="boot-log"></div>
+</div>
+
+<!-- ══ SCREEN: STORY ══════════════════════════════════════════ -->
+<div class="screen" id="story">
+  <div class="story-container">
+    <div class="story-counter" id="story-counter">[ PLAYERS_ONLINE: 0 ]</div>
+    <div class="story-art" id="story-art"></div>
+    <div class="story-text" id="story-text"></div>
+    <div class="story-nav">
+      <div class="story-dots" id="story-dots"></div>
+      <button class="story-skip" onclick="skipToMenu()">SKIP ▶▶</button>
+      <button class="story-next" id="story-next" onclick="nextSlide()">NEXT ►</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCREEN: MENU ════════════════════════════════════════════ -->
+<div class="screen" id="menu">
+  <div class="menu-wrap">
+    <div class="player-counter">▸ PLAYERS_ONLINE: 0 ◂</div>
+    <div class="logo">404</div>
+    <div class="logo-sub">NOT FOUND</div>
+    <div class="menu-items">
+      <div class="menu-item" onclick="menuAction('new')">
+        <span class="item-icon">►</span><span>لعبة جديدة</span>
+      </div>
+      <div class="menu-item broken" onclick="menuAction('broken')">
+        <span class="item-icon">►</span><span>متابعة</span>
+        <span class="broken-tag">FILE_MISSING</span>
+      </div>
+      <div class="menu-item broken" onclick="menuAction('broken')">
+        <span class="item-icon">►</span><span>الإنجازات</span>
+        <span class="broken-tag">CORRUPTED</span>
+      </div>
+      <div class="menu-item" onclick="menuAction('settings')">
+        <span class="item-icon">►</span><span>الإعدادات</span>
+      </div>
+      <div class="menu-item" onclick="menuAction('credits')">
+        <span class="item-icon">►</span><span>معلومات اللعبة</span>
+      </div>
+      <div class="menu-item" onclick="menuAction('restart')">
+        <span class="item-icon">►</span><span>إعادة اللعبة</span>
+      </div>
+      <div class="menu-item" onclick="menuAction('exit')">
+        <span class="item-icon">►</span><span>خروج</span>
+      </div>
+    </div>
+    <div class="menu-footer">
+      <div>v0.0.1 — BUILD: <span class="corrupt">ERR_404</span></div>
+      <div>DREAM CRASHED. FILE MISSING.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PANEL: SETTINGS ════════════════════════════════════════ -->
+<div class="overlay-panel" id="panel-settings">
+  <div class="panel-box">
+    <button class="panel-close" onclick="closePanel('settings')">✕ إغلاق</button>
+    <div class="panel-title">◈ الإعدادات</div>
+
+    <div class="setting-row">
+      <div class="setting-label">MUSIC</div>
+      <div class="setting-control">
+        <button class="vol-btn" onclick="changeVol('music',-1)">−</button>
+        <div class="vol-bar" id="music-bar"></div>
+        <div class="vol-num" id="music-num">7</div>
+        <button class="vol-btn" onclick="changeVol('music',1)">+</button>
+      </div>
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-label">SFX</div>
+      <div class="setting-control">
+        <button class="vol-btn" onclick="changeVol('sfx',-1)">−</button>
+        <div class="vol-bar" id="sfx-bar"></div>
+        <div class="vol-num" id="sfx-num">7</div>
+        <button class="vol-btn" onclick="changeVol('sfx',1)">+</button>
+      </div>
+    </div>
+
+    <hr class="setting-divider">
+
+    <div style="font-size:9px;color:#333;letter-spacing:2px;text-align:center;line-height:2;">
+      باقي الإعدادات قيد الإصلاح...<br>
+      <span style="color:#ff333322;animation:text-glitch .5s steps(2) infinite;display:inline-block;">NULL_REF_EXCEPTION</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PANEL: CREDITS ═════════════════════════════════════════ -->
+<div class="overlay-panel" id="panel-credits">
+  <div class="panel-box">
+    <button class="panel-close" onclick="closePanel('credits')">✕ إغلاق</button>
+    <div class="panel-title">◈ معلومات اللعبة</div>
+
+    <div class="credits-section">
+      <div class="credits-section-title">▸ المطور</div>
+      <div class="credits-entry">
+        <span class="credits-role">GAME DEVELOPER</span>
+        <span class="credits-name hero">MOGOGO — مهند</span>
+      </div>
+    </div>
+
+    <hr class="setting-divider">
+
+    <div class="credits-section">
+      <div class="credits-section-title">▸ تقنيات التطوير</div>
+      <div class="credits-entry">
+        <span class="credits-role">MARKUP</span>
+        <span class="credits-tech">HTML5</span>
+      </div>
+      <div class="credits-entry">
+        <span class="credits-role">STYLING</span>
+        <span class="credits-tech">CSS3 · Animations · Pixel Art UI</span>
+      </div>
+      <div class="credits-entry">
+        <span class="credits-role">LOGIC</span>
+        <span class="credits-tech">JavaScript ES6+</span>
+      </div>
+      <div class="credits-entry">
+        <span class="credits-role">GAME ENGINE</span>
+        <span class="credits-tech">Phaser.js <span class="credits-ver">(قريباً)</span></span>
+      </div>
+      <div class="credits-entry">
+        <span class="credits-role">FONTS</span>
+        <span class="credits-tech">Press Start 2P · Share Tech Mono</span>
+      </div>
+    </div>
+
+    <hr class="setting-divider">
+
+    <div class="credits-section">
+      <div class="credits-section-title">▸ اللعبة</div>
+      <div class="credits-entry">
+        <span class="credits-role">VERSION</span>
+        <span class="credits-tech">0.0.1 — ALPHA</span>
+      </div>
+      <div class="credits-entry">
+        <span class="credits-role">STATUS</span>
+        <span style="color:#ffaa00;font-size:11px;">IN DEVELOPMENT</span>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:1rem;font-size:9px;color:#2a2a2a;letter-spacing:2px;">
+      DREAM CRASHED. FILE MISSING.<br>
+      <span style="color:var(--purple);opacity:.4;">© 404 — All Rights Reserved</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PANEL: CONFIRM RESTART ════════════════════════════════ -->
+<div class="overlay-panel" id="panel-confirm">
+  <div class="panel-box">
+    <div class="panel-title">⚠ تحذير</div>
+    <div class="confirm-msg">
+هل أنت متأكد أنك تريد إعادة اللعبة من البداية؟
+<span class="warn-line">⚠ سيتم حذف كل تقدمك وبياناتك المجمعة!</span>
+    </div>
+    <div class="confirm-btns">
+      <button class="btn-cancel" onclick="closePanel('confirm')">إلغاء</button>
+      <button class="btn-danger" onclick="confirmRestart()">نعم، أعد من البداية</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ARCHIVIST ══════════════════════════════════════════════ -->
+<div class="archivist" id="archivist">
+  <div class="archivist-name">◈ الأرشيفي</div>
+  <div class="archivist-text" id="archivist-text"></div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+//  AUDIO
+// ══════════════════════════════════════════════════════════════
+const audio = {
+  music: new Audio('M.mp3'),
+  click: new Audio('CLICK.mp3'),
+  nota:  new Audio('NOTA.mp3'),
+  start: new Audio('START.mp3'),
+};
+audio.music.loop = true;
+audio.music.volume = 0.7;
+
+let vol = { music: 7, sfx: 7 };
+const MAX_VOL = 10;
+
+function playMusic() {
+  audio.music.volume = vol.music / MAX_VOL;
+  audio.music.play().catch(()=>{});
+}
+function playClick() {
+  if(vol.sfx === 0) return;
+  const s = audio.click.cloneNode();
+  s.volume = vol.sfx / MAX_VOL;
+  s.play().catch(()=>{});
+}
+function playNota() {
+  if(vol.sfx === 0) return;
+  const s = audio.nota.cloneNode();
+  s.volume = vol.sfx / MAX_VOL;
+  s.play().catch(()=>{});
+}
+function playStart() {
+  if(vol.sfx === 0) return;
+  const s = audio.start.cloneNode();
+  s.volume = vol.sfx / MAX_VOL;
+  s.play().catch(()=>{});
+}
+
+// allow audio after first interaction
+let audioUnlocked = false;
+function unlockAudio() {
+  if(audioUnlocked) return;
+  audioUnlocked = true;
+  playMusic();
+}
+document.addEventListener('click', unlockAudio, {once:true});
+document.addEventListener('keydown', unlockAudio, {once:true});
+
+// ── Volume control ────────────────────────────────────────────
+function renderVolBar(type) {
+  const bar = document.getElementById(type+'-bar');
+  const num = document.getElementById(type+'-num');
+  const v = vol[type];
+  bar.innerHTML = '';
+  for(let i=1;i<=MAX_VOL;i++){
+    const seg = document.createElement('div');
+    seg.className = 'vol-seg' + (i<=v?' on':'');
+    bar.appendChild(seg);
+  }
+  num.textContent = v;
+  if(type==='music') audio.music.volume = v/MAX_VOL;
+}
+function changeVol(type, delta) {
+  playClick();
+  vol[type] = Math.max(0, Math.min(MAX_VOL, vol[type]+delta));
+  renderVolBar(type);
+}
+function initVolBars() {
+  renderVolBar('music');
+  renderVolBar('sfx');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  PANELS
+// ══════════════════════════════════════════════════════════════
+function openPanel(name) {
+  playNota();
+  document.getElementById('panel-'+name).classList.add('open');
+}
+function closePanel(name) {
+  playClick();
+  document.getElementById('panel-'+name).classList.remove('open');
+}
+
+// close on backdrop click
+document.querySelectorAll('.overlay-panel').forEach(p => {
+  p.addEventListener('click', e => {
+    if(e.target === p) {
+      const name = p.id.replace('panel-','');
+      closePanel(name);
+    }
+  });
+});
+
+// ══════════════════════════════════════════════════════════════
+//  BOOT
+// ══════════════════════════════════════════════════════════════
+const bootLines = [
+  { text:"SYSTEM BOOT v4.0.4 ...",                         cls:"dim",  delay:0 },
+  { text:"▸ Loading kernel modules ...",                   cls:"",     delay:200 },
+  { text:"▸ Initializing memory ... [OK]",                 cls:"ok",   delay:500 },
+  { text:"▸ Loading game assets ...",                      cls:"",     delay:850 },
+  { text:"  sprites/player.png ... [OK]",                  cls:"ok",   delay:1100 },
+  { text:"  audio/main_theme.ogg ... [OK]",                cls:"ok",   delay:1300 },
+  { text:"  world/level_01.map ... [OK]",                  cls:"ok",   delay:1500 },
+  { text:"  world/level_02.map ... [OK]",                  cls:"ok",   delay:1650 },
+  { text:"▸ Connecting to game servers ...",               cls:"",     delay:1900 },
+  { text:"  players_online: querying ...",                 cls:"dim",  delay:2200 },
+  { text:"  players_online: 0",                            cls:"warn", delay:2700 },
+  { text:"  WARNING: No active sessions found",            cls:"warn", delay:3000 },
+  { text:"▸ Checking game registry ...",                   cls:"",     delay:3400 },
+  { text:"  STATUS: NOT_FOUND",                            cls:"err",  delay:3800 },
+  { text:"  REASON: Zero player count for 847 days",       cls:"err",  delay:4100 },
+  { text:"  REASON: Memory allocation freed",              cls:"err",  delay:4350 },
+  { text:"▸ Initiating transfer protocol ...",             cls:"hi",   delay:4700 },
+  { text:"  DESTINATION: WORLD_404",                       cls:"hi",   delay:5000 },
+  { text:"",                                               cls:"",     delay:5300 },
+  { text:"████████████████████████████████ 100%",          cls:"err",  delay:5500 },
+  { text:"",                                               cls:"",     delay:5700 },
+  { text:"TRANSFER COMPLETE.",                             cls:"err",  delay:5800 },
+  { text:"لقد نُسيت لعبتك بالكامل.",                      cls:"hi",   delay:6200 },
+];
+
+async function runBoot() {
+  const log = document.getElementById('boot-log');
+  let prev = 0;
+  for(const line of bootLines){
+    await sleep(line.delay - prev);
+    prev = line.delay;
+    const el = document.createElement('div');
+    el.className = line.cls;
+    el.textContent = line.text || '\u00a0';
+    log.appendChild(el);
+    log.scrollTop = log.scrollHeight;
+    if(line.cls==='err') triggerGlitch(80);
+  }
+  await sleep(1200);
+  transition('boot','story');
+  runStory();
+}
+
+// ══════════════════════════════════════════════════════════════
+//  STORY
+// ══════════════════════════════════════════════════════════════
+const slides = [
+  {
+    art:`░░░░░░░░░░░░░░░░░░░░░░░░░
+░  [ YEAR: 2019 ]        ░
+░  PLAYERS: 48,231       ░
+░  STATUS:  ALIVE        ░
+░░░░░░░░░░░░░░░░░░░░░░░░░`,
+    text:"كانت هناك لعبة.\n\nليست أكبر لعبة في العالم، ولا أجملها.\nلكنها كانت حية.\nوكان هناك دائماً من يلعبها."
+  },
+  {
+    art:`░░░░░░░░░░░░░░░░░░░░░░░░░
+░  [ YEAR: 2021 ]        ░
+░  PLAYERS: 1,247        ░
+░  STATUS:  DECLINING    ░
+░░░░░░░░░░░░░░░░░░░░░░░░░`,
+    text:"ثم ظهرت ألعاب جديدة.\n\nألعاب بأضواء أقوى، وأصوات أعلى.\nبدأ اللاعبون يرحلون واحداً واحداً.\nوالشخصية بداخل اللعبة... لاحظت."
+  },
+  {
+    art:`░░░░░░░░░░░░░░░░░░░░░░░░░
+░  [ YEAR: 2023 ]        ░
+░  PLAYERS: 12           ░
+░  STATUS:  CRITICAL     ░
+░░░░░░░░░░░░░░░░░░░░░░░░░`,
+    text:"اثنا عشر لاعباً فقط.\n\nالعالم بدأ يتشقق.\nالألوان تبهت.\nوالمناطق البعيدة... اختفت من الخريطة."
+  },
+  {
+    art:`▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+▓  [ TODAY ]             ▓
+▓  PLAYERS: 0            ▓
+▓  STATUS:  ████████     ▓
+▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓`,
+    text:"ثم جاء اليوم الأخير.\n\nأغلق آخر لاعب اللعبة.\nولم يعد أحد."
+  },
+  {
+    art:`ERROR: WORLD_TRANSFER
+DESTINATION: 404
+████ LOADING ████
+[ ██████████ ] 100%`,
+    text:"عندما ينسى العالم لعبةً بالكامل...\n\nيتم نقلها تلقائياً إلى عالم 404.\n\nمكان تذهب إليه كل الأشياء المنسية.\nولا يعود منه أحد."
+  },
+  {
+    art:`[  W O R L D   4 0 4  ]
+
+ الألعاب المنسية
+ الملفات المحذوفة
+ الأكواد التالفة
+ الشخصيات المهجورة`,
+    text:"أنت الآن في عالم 404.\n\nلعبتك مكسورة. بياناتك مفقودة.\nعدد لاعبيك: صفر.\n\nلكن هناك صوت قديم يناديك..."
+  },
+  {
+    art:`◈ ─────────────────── ◈
+  الأرشيفي
+  THE ARCHIVIST
+  AI_VERSION: 0.1.legacy
+◈ ─────────────────── ◈`,
+    text:'"أيها البطل المنسي...\n\nأنا الأرشيفي. حارس كل ما تم نسيانه.\nلديك فرصة واحدة فقط.\n\nاجمع بياناتك المفقودة.\nأصلح ما تهدم.\nوأعد لعبتك للحياة."'
+  },
+];
+
+let currentSlide = 0;
+let typing = false;
+let typeTimeout = null;
+
+function initDots() {
+  const d = document.getElementById('story-dots');
+  d.innerHTML = '';
+  slides.forEach((_,i)=>{
+    const dot = document.createElement('div');
+    dot.className='story-dot'+(i===0?' active':'');
+    d.appendChild(dot);
+  });
+}
+function updateDots(i){
+  document.querySelectorAll('.story-dot').forEach((d,j)=>d.classList.toggle('active',j===i));
+}
+function typeText(text,el,speed=26){
+  return new Promise(res=>{
+    el.dataset.raw=text; let i=0; typing=true; el.textContent='';
+    function tick(){
+      if(i<text.length){
+        el.textContent+=text[i]; i++;
+        typeTimeout=setTimeout(tick,text[i-1]==='\n'?speed*5:speed);
+      } else { typing=false; res(); }
+    }
+    tick();
+  });
+}
+function skipTyping(){
+  if(!typing) return;
+  clearTimeout(typeTimeout);
+  const el=document.getElementById('story-text');
+  el.textContent=el.dataset.raw||'';
+  typing=false;
+}
+async function showSlide(idx){
+  const slide=slides[idx];
+  document.getElementById('story-art').textContent=slide.art||'';
+  document.getElementById('story-text').textContent='';
+  const counts=[48231,1247,12,0,0,0,0];
+  const c=counts[idx];
+  const counter=document.getElementById('story-counter');
+  counter.textContent=`[ PLAYERS_ONLINE: ${c.toLocaleString()} ]`;
+  counter.style.color=c===0?'#ff3333':c<100?'#ffaa00':'var(--orange)';
+  document.getElementById('story-next').textContent=idx===slides.length-1?'ابدأ اللعبة ►':'NEXT ►';
+  updateDots(idx);
+  await typeText(slide.text,document.getElementById('story-text'),25);
+}
+async function runStory(){
+  initDots(); await sleep(300); showSlide(0);
+}
+function nextSlide(){
+  playClick();
+  if(typing){ skipTyping(); return; }
+  if(currentSlide<slides.length-1){ currentSlide++; triggerGlitch(100); showSlide(currentSlide); }
+  else goToMenu();
+}
+function skipToMenu(){ playClick(); clearTimeout(typeTimeout); typing=false; goToMenu(); }
+function goToMenu(){
+  playStart();
+  transition('story','menu');
+  setTimeout(()=>showArchivist("لعبتك في حالة حرجة.\nابدأ من هنا... إذا كنت تجرؤ."),1200);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  MENU ACTIONS
+// ══════════════════════════════════════════════════════════════
+function menuAction(action){
+  playClick();
+  switch(action){
+    case 'new':
+      triggerGlitch(200);
+      showArchivist("ممتاز.\nمهمتك: اجمع البيانات المفقودة وأعد بناء عالمك.");
+      setTimeout(()=>{ alert('[ المرحلة الأولى — قيد التطوير ]'); },1500);
+      break;
+    case 'broken':
+      triggerGlitch(150);
+      showArchivist("هذا الملف تالف.\nلا يمكن الوصول إليه.");
+      break;
+    case 'settings':
+      initVolBars();
+      openPanel('settings');
+      break;
+    case 'credits':
+      openPanel('credits');
+      break;
+    case 'restart':
+      openPanel('confirm');
+      break;
+    case 'exit':
+      showArchivist("هل أنت متأكد؟\nلا يوجد مكان آخر تذهب إليه.");
+      break;
+  }
+}
+
+function confirmRestart(){
+  playClick();
+  closePanel('confirm');
+  triggerGlitch(400);
+  setTimeout(()=>{
+    currentSlide=0;
+    transition('menu','boot');
+    document.getElementById('boot-log').innerHTML='';
+    setTimeout(runBoot, 600);
+  },500);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  ARCHIVIST
+// ══════════════════════════════════════════════════════════════
+let archTimer=null;
+function showArchivist(text){
+  playNota();
+  const box=document.getElementById('archivist');
+  document.getElementById('archivist-text').textContent=text;
+  box.classList.add('show');
+  clearTimeout(archTimer);
+  archTimer=setTimeout(()=>box.classList.remove('show'),5000);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════════════════════
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+function transition(from,to){
+  document.getElementById(from).classList.remove('active');
+  const el=document.getElementById(to);
+  el.style.transition='opacity 0.6s';
+  el.classList.add('active');
+}
+function triggerGlitch(dur=120){
+  const ov=document.getElementById('glitch-overlay');
+  ov.style.opacity='1';
+  ov.style.transform=`translateX(${(Math.random()-.5)*8}px)`;
+  setTimeout(()=>{ ov.style.opacity='0'; ov.style.transform='translateX(0)'; },dur);
+}
+setInterval(()=>{ if(Math.random()<.28) triggerGlitch(50+Math.random()*100); },3500);
+
+// ══════════════════════════════════════════════════════════════
+//  KEYBOARD
+// ══════════════════════════════════════════════════════════════
+document.addEventListener('keydown',e=>{
+  const storyOn=document.getElementById('story').classList.contains('active');
+  if(storyOn&&(e.key===' '||e.key==='Enter')){ e.preventDefault(); nextSlide(); }
+  if(e.key==='Escape'){
+    // close any open panel first
+    const open=document.querySelector('.overlay-panel.open');
+    if(open){ open.classList.remove('open'); playClick(); }
+    else if(storyOn) skipToMenu();
+  }
+});
+
+// ══════════════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════════════
+runBoot();
+</script>
+</body>
+</html>
