@@ -47,6 +47,7 @@ body::before {
   align-items:center; justify-content:center;
   opacity:0; pointer-events:none;
   transition:opacity 0.5s;
+  overflow-y:auto; padding:16px 0;
 }
 .screen.active { opacity:1; pointer-events:all; }
 
@@ -111,6 +112,12 @@ body::before {
   position:relative; z-index:2; display:flex; flex-direction:column;
   align-items:center; width:100%; max-width:500px; padding:1rem;
 }
+#menuSkinPreview {
+  position:fixed; left:18px; bottom:0; height:min(58vh,420px); width:auto;
+  image-rendering:pixelated; z-index:1; pointer-events:none;
+  filter:drop-shadow(0 0 18px rgba(194,0,251,.35));
+}
+@media (max-width:640px){ #menuSkinPreview{ display:none; } }
 .player-counter {
   font-family:var(--font-px); font-size:clamp(8px,1.2vw,10px);
   color:var(--orange); letter-spacing:3px; margin-bottom:1.4rem;
@@ -133,23 +140,29 @@ body::before {
 .menu-items { width:100%; }
 .menu-item {
   display:flex; align-items:center; gap:1rem; padding:13px 20px; margin-bottom:7px;
-  cursor:pointer; position:relative; border:1px solid transparent; transition:all .15s;
+  cursor:pointer; position:relative; border:1px solid transparent; transition:all .28s cubic-bezier(.22,1,.36,1);
   font-family:var(--font-px); font-size:clamp(9px,1.4vw,11px); letter-spacing:2px; color:#666;
 }
 .menu-item::before {
   content:''; position:absolute; right:0; top:50%; transform:translateY(-50%);
-  width:3px; height:0; background:var(--purple); transition:height .2s;
+  width:3px; height:0; background:var(--purple); transition:height .25s cubic-bezier(.22,1,.36,1);
 }
-.menu-item:hover,.menu-item.selected {
-  color:var(--white); border-color:rgba(194,0,251,0.3);
-  background:rgba(194,0,251,0.06); text-shadow:0 0 10px var(--purple-glow);
+.menu-item:hover,.menu-item.selected,.menu-item:focus-visible {
+  color:var(--white); border-color:rgba(194,0,251,0.4); outline:none;
+  background:rgba(194,0,251,0.08); text-shadow:0 0 10px var(--purple-glow);
+  transform:translateX(-6px); box-shadow:0 0 18px rgba(194,0,251,.18), inset 0 0 20px rgba(194,0,251,.06);
 }
-.menu-item:hover::before,.menu-item.selected::before { height:70%; }
-.menu-item .item-icon { color:var(--purple); min-width:16px; opacity:0; transition:opacity .15s; }
-.menu-item:hover .item-icon,.menu-item.selected .item-icon { opacity:1; }
+.menu-item:hover::before,.menu-item.selected::before,.menu-item:focus-visible::before { height:70%; }
+.menu-item:active{ transform:translateX(-3px) scale(.98); }
+.menu-item .item-emoji { font-size:1.15em; min-width:1.3em; text-align:center; filter:grayscale(.3) opacity(.75); transition:all .25s cubic-bezier(.22,1,.36,1); }
+.menu-item:hover .item-emoji,.menu-item:focus-visible .item-emoji { filter:none; opacity:1; transform:scale(1.15); }
+.menu-item .item-icon { color:var(--purple); min-width:16px; opacity:0; transition:opacity .2s; }
+.menu-item:hover .item-icon,.menu-item.selected .item-icon,.menu-item:focus-visible .item-icon { opacity:1; }
 .menu-item.broken { color:#2a2a2a; cursor:not-allowed; }
-.menu-item.broken:hover { color:#2a2a2a; border-color:transparent; background:transparent; }
+.menu-item.broken .item-emoji { opacity:.3; }
+.menu-item.broken:hover { color:#2a2a2a; border-color:transparent; background:transparent; transform:none; box-shadow:none; }
 .menu-item.broken:hover::before { height:0; }
+.menu-item.broken:hover .item-emoji { transform:none; opacity:.3; filter:grayscale(1); }
 .menu-item .broken-tag { font-size:7px; color:#ff333355; letter-spacing:1px; margin-right:auto; animation:text-glitch .4s steps(2) infinite; }
 .menu-footer { margin-top:1.8rem; font-size:9px; color:#2a2a2a; letter-spacing:2px; text-align:center; line-height:2.2; }
 .menu-footer .corrupt { color:#ff333322; animation:text-glitch .5s steps(2) infinite; }
@@ -162,10 +175,14 @@ body::before {
   opacity:0; pointer-events:none; transition:opacity .3s;
 }
 .overlay-panel.open { opacity:1; pointer-events:all; }
+.panel-box::-webkit-scrollbar { width:6px; }
+.panel-box::-webkit-scrollbar-track { background:transparent; }
+.panel-box::-webkit-scrollbar-thumb { background:var(--purple); border-radius:3px; }
 .panel-box {
   background:var(--night2); border:1px solid var(--purple);
   box-shadow:0 0 30px var(--purple-glow); padding:2rem 2.5rem;
   max-width:480px; width:90%; position:relative;
+  max-height:85vh; overflow-y:auto;
 }
 .panel-title {
   font-family:var(--font-px); font-size:clamp(10px,1.6vw,12px);
@@ -198,6 +215,18 @@ body::before {
 .credits-name { color:var(--white); }
 .credits-name.hero { color:var(--purple); font-family:var(--font-px); font-size:clamp(9px,1.4vw,11px); }
 .credits-tech { color:var(--sky); font-size:11px; }
+.redeem-box { padding:12px; background:rgba(245,158,11,.06); border:1px solid rgba(245,158,11,.35); border-radius:10px; margin-bottom:1.4rem; }
+.redeem-row { display:flex; gap:8px; }
+.redeem-input { flex:1; min-width:0; padding:10px 12px; border-radius:8px; border:1px solid rgba(245,158,11,.5); background:rgba(0,13,8,.6); color:#fff; font-size:13px; text-align:center; font-family:var(--font-mono); letter-spacing:1px; text-transform:uppercase; }
+.redeem-input::placeholder { color:#666; text-transform:none; letter-spacing:0; }
+.redeem-btn { padding:10px 16px; font-family:var(--font-px); font-size:8px; letter-spacing:1px; color:#000; border:none; border-radius:8px; background:linear-gradient(135deg,#fde68a,#f59e0b); cursor:pointer; white-space:nowrap; box-shadow:0 0 10px rgba(245,158,11,.35); }
+.redeem-btn:active { transform:scale(.97); }
+.redeem-msg { min-height:16px; font-size:11px; margin-top:8px; text-align:center; line-height:1.6; }
+.redeem-list { margin-top:12px; display:flex; flex-direction:column; gap:6px; }
+.redeem-code-item { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:8px 10px; background:rgba(0,13,8,.5); border:1px dashed rgba(245,158,11,.4); border-radius:8px; cursor:pointer; transition:background .15s; }
+.redeem-code-item:hover { background:rgba(245,158,11,.08); }
+.redeem-code-tag { font-family:var(--font-mono); font-size:12px; color:#fde68a; letter-spacing:1px; }
+.redeem-code-reward { font-size:10px; color:#aaa; white-space:nowrap; }
 .confirm-msg { font-size:clamp(11px,1.7vw,13px); color:var(--white); line-height:1.9; margin-bottom:1.8rem; white-space:pre-line; }
 .confirm-msg .warn-line { color:var(--red); font-family:var(--font-px); font-size:9px; display:block; margin-top:.8rem; letter-spacing:1px; }
 .confirm-btns { display:flex; gap:1rem; justify-content:flex-end; }
@@ -286,12 +315,7 @@ body::before {
   position:fixed; inset:0; z-index:9998; pointer-events:none; opacity:0;
   background:linear-gradient(135deg,rgba(194,0,251,0.12),rgba(0,191,255,0.08)); transition:opacity .05s;
 }
-#scanline {
-  position:fixed; left:0; right:0; height:3px;
-  background:linear-gradient(to right,transparent,var(--purple),transparent);
-  opacity:.35; z-index:9997; pointer-events:none;
-  animation:scanline-sweep 4s linear infinite;
-}
+#scanline { display:none; }
 
 /* ══ GAMEPLAY SCREENS ══ */
 #rotWarn {
@@ -352,6 +376,7 @@ header {
   position:fixed; top:86px; left:0; right:0; bottom:0;
   overflow:hidden; cursor:none; background:var(--night2);
 }
+#gameArea.time-invert { filter:invert(1) hue-rotate(180deg); transition:filter .3s; }
 #gameBg {
   position:absolute; inset:0; pointer-events:none; z-index:0;
   background-image:linear-gradient(rgba(194,0,251,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(194,0,251,.04) 1px,transparent 1px);
@@ -439,6 +464,18 @@ header {
 }
 @keyframes coinBob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
 .wbot { position:absolute; width:18px; height:18px; border-radius:50%; z-index:9; pointer-events:none; background:radial-gradient(circle,#fff,#c0c0c0); box-shadow:0 0 10px rgba(255,255,255,.8); animation:wbPulse 1s ease-in-out infinite; }
+.mp-aura { position:absolute; left:19px; top:19px; width:38px; height:38px; border-radius:50%; border:2px solid rgba(129,140,248,.4); pointer-events:none; z-index:8; display:none; animation:mpAuraExpand 1.5s ease-out infinite; }
+@keyframes mpAuraExpand { 0%{width:38px;height:38px;opacity:.8;transform:translate(-50%,-50%)} 100%{width:60px;height:60px;opacity:0;transform:translate(-50%,-50%)} }
+.mp-bots { position:absolute; left:0; top:0; width:0; height:0; z-index:5; }
+.voice-badge {
+  position:absolute; left:50%; top:-34px; transform:translateX(-50%);
+  width:20px; height:20px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; z-index:15; pointer-events:none;
+  background:rgba(0,13,8,.85); border:2px solid #555;
+}
+.mp-wbot { position:absolute; width:18px; height:18px; border-radius:50%; pointer-events:none; background:radial-gradient(circle,#fff,#c0c0c0); box-shadow:0 0 10px rgba(255,255,255,.8); animation:wbPulse 1s ease-in-out infinite; }
+.mp-sbot { position:absolute; width:22px; height:22px; border-radius:50%; pointer-events:none; background:radial-gradient(circle,#818cf8,#1e1b4b); box-shadow:0 0 12px rgba(99,102,241,.9); z-index:9; display:flex; align-items:center; justify-content:center; font-size:10px; }
 @keyframes wbPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.15)} }
 .powerup { position:absolute; width:32px; height:32px; z-index:7; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; pointer-events:none; animation:puPulse 2s ease-in-out infinite; }
 @keyframes puPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.14)} }
@@ -545,35 +582,162 @@ header {
 
 /* ══ DUEL CHAT ══ */
 #chatToggleBtn {
-  display:none; position:fixed; top:58px; left:14px; z-index:200;
-  width:46px; height:46px; border-radius:50%; border:2px solid var(--purple);
-  background:rgba(0,13,8,.93); color:var(--purple); font-size:20px; cursor:pointer;
-  align-items:center; justify-content:center; box-shadow:0 0 14px rgba(194,0,251,.4);
+  display:none; position:fixed; top:96px; right:14px; z-index:200;
+  width:48px; height:48px; border-radius:50%; border:2px solid var(--purple);
+  background:radial-gradient(circle at 30% 30%, rgba(194,0,251,.25), rgba(0,13,8,.95));
+  color:var(--purple); font-size:20px; cursor:pointer;
+  align-items:center; justify-content:center; box-shadow:0 0 16px rgba(194,0,251,.45);
+  transition:transform .15s;
 }
+#chatToggleBtn:hover { transform:scale(1.06); }
+#inviteFriendBtn {
+  display:none; position:fixed; top:96px; right:70px; z-index:200;
+  width:48px; height:48px; border-radius:50%; border:2px solid #22c55e;
+  background:radial-gradient(circle at 30% 30%, rgba(34,197,94,.25), rgba(0,13,8,.95));
+  color:#22c55e; font-size:19px; cursor:pointer;
+  align-items:center; justify-content:center; box-shadow:0 0 16px rgba(34,197,94,.4);
+  transition:transform .15s;
+}
+#inviteFriendBtn:hover { transform:scale(1.06); }
+#micToggleBtn {
+  display:none; position:fixed; top:96px; right:126px; z-index:200;
+  width:48px; height:48px; border-radius:50%; border:2px solid var(--purple);
+  background:radial-gradient(circle at 30% 30%, rgba(194,0,251,.25), rgba(0,13,8,.95));
+  color:#fff; font-size:19px; cursor:pointer;
+  align-items:center; justify-content:center; box-shadow:0 0 16px rgba(194,0,251,.4);
+  transition:transform .15s, background .2s;
+}
+#micToggleBtn:hover { transform:scale(1.06); }
+#micMuteBtn {
+  position:fixed; top:96px; right:182px; z-index:200;
+  width:48px; height:48px; border-radius:50%; border:2px solid #ffaa00;
+  background:radial-gradient(circle at 30% 30%, rgba(255,170,0,.2), rgba(0,13,8,.95));
+  color:#ffaa00; font-size:19px; cursor:pointer;
+  align-items:center; justify-content:center; box-shadow:0 0 16px rgba(255,170,0,.35);
+  transition:transform .15s;
+}
+#micMuteBtn:hover { transform:scale(1.06); }
 #chatToggleBtn .chat-badge {
-  position:absolute; top:-4px; left:-4px; background:var(--red); color:#fff;
+  position:absolute; top:-4px; right:-4px; background:var(--red); color:#fff;
   font-family:var(--font-px); font-size:8px; border-radius:50%; width:18px; height:18px;
-  display:none; align-items:center; justify-content:center;
+  display:none; align-items:center; justify-content:center; box-shadow:0 0 6px rgba(255,0,0,.6);
 }
 #chatPanel {
-  display:none; position:fixed; top:58px; left:14px; z-index:200;
-  width:260px; max-width:80vw; height:340px; max-height:60vh;
-  background:rgba(0,13,8,.97); border:2px solid var(--purple); border-radius:14px;
-  box-shadow:0 0 25px rgba(194,0,251,.3); flex-direction:column; overflow:hidden;
+  display:none; position:fixed; top:150px; right:14px; z-index:200;
+  width:280px; max-width:85vw; height:340px; max-height:55vh;
+  background:linear-gradient(180deg, rgba(10,15,30,.98), rgba(0,13,8,.98));
+  border:2px solid var(--purple); border-radius:16px;
+  box-shadow:0 8px 32px rgba(0,0,0,.5), 0 0 25px rgba(194,0,251,.25);
+  flex-direction:column; overflow:hidden;
 }
-#chatPanel.open { display:flex; }
+#chatPanel.open { display:flex; animation:chatPopIn .2s ease-out; }
+@keyframes chatPopIn { from{opacity:0;transform:translateY(10px) scale(.97);} to{opacity:1;transform:translateY(0) scale(1);} }
 #chatPanelHeader {
-  display:flex; align-items:center; justify-content:space-between; padding:8px 12px;
-  border-bottom:1px solid rgba(194,0,251,.25); font-family:var(--font-px); font-size:9px; color:var(--purple);
+  display:flex; align-items:center; justify-content:space-between; padding:10px 14px;
+  background:rgba(194,0,251,.08);
+  border-bottom:1px solid rgba(194,0,251,.3); font-family:var(--font-px); font-size:9px; color:var(--purple);
 }
-#chatPanelClose { cursor:pointer; color:#666; font-size:14px; background:none; border:none; }
-#chatMessages { flex:1; overflow-y:auto; padding:8px 10px; display:flex; flex-direction:column; gap:6px; }
-.chat-msg { font-size:12px; line-height:1.5; font-family:var(--font-ar); word-break:break-word; }
+#chatPanelClose { cursor:pointer; color:#888; font-size:15px; background:none; border:none; transition:color .15s; }
+#chatPanelClose:hover { color:var(--red); }
+#chatMessages { flex:1; overflow-y:auto; padding:10px 12px; display:flex; flex-direction:column; gap:8px; }
+#chatMessages::-webkit-scrollbar { width:5px; }
+#chatMessages::-webkit-scrollbar-thumb { background:rgba(194,0,251,.35); border-radius:3px; }
+.chat-msg { font-size:12.5px; line-height:1.55; font-family:var(--font-ar); word-break:break-word; background:rgba(255,255,255,.03); padding:6px 9px; border-radius:10px; }
+.chat-msg.own { background:rgba(34,211,238,.08); }
 .chat-msg .cm-name { color:#e879f9; font-weight:900; margin-left:4px; }
+.head-chat-bubble {
+  position:absolute; bottom:100%; left:50%; transform:translateX(-50%);
+  margin-bottom:14px; width:max-content; max-width:150px; min-width:24px;
+  padding:6px 12px; border-radius:14px;
+  background:#fff; color:#111; border:none;
+  box-shadow:0 2px 8px rgba(0,0,0,.4);
+  font-family:var(--font-ar); font-size:12px; font-weight:700; line-height:1.35;
+  text-align:center; white-space:normal; word-break:break-word; word-wrap:break-word;
+  z-index:25; pointer-events:none; opacity:1; transition:opacity .9s ease;
+}
+.head-chat-bubble::after {
+  content:''; position:absolute; top:100%; left:50%; transform:translateX(-50%);
+  border:6px solid transparent; border-top-color:#fff;
+}
+.head-chat-bubble.fade { opacity:0; }
 .chat-msg.own .cm-name { color:#22d3ee; }
-#chatInputRow { display:flex; gap:6px; padding:8px; border-top:1px solid rgba(194,0,251,.2); }
-#chatInput { flex:1; padding:8px 10px; border-radius:8px; border:1px solid rgba(194,0,251,.4); background:rgba(0,13,8,.6); color:#fff; font-size:12px; font-family:var(--font-ar); }
-#chatSendBtn { padding:8px 12px; border-radius:8px; border:none; background:linear-gradient(135deg,var(--purple),var(--purple-dim)); color:#fff; font-size:12px; cursor:pointer; }
+#chatInputRow { display:flex; gap:7px; padding:10px; border-top:1px solid rgba(194,0,251,.2); background:rgba(0,0,0,.15); }
+#chatInput { flex:1; padding:9px 12px; border-radius:20px; border:1px solid rgba(194,0,251,.4); background:rgba(0,13,8,.7); color:#fff; font-size:12.5px; font-family:var(--font-ar); }
+#chatInput:focus { outline:none; border-color:var(--purple); box-shadow:0 0 8px rgba(194,0,251,.35); }
+#chatSendBtn { padding:9px 15px; border-radius:20px; border:none; background:linear-gradient(135deg,var(--purple),var(--purple-dim)); color:#fff; font-size:12px; font-weight:700; cursor:pointer; transition:filter .15s; }
+#chatSendBtn:hover { filter:brightness(1.15); }
+
+/* ══ OWNER SYSTEM ══ */
+.owner-secret-dot {
+  display:inline-block; width:9px; height:9px; border-radius:50%;
+  background:transparent; cursor:pointer; margin-inline-start:6px;
+  border:1px solid rgba(255,255,255,.08); vertical-align:middle;
+}
+#ownerCodeModal, #ownerCmdPanel { display:none; }
+#ownerCodeModal.open { display:flex; }
+#ownerCodeModal {
+  position:fixed; inset:0; z-index:900; align-items:center; justify-content:center;
+  background:rgba(0,0,0,.75);
+}
+.owner-code-box {
+  width:280px; max-width:86vw; background:rgba(0,13,8,.97); border:2px solid #ffd700;
+  border-radius:14px; padding:18px; box-shadow:0 0 30px rgba(255,215,0,.3); text-align:center;
+}
+.owner-code-box h3 { font-family:var(--font-px); font-size:10px; color:#ffd700; margin-bottom:14px; letter-spacing:1px; }
+#ownerCodeInput {
+  width:100%; padding:10px; border-radius:8px; border:1px solid rgba(255,215,0,.5);
+  background:rgba(0,0,0,.5); color:#fff; font-size:13px; font-family:var(--font-mono); text-align:center; margin-bottom:10px;
+}
+.owner-code-btns { display:flex; gap:8px; }
+.owner-code-btns button {
+  flex:1; padding:9px; border-radius:8px; border:none; cursor:pointer;
+  font-family:var(--font-ar); font-size:12px; font-weight:700;
+}
+#ownerCodeSubmit { background:linear-gradient(135deg,#ffd700,#b8860b); color:#000; }
+#ownerCodeCancel { background:rgba(255,255,255,.08); color:#aaa; }
+.owner-code-msg { font-size:11px; margin-top:8px; min-height:14px; color:#ff5555; }
+
+.owner-name-badge { color:#ffd700 !important; font-weight:900; text-shadow:0 0 6px rgba(255,215,0,.6); }
+.owner-crown { margin-inline-end:3px; }
+
+#ownerCmdToggleBtn {
+  display:none; position:fixed; bottom:14px; left:14px; z-index:200;
+  width:40px; height:40px; border-radius:50%; border:2px solid #ffd700;
+  background:rgba(0,13,8,.93); color:#ffd700; font-size:16px; cursor:pointer;
+  align-items:center; justify-content:center; box-shadow:0 0 12px rgba(255,215,0,.4);
+}
+#ownerCmdToggleBtn.show { display:flex; }
+#ownerCmdPanel.open { display:block; }
+#ownerCmdPanel {
+  position:fixed; bottom:60px; left:14px; z-index:200; width:260px; max-width:82vw;
+  max-height:50vh; overflow-y:auto; background:rgba(0,13,8,.97); border:2px solid #ffd700;
+  border-radius:12px; padding:12px; box-shadow:0 0 25px rgba(255,215,0,.3);
+}
+#ownerCmdPanel h4 { font-family:var(--font-px); font-size:9px; color:#ffd700; margin-bottom:10px; }
+.owner-cmd-row { font-size:11px; color:#ddd; margin-bottom:8px; line-height:1.5; font-family:var(--font-ar); }
+.owner-cmd-row b { color:#ffd700; }
+
+#ownerCmdAutocomplete {
+  display:none; position:absolute; bottom:100%; left:8px; right:8px; margin-bottom:4px;
+  max-height:150px; overflow-y:auto; background:rgba(0,13,8,.98); border:1px solid #ffd700;
+  border-radius:8px; z-index:210;
+}
+#ownerCmdAutocomplete.open { display:block; }
+.owner-ac-item { padding:7px 10px; font-size:12px; font-family:var(--font-ar); color:#fff; cursor:pointer; }
+.owner-ac-item:hover { background:rgba(255,215,0,.15); }
+
+#ownerBigMsg {
+  display:none; position:fixed; inset:0; z-index:950; align-items:center; justify-content:center;
+  background:rgba(0,0,0,.55); pointer-events:none;
+}
+#ownerBigMsg.show { display:flex; animation:ownerBigMsgPop .35s ease; }
+@keyframes ownerBigMsgPop { from{opacity:0;transform:scale(.8)} to{opacity:1;transform:scale(1)} }
+.owner-big-msg-box {
+  background:rgba(0,13,8,.95); border:2px solid #ffd700; border-radius:16px;
+  padding:22px 30px; text-align:center; box-shadow:0 0 40px rgba(255,215,0,.5); max-width:80vw;
+}
+.owner-big-msg-box .obm-title { font-family:var(--font-px); font-size:12px; color:#ffd700; margin-bottom:10px; letter-spacing:1px; }
+.owner-big-msg-box .obm-text { font-family:var(--font-ar); font-size:15px; color:#fff; line-height:1.6; }
 
 /* ══ KEYFRAMES ══ */
 @keyframes blink        { 50%{opacity:0} }
@@ -589,6 +753,60 @@ header {
   .menu-item{padding:11px 14px;gap:.7rem;}
   .archivist{left:1rem;right:1rem;bottom:1rem;max-width:100%;}
   .panel-box,.shop-panel-box{padding:1.2rem;}
+}
+
+/* ══ SHORT SCREENS (desktop + phone, gentle) ══ */
+@media(max-height:760px){
+  .screen{ padding:10px 0; }
+  .menu-wrap{ padding:.5rem 1rem; }
+  .player-counter{ margin-bottom:.6rem; }
+  .logo{ font-size:clamp(34px,9vw,62px); margin-bottom:0; }
+  .logo-sub{ margin-bottom:1rem; }
+  .menu-item{ padding:9px 18px; margin-bottom:4px; }
+  .menu-footer{ margin-top:.8rem; font-size:8px; line-height:1.6; }
+  #menuSkinPreview{ height:min(46vh,300px); }
+}
+/* ══ VERY SHORT / PHONE LANDSCAPE ══ */
+@media(max-height:520px){
+  .screen{ padding:8px 0; }
+  .menu-wrap{ padding:.4rem 1rem; }
+  .player-counter{ margin-bottom:.4rem; font-size:clamp(7px,1.1vw,8px); }
+  .logo{ font-size:clamp(26px,8vw,44px); letter-spacing:4px; }
+  .logo-sub{ margin-bottom:.6rem; font-size:clamp(6px,1vw,7px); }
+  .menu-item{ padding:6px 16px; margin-bottom:2px; font-size:clamp(8px,1.2vw,9.5px); }
+  .menu-footer{ margin-top:.5rem; font-size:7px; line-height:1.4; }
+  #menuSkinPreview{ display:none; }
+  .panel-box{ padding:1.1rem 1.3rem; max-height:94vh; }
+  .shop-panel-box{ padding:1rem 1.2rem; max-height:94vh; }
+  .panel-title{ margin-bottom:1rem; padding-bottom:.6rem; }
+  .credits-section{ margin-bottom:.9rem; }
+  .story-container{ padding:0 .5rem; }
+  .story-text{ min-height:0; }
+  .story-nav{ margin-top:1.2rem; }
+  header{ height:40px; padding:4px 12px; }
+  .brand img{ width:22px; height:22px; }
+  .brand span{ font-size:9px; }
+  #hud{ top:40px; padding:2px 10px; }
+  .hud-val{ font-size:10px; }
+  .hud-label{ font-size:6px; }
+  .heart{ font-size:11px; }
+  #gameArea{ top:70px; }
+  #waveBanner{ top:82px; padding:5px 18px; font-size:13px; }
+  .toast{ top:74px; }
+}
+@media(max-height:400px) and (pointer:coarse){
+  #joyZone{ width:88px; height:88px; bottom:6px; }
+  #joyKnob{ width:36px; height:36px; }
+  #actionBtns{ bottom:6px; gap:6px; }
+  .act-btn{ width:46px; height:46px; font-size:18px; }
+  #mobileControls{ height:100px; }
+}
+@media(pointer:coarse) and (orientation:landscape){
+  #chatToggleBtn,#inviteFriendBtn,#micToggleBtn,#micMuteBtn{ top:auto; bottom:6px; }
+  #chatToggleBtn{ right:6px; }
+  #inviteFriendBtn{ right:60px; }
+  #micToggleBtn{ right:114px; }
+  #micMuteBtn{ right:168px; }
 }
 </style>
 </head>
@@ -625,38 +843,65 @@ header {
   </div>
 </div>
 
+<!-- ══ SCREEN: AUTH (login / create account) ══ -->
+<div class="screen" id="auth">
+  <div class="story-container" style="max-width:420px">
+    <div class="story-counter" id="auth-title">◈ تسجيل الدخول</div>
+    <div style="display:flex;gap:6px;margin-bottom:1.4rem">
+      <button id="authTabLogin" class="story-skip" style="flex:1;color:var(--sky);border-color:var(--sky);background:rgba(0,191,255,.12)" onclick="switchAuthTab('login')">دخول</button>
+      <button id="authTabSignup" class="story-skip" style="flex:1" onclick="switchAuthTab('signup')">حساب جديد</button>
+    </div>
+    <input type="text" id="authUsername" placeholder="اسم المستخدم" maxlength="14" autocomplete="off"
+      style="width:100%;padding:10px 12px;margin-bottom:10px;border-radius:8px;border:1px solid rgba(194,0,251,.4);background:rgba(0,13,8,.6);color:#fff;font-size:13px;text-align:center;font-family:var(--font-ar)">
+    <input type="password" id="authPassword" placeholder="الباسورد" autocomplete="off"
+      style="width:100%;padding:10px 12px;margin-bottom:10px;border-radius:8px;border:1px solid rgba(194,0,251,.4);background:rgba(0,13,8,.6);color:#fff;font-size:13px;text-align:center;font-family:var(--font-ar)">
+    <input type="password" id="authPasswordConfirm" placeholder="تأكيد الباسورد" autocomplete="off"
+      style="width:100%;padding:10px 12px;margin-bottom:10px;border-radius:8px;border:1px solid rgba(194,0,251,.4);background:rgba(0,13,8,.6);color:#fff;font-size:13px;text-align:center;font-family:var(--font-ar);display:none">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <button id="authOwnerBtn" class="story-skip" style="display:none;font-size:9px" onclick="openOwnerCodeModal('signup')">Owner</button>
+      <span id="authOwnerStatus" style="font-size:9px;color:var(--purple);display:none">👑 هيتفعل عليه Owner</span>
+    </div>
+    <div id="authMsg" style="color:var(--red);font-size:11px;min-height:16px;margin-bottom:10px;text-align:center"></div>
+    <button class="story-next" id="authSubmitBtn" style="width:100%;text-align:center" onclick="submitAuth()">دخول ►</button>
+  </div>
+</div>
+
 <!-- ══ SCREEN: MENU ══ -->
 <div class="screen" id="menu">
+  <img id="menuSkinPreview" src="" alt="">
   <div class="menu-wrap">
     <div class="player-counter">▸ PLAYERS_ONLINE: 0 ◂</div>
     <div class="logo">404</div>
     <div class="logo-sub">NOT FOUND</div>
     <div class="menu-items">
-      <div class="menu-item" onclick="menuAction('new')">
-        <span class="item-icon">►</span><span>لعبة جديدة</span>
+      <div class="menu-item" tabindex="0" role="button" onclick="menuAction('new')" onkeydown="if(event.key==='Enter')menuAction('new')">
+        <span class="item-emoji">🎮</span><span class="item-icon">►</span><span>لعبة جديدة</span>
+      </div>
+      <div class="menu-item" tabindex="0" role="button" onclick="menuAction('duels')" onkeydown="if(event.key==='Enter')menuAction('duels')">
+        <span class="item-emoji">⚔️</span><span class="item-icon">►</span><span>مبارزات</span>
       </div>
       <div class="menu-item broken">
-        <span class="item-icon">►</span><span>متابعة</span>
+        <span class="item-emoji">📂</span><span class="item-icon">►</span><span>متابعة</span>
         <span class="broken-tag">FILE_MISSING</span>
       </div>
       <div class="menu-item broken">
-        <span class="item-icon">►</span><span>الإنجازات</span>
+        <span class="item-emoji">🏆</span><span class="item-icon">►</span><span>الإنجازات</span>
         <span class="broken-tag">CORRUPTED</span>
       </div>
-      <div class="menu-item" onclick="menuAction('shop')">
-        <span class="item-icon">►</span><span>المتجر</span>
+      <div class="menu-item" tabindex="0" role="button" onclick="menuAction('shop')" onkeydown="if(event.key==='Enter')menuAction('shop')">
+        <span class="item-emoji">🛒</span><span class="item-icon">►</span><span>المتجر</span>
       </div>
-      <div class="menu-item" onclick="menuAction('duels')">
-        <span class="item-icon">►</span><span>مبارزات</span>
+      <div class="menu-item" tabindex="0" role="button" onclick="menuAction('friends')" onkeydown="if(event.key==='Enter')menuAction('friends')">
+        <span class="item-emoji">👥</span><span class="item-icon">►</span><span>الأصدقاء <span id="friendReqBadge" style="display:none;background:#ef4444;color:#fff;border-radius:50%;font-size:9px;padding:2px 6px;margin-inline-start:4px">0</span><span id="friendMsgBadge" style="display:none;background:#ef4444;color:#fff;border-radius:50%;font-size:9px;padding:2px 6px;margin-inline-start:4px">0</span></span>
       </div>
-      <div class="menu-item" onclick="menuAction('settings')">
-        <span class="item-icon">►</span><span>الإعدادات</span>
+      <div class="menu-item" id="micRequestsMenuItem" tabindex="0" role="button" style="display:none" onclick="menuAction('micrequests')" onkeydown="if(event.key==='Enter')menuAction('micrequests')">
+        <span class="item-emoji">🎤</span><span class="item-icon">►</span><span>المايك <span id="micReqBadge" style="display:none;background:#ef4444;color:#fff;border-radius:50%;font-size:9px;padding:2px 6px;margin-inline-start:4px">0</span></span>
       </div>
-      <div class="menu-item" onclick="menuAction('credits')">
-        <span class="item-icon">►</span><span>معلومات اللعبة</span>
+      <div class="menu-item" tabindex="0" role="button" onclick="menuAction('settings')" onkeydown="if(event.key==='Enter')menuAction('settings')">
+        <span class="item-emoji">⚙️</span><span class="item-icon">►</span><span>الإعدادات</span>
       </div>
-      <div class="menu-item" onclick="menuAction('restart')">
-        <span class="item-icon">►</span><span>إعادة اللعبة</span>
+      <div class="menu-item" tabindex="0" role="button" onclick="menuAction('credits')" onkeydown="if(event.key==='Enter')menuAction('credits')">
+        <span class="item-emoji">ℹ️</span><span class="item-icon">►</span><span>معلومات اللعبة</span>
       </div>
     </div>
     <div class="menu-footer">
@@ -676,10 +921,24 @@ header {
   <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px"><span style="color:#555">🏆 أعلى نقطة</span><span id="hs-settings" style="color:var(--purple)">0</span></div>
   <div style="display:flex;justify-content:space-between;font-size:11px"><span style="color:#555">🪙 إجمالي العملات</span><span id="coins-settings" style="color:var(--orange)">0</span></div>
 </div>
-    <div style="margin-bottom:1.6rem">
-      <div class="setting-label" style="margin-bottom:9px">🎮 اسمك في اللعبة</div>
-      <input type="text" id="playerNameInputSettings" placeholder="اكتب اسمك..." maxlength="14"
-        style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(194,0,251,.4);background:rgba(0,13,8,.6);color:#fff;font-size:13px;text-align:center;font-family:var(--font-ar);box-shadow:0 0 10px rgba(194,0,251,.15);transition:box-shadow .2s">
+<div style="margin-bottom:1.6rem;text-align:center">
+  <div class="setting-label" style="margin-bottom:9px">🖼️ صورتك الشخصية</div>
+  <img id="avatarPreview" src="" style="display:none;width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--purple);margin:0 auto 8px">
+  <div id="avatarPlaceholder" style="width:72px;height:72px;border-radius:50%;background:rgba(194,0,251,.12);border:2px dashed rgba(194,0,251,.4);display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 8px">👤</div>
+  <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="handleAvatarUpload(event)">
+  <button onclick="document.getElementById('avatarFileInput').click()" style="width:100%;padding:9px;font-size:9px;letter-spacing:1px;font-family:var(--font-px);color:var(--purple);border:1px solid var(--purple);background:transparent;cursor:pointer">تغيير الصورة</button>
+</div>
+<div style="margin-bottom:1.6rem">
+  <div class="setting-label" style="margin-bottom:9px">🎮 اسمك في اللعبة <span id="ownerBadgeSettings" style="display:none">👑 <span class="owner-name-badge">Owner</span></span></div>
+      <div id="accountUsernameDisplay"
+        style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(194,0,251,.4);background:rgba(0,13,8,.6);color:#fff;font-size:13px;text-align:center;font-family:var(--font-ar)"></div>
+      <button onclick="doLogout()" style="width:100%;margin-top:8px;padding:9px;font-size:9px;letter-spacing:2px;font-family:var(--font-px);color:var(--red);border:1px solid var(--red);background:transparent;cursor:pointer">تسجيل خروج</button>
+    </div>
+    <hr class="setting-divider">
+    <div style="margin-bottom:1.2rem">
+      <div class="setting-label" style="margin-bottom:9px">🎤 المايك</div>
+      <div id="micStatusText" style="display:none;font-size:11px;color:#aaa;line-height:1.6;padding:8px;background:rgba(255,255,255,.03);border-radius:8px;text-align:center"></div>
+      <button id="micRequestBtn" onclick="requestMicAccess()" style="display:none;width:100%;margin-top:6px;padding:9px;font-size:9px;letter-spacing:1px;font-family:var(--font-px);color:var(--sky);border:1px solid var(--sky);background:transparent;cursor:pointer">تفعيل المايك</button>
     </div>
     <hr class="setting-divider">
     <div class="setting-row">
@@ -707,10 +966,25 @@ header {
         style="font-family:var(--font-px);font-size:7px;letter-spacing:1px;padding:7px 14px;background:rgba(34,197,94,.1);border:2px solid #22c55e;color:#22c55e;cursor:pointer;transition:all .15s">ON ✅</button>
     </div>
     <hr class="setting-divider">
+    <div class="setting-row">
+      <div class="setting-label">⚡ وضع أداء خفيف</div>
+      <button id="lowGraphicsToggle" onclick="toggleLowGraphics()"
+        style="font-family:var(--font-px);font-size:7px;letter-spacing:1px;padding:7px 14px;background:rgba(255,51,68,.1);border:2px solid #ff3344;color:#ff3344;cursor:pointer;transition:all .15s">OFF ❌</button>
+    </div>
+    <hr class="setting-divider">
     <div style="margin-top:8px;padding:10px;background:rgba(255,51,68,.06);border:1px solid rgba(255,51,68,.3);">
       <div style="font-family:var(--font-px);font-size:8px;color:#f87171;margin-bottom:8px">⚠ منطقة الخطر</div>
       <button onclick="if(confirm('مسح كل البيانات؟ لا رجعة!'))resetAll()" style="width:100%;padding:9px;font-family:var(--font-px);font-size:6px;cursor:pointer;background:rgba(255,51,68,.15);border:2px solid #ff3344;color:#ff3344;letter-spacing:1px">RESET ALL DATA ⚠</button>
     </div>
+  </div>
+</div>
+
+<!-- ══ PANEL: MIC REQUESTS (Owner only) ══ -->
+<div class="overlay-panel" id="panel-micrequests">
+  <div class="panel-box">
+    <button class="panel-close" onclick="closePanel('micrequests')">✕ إغلاق</button>
+    <div class="panel-title">◈ طلبات المايك</div>
+    <div id="micRequestsBox"></div>
   </div>
 </div>
 
@@ -724,6 +998,18 @@ header {
       <div class="credits-entry">
         <span class="credits-role">GAME DEVELOPER</span>
         <span class="credits-name hero">MOGOGO — مهند</span>
+      </div>
+    </div>
+    <hr class="setting-divider">
+    <div class="credits-section">
+      <div class="credits-section-title">▸ أكواد الهدايا 🎁</div>
+      <div class="redeem-box">
+        <div class="redeem-row">
+          <input type="text" id="redeemCodeInput" class="redeem-input" placeholder="اكتب الكود هنا..." maxlength="24" onkeydown="if(event.key==='Enter')redeemCode()">
+          <button class="redeem-btn" onclick="redeemCode()">استلام ►</button>
+        </div>
+        <div class="redeem-msg" id="redeemCodeMsg"></div>
+        <div class="redeem-list" id="redeemCodeList"></div>
       </div>
     </div>
     <hr class="setting-divider">
@@ -743,7 +1029,69 @@ header {
     <div style="text-align:center;margin-top:1rem;font-size:9px;color:#2a2a2a;letter-spacing:2px">
       DREAM CRASHED. FILE MISSING.<br>
       <span style="color:var(--purple);opacity:.4">© 404 — All Rights Reserved</span>
+      <span class="owner-secret-dot" onclick="openOwnerCodeModal()" title=""></span>
     </div>
+  </div>
+</div>
+
+<!-- ══ OWNER: SECRET CODE MODAL ══ -->
+<div id="ownerCodeModal">
+  <div class="owner-code-box">
+    <h3>◈ ACCESS CODE</h3>
+    <input type="password" id="ownerCodeInput" placeholder="ادخل الكود..." autocomplete="off">
+    <div class="owner-code-btns">
+      <button id="ownerCodeSubmit" onclick="tryOwnerCode()">دخول</button>
+      <button id="ownerCodeCancel" onclick="closeOwnerCodeModal()">إلغاء</button>
+    </div>
+    <div class="owner-code-msg" id="ownerCodeMsg"></div>
+  </div>
+</div>
+<!-- ══ MIC: AGE REQUEST MODAL ══ -->
+<div id="micAgeModal" style="display:none;position:fixed;inset:0;z-index:900;align-items:center;justify-content:center;background:rgba(0,0,0,.75)">
+  <div class="owner-code-box" style="border-color:var(--sky);box-shadow:0 0 30px rgba(0,191,255,.3)">
+    <h3 style="color:var(--sky)">◈ تفعيل المايك</h3>
+    <div style="font-size:11px;color:#aaa;margin-bottom:12px;line-height:1.7;font-family:var(--font-ar)">اكتب اسمك الحقيقي وسنك. طلبك هيروح لصاحب اللعبة يوافق عليه الأول قبل ما تقدر تستخدم المايك.</div>
+    <input type="text" id="micRealNameInput" placeholder="اسمك الحقيقي..." maxlength="40" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(0,191,255,.5);background:rgba(0,0,0,.5);color:#fff;font-size:13px;font-family:var(--font-ar);text-align:center;margin-bottom:10px">
+    <input type="number" id="micAgeInput" placeholder="سنك..." min="1" max="120" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(0,191,255,.5);background:rgba(0,0,0,.5);color:#fff;font-size:13px;font-family:var(--font-mono);text-align:center;margin-bottom:10px">
+    <div style="margin-bottom:10px">
+      <button id="micRecordBtn" onclick="startMicRecording()" style="width:100%;padding:9px;font-size:9px;letter-spacing:1px;font-family:var(--font-px);color:#ff5555;border:1px solid #ff5555;background:transparent;cursor:pointer">🎙️ سجّل صوتك (7 ثواني)</button>
+      <div id="micRecordStatus" style="display:none;font-size:11px;margin-top:6px;text-align:center"></div>
+      <audio id="micRecordPreview" controls style="display:none;width:100%;margin-top:8px"></audio>
+    </div>
+    <div class="owner-code-btns">
+      <button onclick="submitMicAgeRequest()" style="background:linear-gradient(135deg,#00bfff,#0077aa);color:#000">إرسال الطلب</button>
+      <button onclick="closeMicAgeModal()" style="background:rgba(255,255,255,.08);color:#aaa">إلغاء</button>
+    </div>
+    <div class="owner-code-msg" id="micAgeMsg"></div>
+  </div>
+</div>
+
+<!-- ══ GENERIC CONFIRM MODAL ══ -->
+<div id="genericConfirmModal" style="display:none;position:fixed;inset:0;background:rgba(0,5,3,.85);z-index:900;align-items:center;justify-content:center">
+  <div style="background:var(--night2);border:1px solid var(--red);box-shadow:0 0 30px rgba(239,68,68,.4);padding:1.8rem 2rem;max-width:340px;width:88%;text-align:center;border-radius:10px">
+    <div style="font-family:var(--font-px);font-size:10px;color:#ef4444;letter-spacing:2px;margin-bottom:14px">⚠ تأكيد</div>
+    <div id="genericConfirmText" style="font-size:13px;color:#ddd;margin-bottom:22px;line-height:1.7"></div>
+    <div style="display:flex;gap:10px">
+      <button id="genericConfirmYes" style="flex:1;padding:10px;font-family:var(--font-px);font-size:8px;letter-spacing:1px;background:rgba(239,68,68,.15);border:1px solid #ef4444;color:#ef4444;cursor:pointer;border-radius:6px">تأكيد</button>
+      <button onclick="closeGenericConfirm()" style="flex:1;padding:10px;font-family:var(--font-px);font-size:8px;letter-spacing:1px;background:transparent;border:1px solid #555;color:#aaa;cursor:pointer;border-radius:6px">إلغاء</button>
+    </div>
+  </div>
+</div>
+<!-- ══ OWNER: COMMAND PANEL ══ -->
+<button id="ownerCmdToggleBtn" onclick="toggleOwnerCmdPanel()" title="أوامر الأونر">👑</button>
+<div id="ownerCmdPanel">
+  <h4>◈ أوامر الأونر</h4>
+  <div class="owner-cmd-row"><b>اقتل_(اسم)</b><br>يقضي على الشخصية المحددة</div>
+  <div class="owner-cmd-row"><b>ابلع_(اسم)</b><br>الشخصية تاخد 1000 فلوس و50 جوهرة</div>
+  <div class="owner-cmd-row"><b>هات_(اسم)</b><br>ياخد كل فلوس وجواهر الشخصية ويصفّرها</div>
+  <div class="owner-cmd-row" style="color:#888">اكتب الأمر في شات المبارزة، وهيظهرلك اقتراحات الأسماء تلقائي.</div>
+</div>
+
+<!-- ══ OWNER: BIG RESULT MESSAGE ══ -->
+<div id="ownerBigMsg">
+  <div class="owner-big-msg-box">
+    <div class="obm-title" id="ownerBigMsgTitle">◈</div>
+    <div class="obm-text" id="ownerBigMsgText"></div>
   </div>
 </div>
 
@@ -766,6 +1114,9 @@ header {
     <div id="tabSkins"><div class="skins-grid" id="skinsGrid"></div></div>
     <div id="tabPowers" style="display:none">
       <div class="spin-area">
+        <div style="font-size:9px;font-family:var(--font-ar);color:#94a3b8;margin-bottom:8px;line-height:1.9;text-align:center">
+          💧 الماء 60% &nbsp;•&nbsp; 🌪️ الريح 25% &nbsp;•&nbsp; 🔥 النار 10% &nbsp;•&nbsp; ✨ الضوء 4% &nbsp;•&nbsp; 👤 الظل 1%
+        </div>
         <button class="spin-btn" id="spinBtn" onclick="doSpin()">
           🎰 ELEMENTAL SPIN
           <span style="display:block;font-size:6px;color:#c084fc;margin-top:3px;font-family:var(--font-ar)">التكلفة: 5 جواهر 💎 — لديك: <span id="spinGemsCount">0</span></span>
@@ -834,7 +1185,7 @@ header {
   </div>
 </div>
 <!-- ══ PLAYER LIST OVERLAY (Tab) ══ -->
-<div id="playerListOverlay" style="position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:900;background:rgba(0,13,8,.97);border:2px solid var(--purple);border-radius:14px;padding:14px;min-width:240px;display:none">
+<div id="playerListOverlay" style="position:fixed;top:60px;left:20px;z-index:900;background:rgba(0,13,8,.97);border:2px solid var(--purple);border-radius:14px;padding:14px;min-width:240px;display:none">
   <div style="font-family:var(--font-px);font-size:10px;color:var(--purple);margin-bottom:10px;text-align:center">◈ اللاعبين في الغرفة (Tab)</div>
   <div id="playerListBody"></div>
 </div>
@@ -905,13 +1256,18 @@ header {
 
   <!-- duel chat -->
   <button id="chatToggleBtn" onclick="toggleChatPanel()">💬<span class="chat-badge" id="chatBadge">0</span></button>
+  <!-- invite a friend while inside a duel room -->
+  <button id="inviteFriendBtn" onclick="openPanel('friends'); renderFriendsList()" title="ادعُ صديق">🤝</button>
+  <button id="micToggleBtn" onclick="toggleVoiceChat()" title="المايك">🎤</button>
+  <button id="micMuteBtn" onclick="toggleVoiceMute()" title="ميوت" style="display:none">🎙️</button>
   <div id="chatPanel">
     <div id="chatPanelHeader">
       <span>◈ شات الغرفة</span>
       <button id="chatPanelClose" onclick="toggleChatPanel()">✕</button>
     </div>
     <div id="chatMessages"></div>
-    <div id="chatInputRow">
+    <div id="chatInputRow" style="position:relative">
+      <div id="ownerCmdAutocomplete"></div>
       <input type="text" id="chatInput" maxlength="120" placeholder="اكتب رسالة...">
       <button id="chatSendBtn" onclick="sendChatMsg()">إرسال</button>
     </div>
@@ -945,6 +1301,9 @@ header {
       </div>
       <div id="tabSkins2"><div class="skins-grid" id="skinsGrid2"></div></div>
       <div id="tabPowers2" style="display:none">
+        <div style="font-size:9px;font-family:var(--font-ar);color:#94a3b8;margin-bottom:8px;line-height:1.9;text-align:center">
+          💧 الماء 60% &nbsp;•&nbsp; 🌪️ الريح 25% &nbsp;•&nbsp; 🔥 النار 10% &nbsp;•&nbsp; ✨ الضوء 4% &nbsp;•&nbsp; 👤 الظل 1%
+        </div>
         <button class="spin-btn" id="spinBtn2" onclick="doSpin2()">
           🎰 ELEMENTAL SPIN
           <span style="display:block;font-size:6px;color:#c084fc;margin-top:3px;font-family:var(--font-ar)">التكلفة: 5 جواهر 💎 — لديك: <span id="spinGemsCount2">0</span></span>
@@ -1025,14 +1384,38 @@ header {
   const mpDb = firebase.database();
   const mpPlayerId = crypto.randomUUID(); // ثابت طول ما الصفحة مفتوحة
 
+  // ── عداد اللاعبين أونلاين الحقيقي (presence) ──────────────
+  (function initOnlinePresence(){
+    const presenceRef = mpDb.ref('onlinePlayers/' + mpPlayerId);
+    mpDb.ref('.info/connected').on('value', snap=>{
+      if(snap.val() === true){
+        presenceRef.onDisconnect().remove();
+        presenceRef.set(true);
+      }
+    });
+    mpDb.ref('onlinePlayers').on('value', snap=>{
+      const n = snap.numChildren();
+      const el = document.querySelector('.player-counter');
+      if(el){
+        el.textContent = `▸ PLAYERS_ONLINE: ${n} ◂`;
+        el.style.color = n === 0 ? '#ff3333' : '#22c55e';
+      }
+    });
+  })();
+
   let duelMode = false;
   let currentRoomId = null;
   let isRoomOwner = false;
   let mpOtherPlayers = {};
   let mpOtherStates = {};
   let mpLastX = null, mpLastY = null;
-  let mpLastSent = 0, mpLastSkin = null;
+  let mpLastSent = 0, mpLastSkin = null, mpLastDashing = false, mpLastFacing = 1;
   let mpPlayerRef = null;
+  let mpKickedRef = null;
+let mpOwnerCmdRef = null;
+  // اللاعبين التانيين: مواقعهم الفعلية بتوصل من فايربيس بس بتترسم على الشاشة
+  // ناعمة (interpolation) عشان ميبانوش بيقفزوا/فيهم لاج
+  let mpRenderLoopStarted = false;
   let mpPlayersListenerRef = null;
   let mpMyPlayerListenerRef = null;
   let roomsListenerRef = null;
@@ -1045,6 +1428,8 @@ header {
     if(!roomsListenerRef){
       roomsListenerRef = mpDb.ref('duelRooms');
       roomsListenerRef.on('value', snap => renderRoomsList(snap.val() || {}));
+    } else {
+      mpDb.ref('duelRooms').once('value').then(snap => renderRoomsList(snap.val() || {}));
     }
     document.getElementById('panel-duels').classList.add('open');
   }
@@ -1057,42 +1442,67 @@ header {
       list.innerHTML = '<div style="text-align:center;color:#556;font-size:12px;padding:20px 0">لا توجد غرف حالياً. اعمل واحدة!</div>';
       return;
     }
-    list.innerHTML = '';
-    let visibleCount = 0;
+    list.innerHTML = '<div style="text-align:center;color:#556;font-size:12px;padding:20px 0">جاري التحميل...</div>';
+    let pending = ids.length, anyVisible = false;
+    const rowsHtml = {};
+    const finish = ()=>{
+      pending--;
+      if(pending > 0) return;
+      list.innerHTML = '';
+      ids.forEach(id=>{ if(rowsHtml[id]) list.appendChild(rowsHtml[id]); });
+      if(!anyVisible){
+        list.innerHTML = '<div style="text-align:center;color:#556;font-size:12px;padding:20px 0">لا توجد غرف حالياً. اعمل واحدة!</div>';
+      }
+    };
     ids.forEach(id => {
       const r = rooms[id];
       const invalid = !r || !r.name || !r.ownerId || !r.maxPlayers || typeof r.playerCount !== 'number';
-      const count = r ? (r.playerCount || 0) : 0;
       const tooNew = r && r.createdAt && (Date.now() - r.createdAt < 5000);
       if(invalid && !tooNew){
         mpDb.ref('duelRooms/' + id).remove();
         mpDb.ref('rooms/' + id).remove();
-        return;
+        finish(); return;
       }
-      if(!invalid && count <= 0 && !tooNew){
-        mpDb.ref('duelRooms/' + id).remove();
-        mpDb.ref('rooms/' + id).remove();
-        return;
-      }
-      if(invalid || (count <= 0 && tooNew)){
-        return; // لسه بتتعمل، متعرضهاش دلوقتي بس متمسحهاش
-      }
-      visibleCount++;
-      const full = count >= r.maxPlayers;
-      const row = document.createElement('div');
-      row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.04);border:1px solid rgba(194,0,251,.2);border-radius:10px;padding:10px 14px;margin-bottom:8px;';
-      row.innerHTML = `
-        <div>
-          <div style="font-weight:900;font-size:13px;color:#e879f9">${r.name || 'غرفة'}</div>
-          <div style="font-size:10px;color:#7888a8">👑 ${r.ownerName || '???'} &nbsp;•&nbsp; ${count}/${r.maxPlayers}</div>
-        </div>
-        <button ${full ? 'disabled' : ''} style="font-family:var(--font-px);font-size:7px;padding:8px 12px;background:${full?'rgba(255,255,255,.05)':'linear-gradient(135deg,var(--purple),var(--purple-dim))'};color:${full?'#556':'#fff'};border:none;cursor:${full?'default':'pointer'};border-radius:6px" onclick="joinDuelRoom('${id}')">${full?'ممتلئة':'انضمام'}</button>
-        `;
-      list.appendChild(row);
+      if(invalid){ finish(); return; } // لسه بتتعمل، متعرضهاش دلوقتي بس متمسحهاش
+
+      // نتأكد فعلياً من عدد اللاعبين الحقيقيين، مش من الرقم المخزن بس
+      // (الرقم المخزن ممكن يفضل عالق غلط لو حصل أي race condition - ده اللي كان بيسيب غرف فاضية شبح)
+      mpDb.ref('rooms/' + id + '/players').once('value').then(snap=>{
+        const real = snap.val() || {};
+        const realCount = Object.keys(real).length;
+        if(realCount <= 0 && !tooNew){
+          mpDb.ref('duelRooms/' + id).remove();
+          mpDb.ref('rooms/' + id).remove();
+          finish(); return;
+        }
+        if(realCount <= 0 && tooNew){
+          finish();
+          setTimeout(()=>{ mpDb.ref('duelRooms').once('value').then(s2=> renderRoomsList(s2.val() || {})); }, 1800);
+          return;
+        }
+        if(r.playerCount !== realCount){
+          mpDb.ref('duelRooms/' + id + '/playerCount').set(realCount);
+        }
+        anyVisible = true;
+        const full = realCount >= r.maxPlayers;
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.04);border:1px solid rgba(194,0,251,.2);border-radius:10px;padding:10px 14px;margin-bottom:8px;';
+        const deleteBtn = (typeof ownerMode!=='undefined' && ownerMode)
+          ? `<button onclick="ownerDeleteRoom('${id}')" style="font-family:var(--font-px);font-size:7px;padding:8px 10px;margin-inline-start:6px;background:rgba(239,68,68,.15);border:1px solid #ef4444;color:#ef4444;cursor:pointer;border-radius:6px">🗑️</button>` : '';
+        row.innerHTML = `
+          <div>
+            <div style="font-weight:900;font-size:13px;color:#e879f9">${r.name || 'غرفة'}</div>
+            <div style="font-size:10px;color:#7888a8">👑 ${r.ownerName || '???'} &nbsp;•&nbsp; ${realCount}/${r.maxPlayers}</div>
+          </div>
+          <div style="display:flex;align-items:center">
+            <button ${full ? 'disabled' : ''} style="font-family:var(--font-px);font-size:7px;padding:8px 12px;background:${full?'rgba(255,255,255,.05)':'linear-gradient(135deg,var(--purple),var(--purple-dim))'};color:${full?'#556':'#fff'};border:none;cursor:${full?'default':'pointer'};border-radius:6px" onclick="joinDuelRoom('${id}')">${full?'ممتلئة':'انضمام'}</button>
+            ${deleteBtn}
+          </div>
+          `;
+        rowsHtml[id] = row;
+        finish();
+      }).catch(()=> finish());
     });
-    if(visibleCount === 0){
-      list.innerHTML = '<div style="text-align:center;color:#556;font-size:12px;padding:20px 0">لا توجد غرف حالياً. اعمل واحدة!</div>';
-    }
   }
 
   // ------------ إنشاء غرفة ------------
@@ -1108,7 +1518,39 @@ header {
     roomRef.set({ name, maxPlayers: maxP, ownerId: mpPlayerId, ownerName: playerName || 'لاعب', playerCount: 1, createdAt: Date.now() })
       .then(()=>{ closeCreateRoom(); closeDuelsList(); nameInp.value=''; joinDuelRoom(roomId, true); });
   }
-
+  function showGenericConfirm(text, onYes){
+  const modal = document.getElementById('genericConfirmModal');
+  const txt = document.getElementById('genericConfirmText');
+  const yesBtn = document.getElementById('genericConfirmYes');
+  txt.textContent = text;
+  yesBtn.onclick = ()=>{ closeGenericConfirm(); onYes(); };
+  modal.style.display = 'flex';
+}
+function closeGenericConfirm(){
+  document.getElementById('genericConfirmModal').style.display = 'none';
+}
+function ownerDeleteRoom(roomId){
+  if(typeof ownerMode==='undefined' || !ownerMode) return;
+  showGenericConfirm('متأكد إنك عايز تمسح الغرفة دي؟ أي لاعب جواها هيتطرد.', ()=>{
+    const doDelete = ()=> Promise.all([
+      mpDb.ref('duelRooms/' + roomId).remove(),
+      mpDb.ref('rooms/' + roomId).remove()
+    ]);
+    mpDb.ref(`rooms/${roomId}/players`).once('value').then(snap=>{
+      const players = snap.val() || {};
+      const ids = Object.keys(players);
+      const kickUpdates = {};
+      ids.forEach(pid => { kickUpdates[`rooms/${roomId}/kicked/${pid}`] = true; });
+      return ids.length ? mpDb.ref().update(kickUpdates) : Promise.resolve();
+    }).then(doDelete).then(()=>{
+      // تنضيف احتياطي بعد شوية، لحالة إن لاعب كان لسه بيعالج خروجه ورجّع playerCount قبل ما نمسح
+      setTimeout(doDelete, 2000);
+      showToast('🗑️ الغرفة اتمسحت');
+    }).catch(err=>{
+      showToast('❌ فشل حذف الغرفة: ' + err.message);
+    });
+  });
+}
   // ------------ الانضمام لغرفة ------------
   function joinDuelRoom(roomId, isCreator){
     currentRoomId = roomId;
@@ -1118,6 +1560,7 @@ header {
       if(!data){ showToast('⚠️ الغرفة اتشالت'); currentRoomId = null; return; }
       isRoomOwner = (data.ownerId === mpPlayerId);
       duelMode = true;
+      closeFriendChat();
       closeDuelsList();
       openGameplay();
       startDuelGame();
@@ -1126,17 +1569,23 @@ header {
         roomRef.child('playerCount').transaction(c => (c||0) + 1);
       }
 
+      console.log('[MP DEBUG] joinDuelRoom called | myId=', mpPlayerId, '| roomId=', roomId, '| isCreator=', !!isCreator, '| isOwner=', isRoomOwner);
+
       mpPlayerRef = mpDb.ref(`rooms/${roomId}/players/${mpPlayerId}`);
-      mpPlayerRef.set({ name: playerName || 'لاعب', x: px, y: py, skin: equippedSkin, moving:false, isOwner: isRoomOwner });
+      mpPlayerRef.set({ name: playerName || 'لاعب', x: px, y: py, skin: equippedSkin, moving:false, isOwner: isRoomOwner, globalOwner: !!ownerMode, avatar: avatarData || null })
+        .then(()=> console.log('[MP DEBUG] my player node WRITTEN ok at rooms/'+roomId+'/players/'+mpPlayerId))
+        .catch(err => console.error('[MP DEBUG] my player node WRITE FAILED:', err));
       mpPlayerRef.onDisconnect().remove();
       roomRef.child('playerCount').onDisconnect().set(firebase.database.ServerValue.increment(-1));
 
       mpPlayersListenerRef = mpDb.ref(`rooms/${roomId}/players`);
       mpPlayersListenerRef.on('value', snap2 => {
         mpOtherPlayers = snap2.val() || {};
+        console.log('[MP DEBUG] players LIST update | keys=', Object.keys(mpOtherPlayers), '| raw=', JSON.stringify(mpOtherPlayers));
         mpRenderOthers();
         renderPlayerListOverlay();
-      });
+        voiceSyncPeers();
+      }, err => console.error('[MP DEBUG] players LIST LISTENER ERROR (permission?):', err));
 
       mpMyPlayerListenerRef = mpDb.ref(`rooms/${roomId}/players/${mpPlayerId}`);
       mpMyPlayerListenerRef.on('value', snap3 => {
@@ -1152,29 +1601,69 @@ header {
         }
       });
 
+      // قناة طرد منفصلة تماماً عن بيانات الحركة، عشان لوب الحركة (mpUpdatePosition)
+      // ميرجعش ينشئ نود اللاعب تاني بعد ما الهوست يطرده (كانت المشكلة الأصلية)
+      mpKickedRef = mpDb.ref(`rooms/${roomId}/kicked/${mpPlayerId}`);
+      mpKickedRef.on('value', snapK => {
+        if(snapK.val() === true && duelMode){
+          if(mpPlayerRef){ mpPlayerRef.off(); mpPlayerRef = null; } // نوقف أي set/update تاني فوراً
+          leaveDuelRoom(true);
+        }
+      });
+
       initChatListener(roomId);
+      mpOwnerCmdRef = mpDb.ref(`rooms/${roomId}/ownerCmd/${mpPlayerId}`);
+      mpOwnerCmdRef.on('child_added', snapC => {
+        const cmd = snapC.val();
+        if(!cmd) return;
+        applyIncomingOwnerCmd(cmd);
+        snapC.ref.remove();
+      });
     });
   }
 
   function initChatListener(roomId){
     const btn = document.getElementById('chatToggleBtn');
     if(btn) btn.style.display = 'flex';
+    const inviteBtn = document.getElementById('inviteFriendBtn');
+    if(inviteBtn) inviteBtn.style.display = 'flex';
+    const micBtn = document.getElementById('micToggleBtn');
+    if(micBtn) micBtn.style.display = micAllowed() ? 'flex' : 'none';
     document.getElementById('chatMessages').innerHTML = '';
     chatUnread = 0; updateChatBadge();
     mpChatRef = mpDb.ref(`rooms/${roomId}/chat`);
     mpChatRef.limitToLast(50).on('child_added', snap => appendChatMessage(snap.val()));
   }
-
-  function appendChatMessage(msg){
+  function showHeadChatBubble(hostEl, text){
+  if(!hostEl || !text) return;
+  const old = hostEl.querySelector('.head-chat-bubble');
+  if(old){ old._t1 && clearTimeout(old._t1); old._t2 && clearTimeout(old._t2); old.remove(); }
+  const b = document.createElement('div');
+  b.className = 'head-chat-bubble';
+  b.textContent = text;
+  hostEl.appendChild(b);
+  b._t1 = setTimeout(()=>{ b.classList.add('fade'); }, 5000);
+  b._t2 = setTimeout(()=>{ b.remove(); }, 6100);
+}
+function appendChatMessage(msg){
     if(!msg) return;
+    const own = msg.playerId === mpPlayerId;
+    // لو المرسل محظور عندي، معتبرش كلامه أصلاً - مش هيبان لا فقاعة ولا في الشات
+    if(!own && typeof myBlocked!=='undefined' && myBlocked && myBlocked[msg.name]) return;
     const box = document.getElementById('chatMessages');
     if(!box) return;
-    const own = msg.playerId === mpPlayerId;
+    const isFresh = msg.ts && (Date.now() - msg.ts < 4000);
+    if(isFresh){
+      const bubbleHost = own ? document.getElementById('player') : document.getElementById('mp-'+msg.playerId);
+      showHeadChatBubble(bubbleHost, msg.text || '');
+    }
     const row = document.createElement('div');
     row.className = 'chat-msg' + (own ? ' own' : '');
     const nameSpan = document.createElement('span');
-    nameSpan.className = 'cm-name';
-    nameSpan.textContent = (own ? 'إنت' : (msg.name || 'لاعب')) + ':';
+    nameSpan.className = 'cm-name' + (own && typeof ownerMode!=='undefined' && ownerMode ? ' owner-name-badge' : '');
+    if(!own && typeof myFriends!=='undefined' && myFriends && myFriends[msg.name]) nameSpan.style.color = '#22c55e';
+    const ownTag = (own && typeof ownerMode!=='undefined' && ownerMode) ? '👑 Owner' : (own ? 'إنت' : (msg.name || 'لاعب'));
+    nameSpan.textContent = ownTag + ':';
     const textSpan = document.createElement('span');
     textSpan.textContent = msg.text || '';
     row.appendChild(nameSpan);
@@ -1202,12 +1691,29 @@ header {
     }
   }
 
+  const BAD_WORDS = ['كسمك','كوس','كوسمك','قسمك','قوسمك','كثمك','كوثمك','قثمك','قوثمك','متناك','ميتناك','مىتناك','ميتناكة','متناكة','مىتناكة','متناكه','ميتناكه','شرموط','شرمطة','عرص','معرص','خول','خاول','ينعل دين امك','ينعل دين ابوك','ينعل دينك','كسم','كس','طيز','ذب','زب','زوبر','ذوبر','ديوث','صرمة'];
+
+  // بيبني ريجيكس لكل كلمة يمسك: تكرار الحرف (كسسسمك) + فواصل بين الحروف (ك.س.م.ك / ك س م ك / ك_س_م_ك)
+  const BAD_PATTERNS = BAD_WORDS.map(w=>{
+    const escaped = [...w].map(ch => ch.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '+');
+    return new RegExp(escaped.join('[\\s\\.\\-_*]{0,2}'), 'g');
+  });
+
+  function filterProfanity(text){
+    let out = text;
+    BAD_PATTERNS.forEach(re=>{
+      re.lastIndex = 0;
+      out = out.replace(re, m => '#'.repeat(m.length));
+    });
+    return out;
+  }
+
   function sendChatMsg(){
     if(!mpChatRef || !currentRoomId) return;
     const inp = document.getElementById('chatInput');
     const text = (inp.value || '').trim();
     if(!text) return;
-    mpChatRef.push({ playerId: mpPlayerId, name: playerName || 'لاعب', text: text.slice(0,120), ts: Date.now() });
+    mpChatRef.push({ playerId: mpPlayerId, name: playerName || 'لاعب', text: filterProfanity(text.slice(0,120)), ts: Date.now() });
     inp.value = '';
   }
 
@@ -1218,6 +1724,13 @@ header {
         if(e.key === 'Enter'){ e.preventDefault(); sendChatMsg(); }
         e.stopPropagation();
       });
+    }
+    const friendSearchInp = document.getElementById('addFriendInput');
+    if(friendSearchInp){
+      friendSearchInp.addEventListener('blur', ()=> setTimeout(()=>{
+        const box = document.getElementById('friendSearchResults');
+        if(box) box.style.display = 'none';
+      }, 200));
     }
   });
 
@@ -1254,8 +1767,11 @@ header {
       mpDb.ref(`rooms/${roomId}/players/${targetId}/isOwner`).set(true),
       mpDb.ref(`duelRooms/${roomId}`).update({ ownerId: targetId, ownerName: targetName })
     ]).then(()=>{
+      console.log('crown transfer OK');
       finalizeLeave(false);
-    }).catch(()=>{
+    }).catch((err)=>{
+      console.error('crown transfer FAILED:', err);
+      alert('فشل تحويل التاج: '+err.message);
       finalizeLeave(false);
     });
   }
@@ -1265,12 +1781,23 @@ header {
     const roomId = currentRoomId;
     if(mpPlayersListenerRef){ mpPlayersListenerRef.off(); mpPlayersListenerRef = null; }
     if(mpMyPlayerListenerRef){ mpMyPlayerListenerRef.off(); mpMyPlayerListenerRef = null; }
+    if(mpKickedRef){ mpKickedRef.off(); mpDb.ref(`rooms/${roomId}/kicked/${mpPlayerId}`).remove().catch(()=>{}); mpKickedRef = null; }
+    if(mpOwnerCmdRef){ mpOwnerCmdRef.off(); mpOwnerCmdRef = null; }
+
+    // مهم جداً: نلغي أي onDisconnect اتسجل وقت الدخول (نقص playerCount / مسح نود اللاعب)
+    // عشان لو التاب اتقفل بعد كده، السيرفر ميعملش العملية دي تاني مرة زيادة عن اللي عملناه هنا يدوياً
+    // (كان ده سبب إن الهوست يتطرد لما لاعب مطرود يقفل التاب بعد الطرد - playerCount كان بينقص مرتين)
+    mpDb.ref(`duelRooms/${roomId}/playerCount`).onDisconnect().cancel().catch(()=>{});
+    mpDb.ref(`rooms/${roomId}/players/${mpPlayerId}`).onDisconnect().cancel().catch(()=>{});
 
     const doCleanup = ()=>{
       mpDb.ref(`rooms/${roomId}/players`).once('value').then(snap=>{
         const remaining = snap.val() || {};
         const remainingCount = Object.keys(remaining).length;
         if(remainingCount <= 0){
+          // الغرفة بقت فاضية فعلاً (شوفنا ده من قراءة طازة من السيرفر) - أي حد
+          // آخر واحد بيخرج يقدر يمسحها، مش لازم يكون هو الهوست بالظبط.
+          // .remove() مأمونة حتى لو اتنين حاولوا يمسحوا نفس المسار في نفس الوقت.
           mpDb.ref('duelRooms/' + roomId).remove();
           mpDb.ref('rooms/' + roomId).remove();
         } else {
@@ -1292,38 +1819,607 @@ header {
     if(chatPanelEl) chatPanelEl.classList.remove('open');
     const chatBtnEl = document.getElementById('chatToggleBtn');
     if(chatBtnEl) chatBtnEl.style.display = 'none';
+    const inviteBtnEl = document.getElementById('inviteFriendBtn');
+    if(inviteBtnEl) inviteBtnEl.style.display = 'none';
     const chatMsgsEl = document.getElementById('chatMessages');
     if(chatMsgsEl) chatMsgsEl.innerHTML = '';
 
     Object.keys(mpOtherStates).forEach(id=>{
       if(mpOtherStates[id].animInterval) clearInterval(mpOtherStates[id].animInterval);
+      if(mpOtherStates[id].particleInterval) clearInterval(mpOtherStates[id].particleInterval);
+      if(mpOtherStates[id].botInterval) clearInterval(mpOtherStates[id].botInterval);
+      if(mpOtherStates[id].dashInterval) clearInterval(mpOtherStates[id].dashInterval);
       const el = document.getElementById('mp-'+id);
       if(el) el.remove();
     });
     mpOtherStates = {}; mpOtherPlayers = {};
     duelMode = false; currentRoomId = null; isRoomOwner = false;
     hidePlayerListOverlay();
+    leaveVoiceChat();
+    const micBtnEl = document.getElementById('micToggleBtn');
+    if(micBtnEl) micBtnEl.style.display = 'none';
     if(wasKicked) showToast('🚫 تم طردك من الغرفة');
     backToMenu();
   }
 
+  // ══════════════════════════════════════════════════════════════
+  //  VOICE CHAT (WebRTC — mesh: كل واحد متصل مباشرة بالتاني)
+  // ══════════════════════════════════════════════════════════════
+  let voiceEnabled = false;
+  let voiceMuted = false;
+  let localVoiceStream = null;
+  let voicePeers = {};
+  let voiceMySignalRef = null;
+  let voiceAudioCtx = null;
+  let voiceSelfAnalyser = null;
+  let voiceLoopInterval = null;
+  const VOICE_ICE = { iceServers:[{urls:'stun:stun.l.google.com:19302'}] };
+  const VOICE_MAX_DIST = 480; // أبعد مسافة تسمع فيها حد؛ زوّدها أو قلّلها براحتك
+  function ensureVoiceAudioCtx(){
+    if(!voiceAudioCtx) voiceAudioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    if(voiceAudioCtx.state === 'suspended') voiceAudioCtx.resume();
+  }
+  function getAnalyserLevel(analyser, dataArr){
+    analyser.getByteTimeDomainData(dataArr);
+    let sum = 0;
+    for(let i=0;i<dataArr.length;i++){ const v=(dataArr[i]-128)/128; sum += v*v; }
+    return Math.sqrt(sum/dataArr.length);
+  }
+  function updateVoiceBadge(id, opts){
+    const host = (id === mpPlayerId) ? PEL() : document.getElementById('mp-'+id);
+    if(!host) return;
+    let badge = host.querySelector('.voice-badge');
+    if(!opts.micOn){ if(badge) badge.remove(); return; }
+    if(!badge){ badge = document.createElement('div'); badge.className='voice-badge'; host.appendChild(badge); }
+    const nameTag = host.querySelector('.mp-nametag');
+    if(nameTag){
+      const nameTop = parseFloat(nameTag.style.top) || -20;
+      badge.style.top = (nameTop - 24) + 'px'; // فوق الاسم بمسافة 24px
+    }
+    if(opts.muted){
+      badge.textContent = '🔇';
+      badge.style.borderColor = '#ef4444';
+      badge.style.boxShadow = 'none';
+    } else {
+      badge.textContent = '🎤';
+      const lvl = Math.max(0, Math.min(1, opts.level||0));
+      badge.style.borderColor = lvl>0.06 ? '#22c55e' : '#555';
+      badge.style.boxShadow = lvl>0.06 ? `0 0 ${4+lvl*16}px rgba(34,197,94,${0.4+lvl*0.6})` : 'none';
+    }
+  }
+  function startVoiceLoop(){
+    if(voiceLoopInterval) return;
+    voiceLoopInterval = setInterval(()=>{
+      if(!voiceEnabled) return;
+      let selfLevel = 0;
+      if(voiceSelfAnalyser && !voiceMuted) selfLevel = getAnalyserLevel(voiceSelfAnalyser.analyser, voiceSelfAnalyser.dataArr);
+      updateVoiceBadge(mpPlayerId, { micOn:true, muted:voiceMuted, level:selfLevel });
+      const myEl = PEL();
+      const myX = myEl ? (parseFloat(myEl.style.left)||0) : 0;
+      const myY = myEl ? (parseFloat(myEl.style.top)||0) : 0;
+      Object.keys(voicePeers).forEach(peerId=>{
+        const entry = voicePeers[peerId];
+        const otherData = mpOtherPlayers[peerId] || {};
+        let level = 0;
+        if(entry.analyser && !otherData.micMuted) level = getAnalyserLevel(entry.analyser, entry.dataArr);
+        updateVoiceBadge(peerId, { micOn: !!otherData.micOn, muted: !!otherData.micMuted, level });
+        const theirEl = document.getElementById('mp-'+peerId);
+        if(theirEl && entry.gainNode){
+          const tx = parseFloat(theirEl.style.left)||0, ty = parseFloat(theirEl.style.top)||0;
+          const dist = Math.hypot(myX-tx, myY-ty);
+          const gain = Math.max(0, Math.min(1, 1 - dist/VOICE_MAX_DIST));
+          entry.gainNode.gain.setTargetAtTime(gain, voiceAudioCtx.currentTime, 0.15);
+        }
+      });
+    }, 150);
+  }
+  function stopVoiceLoop(){
+    if(voiceLoopInterval){ clearInterval(voiceLoopInterval); voiceLoopInterval = null; }
+    const selfHost = PEL();
+    if(selfHost){ const b = selfHost.querySelector('.voice-badge'); if(b) b.remove(); }
+    Object.keys(mpOtherPlayers||{}).forEach(id=>{
+      const el = document.getElementById('mp-'+id);
+      if(el){ const b = el.querySelector('.voice-badge'); if(b) b.remove(); }
+    });
+  }
+
+  function createVoicePeer(peerId, isInitiator){
+    const pc = new RTCPeerConnection(VOICE_ICE);
+    const entry = { pc, gainNode:null, analyser:null, dataArr:null };
+    voicePeers[peerId] = entry;
+    if(localVoiceStream) localVoiceStream.getTracks().forEach(t=> pc.addTrack(t, localVoiceStream));
+    pc.onicecandidate = e=>{
+      if(e.candidate && currentRoomId){
+        mpDb.ref(`rooms/${currentRoomId}/voiceSignals/${peerId}`).push({ from: mpPlayerId, type:'candidate', candidate: JSON.stringify(e.candidate) }).catch(()=>{});
+      }
+    };
+    pc.ontrack = e=>{
+      ensureVoiceAudioCtx();
+      const src = voiceAudioCtx.createMediaStreamSource(e.streams[0]);
+      const gainNode = voiceAudioCtx.createGain();
+      const analyser = voiceAudioCtx.createAnalyser();
+      analyser.fftSize = 256;
+      src.connect(gainNode); gainNode.connect(voiceAudioCtx.destination);
+      src.connect(analyser);
+      entry.gainNode = gainNode; entry.analyser = analyser; entry.dataArr = new Uint8Array(analyser.frequencyBinCount);
+    };
+    pc.onconnectionstatechange = ()=>{
+      if(['failed','closed','disconnected'].includes(pc.connectionState)) closeVoicePeer(peerId);
+    };
+    if(isInitiator && currentRoomId){
+      pc.createOffer().then(offer=> pc.setLocalDescription(offer)).then(()=>{
+        mpDb.ref(`rooms/${currentRoomId}/voiceSignals/${peerId}`).push({ from: mpPlayerId, type:'offer', sdp: JSON.stringify(pc.localDescription) }).catch(()=>{});
+      }).catch(err=> console.error('[VOICE] offer failed', err));
+    }
+    return entry;
+  }
+  function closeVoicePeer(peerId){
+    const entry = voicePeers[peerId];
+    if(entry && entry.pc){ try{ entry.pc.close(); }catch{} }
+    delete voicePeers[peerId];
+    const el = document.getElementById('mp-'+peerId);
+    if(el){ const badge = el.querySelector('.voice-badge'); if(badge) badge.remove(); }
+  }
+  function handleVoiceSignal(msg){
+    const peerId = msg && msg.from; if(!peerId || !currentRoomId) return;
+    const theirName = (mpOtherPlayers[peerId]||{}).name;
+    if(theirName && myBlocked[theirName]) return; // متبلكهوش خالص
+    if(msg.type === 'offer'){
+      let entry = voicePeers[peerId]; if(!entry) entry = createVoicePeer(peerId, false);
+      const pc = entry.pc;
+      pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(msg.sdp)))
+        .then(()=> pc.createAnswer()).then(answer=> pc.setLocalDescription(answer))
+        .then(()=> mpDb.ref(`rooms/${currentRoomId}/voiceSignals/${peerId}`).push({ from: mpPlayerId, type:'answer', sdp: JSON.stringify(pc.localDescription) }))
+        .catch(err=> console.error('[VOICE] answer failed', err));
+    } else if(msg.type === 'answer'){
+      const entry = voicePeers[peerId];
+      if(entry) entry.pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(msg.sdp))).catch(err=> console.error('[VOICE] setRemote failed', err));
+    } else if(msg.type === 'candidate'){
+      const entry = voicePeers[peerId];
+      if(entry) entry.pc.addIceCandidate(new RTCIceCandidate(JSON.parse(msg.candidate))).catch(()=>{});
+    }
+  }
+  function voiceSyncPeers(){
+    if(!voiceEnabled || !currentRoomId) return;
+    const ids = Object.keys(mpOtherPlayers).filter(id=> id !== mpPlayerId);
+    ids.forEach(peerId=>{
+      const theirName = (mpOtherPlayers[peerId]||{}).name;
+      if(theirName && myBlocked[theirName]){ if(voicePeers[peerId]) closeVoicePeer(peerId); return; }
+      if(!voicePeers[peerId] && mpPlayerId < peerId) createVoicePeer(peerId, true);
+    });
+    Object.keys(voicePeers).forEach(peerId=>{
+      if(!mpOtherPlayers[peerId]) closeVoicePeer(peerId);
+    });
+  }
+  async function toggleVoiceChat(){
+    if(!currentRoomId){ showToast('⚠️ لازم تكون جوه غرفة'); return; }
+    if(!micAllowed()){ showToast('🔒 المايك محتاج موافقة الأونر الأول، من الإعدادات'); return; }
+    if(voiceEnabled){ leaveVoiceChat(); return; }
+    try{
+      localVoiceStream = await navigator.mediaDevices.getUserMedia({ audio:true });
+    }catch(err){ showToast('❌ متقدرش أوصل للمايك: '+err.message); return; }
+    voiceEnabled = true; voiceMuted = false;
+    ensureVoiceAudioCtx();
+    const selfSrc = voiceAudioCtx.createMediaStreamSource(localVoiceStream);
+    const selfAnalyser = voiceAudioCtx.createAnalyser();
+    selfAnalyser.fftSize = 256;
+    selfSrc.connect(selfAnalyser);
+    voiceSelfAnalyser = { analyser: selfAnalyser, dataArr: new Uint8Array(selfAnalyser.frequencyBinCount) };
+    if(mpPlayerRef) mpPlayerRef.update({ micOn:true, micMuted:false }).catch(()=>{});
+    voiceMySignalRef = mpDb.ref(`rooms/${currentRoomId}/voiceSignals/${mpPlayerId}`);
+    voiceMySignalRef.on('child_added', snap=>{
+      const msg = snap.val();
+      snap.ref.remove().catch(()=>{});
+      if(msg) handleVoiceSignal(msg);
+    });
+    voiceSyncPeers();
+    startVoiceLoop();
+    renderVoiceUI();
+    showToast('🎤 المايك اتفتح');
+  }
+  function leaveVoiceChat(){
+    if(!voiceEnabled){ 
+      if(localVoiceStream){ localVoiceStream.getTracks().forEach(t=>t.stop()); localVoiceStream=null; }
+      return;
+    }
+    voiceEnabled = false;
+    stopVoiceLoop();
+    voiceSelfAnalyser = null;
+    if(mpPlayerRef) mpPlayerRef.update({ micOn:false, micMuted:false }).catch(()=>{});
+    if(voiceMySignalRef && currentRoomId){
+      voiceMySignalRef.off();
+      mpDb.ref(`rooms/${currentRoomId}/voiceSignals/${mpPlayerId}`).remove().catch(()=>{});
+    }
+    voiceMySignalRef = null;
+    Object.keys(voicePeers).forEach(closeVoicePeer);
+    if(localVoiceStream){ localVoiceStream.getTracks().forEach(t=>t.stop()); localVoiceStream = null; }
+    renderVoiceUI();
+  }
+  function toggleVoiceMute(){
+    if(!voiceEnabled || !localVoiceStream) return;
+    voiceMuted = !voiceMuted;
+    localVoiceStream.getAudioTracks().forEach(t=> t.enabled = !voiceMuted);
+    if(mpPlayerRef) mpPlayerRef.update({ micMuted: voiceMuted }).catch(()=>{});
+    renderVoiceUI();
+  }
+  function renderVoiceUI(){
+    const micBtn = document.getElementById('micToggleBtn');
+    const muteBtn = document.getElementById('micMuteBtn');
+    if(micBtn){
+      micBtn.style.borderColor = voiceEnabled ? '#22c55e' : 'var(--purple)';
+      micBtn.style.color = voiceEnabled ? '#22c55e' : '#fff';
+    }
+    if(muteBtn){
+      muteBtn.style.display = voiceEnabled ? 'flex' : 'none';
+      muteBtn.textContent = voiceMuted ? '🔇' : '🎙️';
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  //  MIC ACCESS SYSTEM — لازم موافقة الأونر (وبيّن سنك) قبل ما المايك يشتغل
+  // ══════════════════════════════════════════════════════════════
+  const MIC_COOLDOWN_MS = 72 * 60 * 60 * 1000; // 72 ساعة
+  let micApprovalStatus = null;   // null | 'pending' | 'approved' | 'rejected'
+  let micDecidedAt = null;        // وقت آخر قرار (للعد التنازلي بعد الرفض)
+  let micRequestListenerRef = null;
+  let micReqAllListenerAttached = false;
+  let micStatusTickInterval = null;
+
+  function micAllowed(){
+    return !!ownerMode || micApprovalStatus === 'approved';
+  }
+
+  function initMicRequestListener(){
+    if(!currentAccount) return;
+    if(micRequestListenerRef) micRequestListenerRef.off();
+    micRequestListenerRef = mpDb.ref('micRequests/' + currentAccount);
+    micRequestListenerRef.on('value', snap=>{
+      const data = snap.val();
+      const wasAllowed = micAllowed();
+      micApprovalStatus = data ? data.status : null;
+      micDecidedAt = data ? (data.decidedAt || null) : null;
+      renderMicSettingsUI();
+      const micBtn = document.getElementById('micToggleBtn');
+      if(micBtn && currentRoomId) micBtn.style.display = micAllowed() ? 'flex' : 'none';
+      if(wasAllowed && !micAllowed() && voiceEnabled){
+        leaveVoiceChat();
+        showToast('🚫 الأونر قفل المايك عندك');
+      }
+    });
+  }
+  function detachMicRequestListener(){
+    if(micRequestListenerRef){ micRequestListenerRef.off(); micRequestListenerRef = null; }
+    micApprovalStatus = null; micDecidedAt = null;
+  }
+
+  function requestMicAccess(){
+    if(ownerMode) return;
+    if(!currentAccount){ showToast('⚠️ سجّل دخول الأول من الإعدادات'); return; }
+    if(micApprovalStatus === 'pending'){ showToast('🕒 طلبك لسه قيد المراجعة'); return; }
+    if(micApprovalStatus === 'rejected' && micDecidedAt && (Date.now() - micDecidedAt) < MIC_COOLDOWN_MS){
+      showToast('❌ لازم تستنى قبل ما تطلب تاني'); return;
+    }
+    document.getElementById('micAgeMsg').textContent = '';
+    document.getElementById('micRealNameInput').value = '';
+    document.getElementById('micAgeInput').value = '';
+    resetMicRecordUI();
+    document.getElementById('micAgeModal').style.display = 'flex';
+    setTimeout(()=>document.getElementById('micRealNameInput').focus(), 50);
+  }
+  function resetMicRecordUI(){
+    micRecordedAudioBase64 = null;
+    const btn = document.getElementById('micRecordBtn');
+    if(btn){ btn.disabled = false; btn.style.opacity = '1'; btn.textContent = '🎙️ سجّل صوتك (7 ثواني)'; }
+    const status = document.getElementById('micRecordStatus');
+    if(status) status.style.display = 'none';
+    const prev = document.getElementById('micRecordPreview');
+    if(prev){ prev.style.display = 'none'; prev.src = ''; }
+  }
+  function closeMicAgeModal(){
+    if(micRecorder && micRecorder.state === 'recording'){ try{ micRecorder.stop(); }catch{} }
+    if(micRecordStream){ micRecordStream.getTracks().forEach(t=>t.stop()); micRecordStream = null; }
+    document.getElementById('micAgeModal').style.display = 'none';
+  }
+
+  // ── تسجيل صوتي 7 ثواني بيتبعت مع طلب المايك ─────────────
+  let micRecorder = null;
+  let micRecordedChunks = [];
+  let micRecordedAudioBase64 = null;
+  let micRecordStream = null;
+  async function startMicRecording(){
+    const btn = document.getElementById('micRecordBtn');
+    const status = document.getElementById('micRecordStatus');
+    const preview = document.getElementById('micRecordPreview');
+    if(!btn || btn.disabled) return;
+    micRecordedAudioBase64 = null;
+    preview.style.display = 'none'; preview.src = '';
+    try{
+      micRecordStream = await navigator.mediaDevices.getUserMedia({ audio:true });
+    }catch(err){
+      status.style.display='block'; status.style.color='#ff5555'; status.textContent = '❌ متقدرش أوصل للمايك: ' + err.message;
+      return;
+    }
+    btn.disabled = true; btn.style.opacity = '.5';
+    micRecordedChunks = [];
+    let mimeType = 'audio/webm';
+    try{ if(!MediaRecorder.isTypeSupported(mimeType)) mimeType = ''; }catch{ mimeType = ''; }
+    micRecorder = mimeType ? new MediaRecorder(micRecordStream, { mimeType }) : new MediaRecorder(micRecordStream);
+    micRecorder.ondataavailable = e=>{ if(e.data && e.data.size>0) micRecordedChunks.push(e.data); };
+    micRecorder.onstop = ()=>{
+      if(micRecordStream){ micRecordStream.getTracks().forEach(t=>t.stop()); micRecordStream = null; }
+      const blob = new Blob(micRecordedChunks, { type: micRecorder.mimeType || 'audio/webm' });
+      const reader = new FileReader();
+      reader.onload = ()=>{
+        micRecordedAudioBase64 = reader.result;
+        preview.src = micRecordedAudioBase64;
+        preview.style.display = 'block';
+        status.style.color = '#22c55e'; status.textContent = '✅ اتسجل، تقدر تسمعه أو تعيد التسجيل';
+        btn.disabled = false; btn.style.opacity = '1';
+        btn.textContent = '🎙️ إعادة التسجيل';
+      };
+      reader.readAsDataURL(blob);
+    };
+    let remain = 7;
+    status.style.display = 'block'; status.style.color = '#ff5555'; status.textContent = '🔴 بيسجل... ' + remain;
+    const tick = setInterval(()=>{
+      remain--;
+      if(remain > 0) status.textContent = '🔴 بيسجل... ' + remain;
+      else clearInterval(tick);
+    }, 1000);
+    micRecorder.start();
+    setTimeout(()=>{ if(micRecorder && micRecorder.state === 'recording') micRecorder.stop(); }, 7000);
+  }
+  function submitMicAgeRequest(){
+    const realName = document.getElementById('micRealNameInput').value.trim();
+    const val = document.getElementById('micAgeInput').value.trim();
+    const age = parseInt(val, 10);
+    if(!realName){
+      document.getElementById('micAgeMsg').textContent = 'اكتب اسمك الحقيقي.';
+      return;
+    }
+    if(!val || isNaN(age) || age <= 0 || age > 120){
+      document.getElementById('micAgeMsg').textContent = 'اكتب سن صحيح.';
+      return;
+    }
+    if(!micRecordedAudioBase64){
+      document.getElementById('micAgeMsg').textContent = 'لازم تسجل صوتك 7 ثواني الأول.';
+      return;
+    }
+    if(!currentAccount){ document.getElementById('micAgeMsg').textContent = 'سجّل دخول الأول.'; return; }
+    mpDb.ref('micRequests/' + currentAccount).set({
+      name: playerName || currentAccount, realName: realName, age: age, audio: micRecordedAudioBase64, status: 'pending', ts: Date.now()
+    }).then(()=>{
+      closeMicAgeModal();
+      showToast('📨 طلبك اتبعت للأونر');
+    }).catch(err=>{
+      document.getElementById('micAgeMsg').textContent = 'فشل الإرسال: ' + err.message;
+    });
+  }
+
+  function formatMicCooldown(ms){
+    const totalMin = Math.max(0, Math.ceil(ms/60000));
+    const h = Math.floor(totalMin/60), m = totalMin%60;
+    return h > 0 ? (h+'س '+m+'د') : (m+'د');
+  }
+
+  function renderMicSettingsUI(){
+    const txt = document.getElementById('micStatusText');
+    const btn = document.getElementById('micRequestBtn');
+    if(!txt || !btn) return;
+    if(!micStatusTickInterval){
+      micStatusTickInterval = setInterval(()=>{
+        if(document.getElementById('panel-settings').classList.contains('open')) renderMicSettingsUI();
+      }, 30000);
+    }
+    if(ownerMode){
+      txt.style.display='block'; txt.style.color='#ffd700'; txt.textContent='👑 مايكك شغال دايماً، من غير موافقة';
+      btn.style.display='none'; return;
+    }
+    if(!currentAccount){
+      txt.style.display='block'; txt.style.color='#aaa'; txt.textContent='🔒 سجّل دخول عشان تقدر تطلب تفعيل المايك';
+      btn.style.display='none'; return;
+    }
+    if(micApprovalStatus === 'approved'){
+      txt.style.display='block'; txt.style.color='#22c55e'; txt.textContent='✅ المايك شغال، الأونر وافق عليه';
+      btn.style.display='none'; return;
+    }
+    if(micApprovalStatus === 'pending'){
+      txt.style.display='block'; txt.style.color='#ffd700'; txt.textContent='🕒 طلبك قيد المراجعة عند الأونر';
+      btn.style.display='none'; return;
+    }
+    if(micApprovalStatus === 'rejected' && micDecidedAt && (Date.now()-micDecidedAt) < MIC_COOLDOWN_MS){
+      const remain = MIC_COOLDOWN_MS - (Date.now()-micDecidedAt);
+      txt.style.display='block'; txt.style.color='#ef4444'; txt.textContent='❌ اتفض طلبك، جرب تاني بعد '+formatMicCooldown(remain);
+      btn.style.display='none'; return;
+    }
+    txt.style.display='none';
+    btn.style.display='block';
+  }
+
+  // ── Owner: قائمة طلبات المايك ─────────────────────────────
+  function renderMicRequestsList(){
+    if(!ownerMode) return;
+    const box = document.getElementById('micRequestsBox');
+    if(!box) return;
+    box.innerHTML = '<div style="text-align:center;color:#556;font-size:12px;padding:20px 0">بيحمّل...</div>';
+    mpDb.ref('micRequests').once('value').then(snap=>{
+      renderMicRequestsFromData(snap.val() || {});
+    }).catch(()=>{ box.innerHTML = '<div style="text-align:center;color:#f66;font-size:12px;padding:20px 0">فشل التحميل</div>'; });
+  }
+  function renderMicRequestsFromData(all){
+    const box = document.getElementById('micRequestsBox');
+    if(!box) return;
+    updateMicReqBadge(all);
+    const ids = Object.keys(all);
+    if(ids.length === 0){
+      box.innerHTML = '<div style="text-align:center;color:#556;font-size:12px;padding:20px 0">مفيش طلبات مايك</div>';
+      return;
+    }
+    const rank = s => s==='pending' ? 0 : s==='approved' ? 1 : 2;
+    ids.sort((a,b)=> (rank(all[a].status)-rank(all[b].status)) || ((all[b].ts||0)-(all[a].ts||0)));
+    box.innerHTML = ids.map(id=>{
+      const r = all[id] || {};
+      const statusColor = r.status==='pending' ? '#ffd700' : r.status==='approved' ? '#22c55e' : '#ef4444';
+      const statusText  = r.status==='pending' ? '🕒 قيد المراجعة' : r.status==='approved' ? '✅ متوافق عليه' : '❌ مرفوض';
+      return `
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(194,0,251,.2);border-radius:8px;padding:10px;margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <span style="font-size:12px;color:#fff">${escapeHtml(r.name || id)} <span style="color:#667;font-size:10px">(${escapeHtml(id)})</span></span>
+          <span style="font-size:10px;color:${statusColor}">${statusText}</span>
+        </div>
+        <div style="font-size:11px;color:#aaa;margin-bottom:2px">الاسم الحقيقي: ${escapeHtml(r.realName || '-')}</div>
+        <div style="font-size:11px;color:#aaa;margin-bottom:8px">السن: ${Number(r.age)||'-'}</div>
+        ${r.audio ? `<audio controls src="${r.audio}" style="width:100%;margin-bottom:8px"></audio>` : ''}
+        <div style="display:flex;gap:6px">
+          <button onclick="decideMicRequest('${id}','approved')" style="flex:1;font-family:var(--font-px);font-size:6px;padding:7px;background:rgba(34,197,94,.15);border:1px solid #22c55e;color:#22c55e;cursor:pointer;border-radius:5px">موافقة</button>
+          <button onclick="decideMicRequest('${id}','rejected')" style="flex:1;font-family:var(--font-px);font-size:6px;padding:7px;background:rgba(239,68,68,.15);border:1px solid #ef4444;color:#ef4444;cursor:pointer;border-radius:5px">رفض</button>
+          <button onclick="if(confirm('متأكد؟ الطلب هيتشال بالكامل وهيحتاج يبعت بياناته تاني من الأول.'))removeMicRequest('${id}')" style="flex:1;font-family:var(--font-px);font-size:6px;padding:7px;background:rgba(255,255,255,.06);border:1px solid #888;color:#ccc;cursor:pointer;border-radius:5px">إزالة</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+    function decideMicRequest(id, decision){
+    if(!ownerMode) return;
+    mpDb.ref('micRequests/' + id).update({ status: decision, decidedAt: Date.now() })
+      .then(()=>{ showToast(decision==='approved' ? '✅ اتوافق عليه' : '❌ اترفض'); renderMicRequestsList(); })
+      .catch(err=> showToast('❌ فشل: ' + err.message));
+  }
+  function removeMicRequest(id){
+    if(!ownerMode) return;
+    mpDb.ref('micRequests/' + id).remove()
+      .then(()=>{ showToast('🗑️ اتشال الطلب، لازم يبعت بياناته تاني'); renderMicRequestsList(); })
+      .catch(err=> showToast('❌ فشل: ' + err.message));
+  }
+  function updateMicReqBadge(all){
+    const pending = Object.values(all||{}).filter(r=> r && r.status==='pending').length;
+    const badge = document.getElementById('micReqBadge');
+    if(badge){
+      if(pending > 0){ badge.textContent = pending; badge.style.display='inline-block'; }
+      else badge.style.display='none';
+    }
+  }
+  function initOwnerMicBadgeListener(){
+    if(!ownerMode || micReqAllListenerAttached) return;
+    micReqAllListenerAttached = true;
+    mpDb.ref('micRequests').on('value', snap=>{
+      const all = snap.val() || {};
+      updateMicReqBadge(all);
+      const panel = document.getElementById('panel-micrequests');
+      if(panel && panel.classList.contains('open')) renderMicRequestsFromData(all);
+    });
+  }
+
   function kickPlayer(targetId){
-    if(!isRoomOwner || !currentRoomId || targetId === mpPlayerId) return;
-    mpDb.ref(`rooms/${currentRoomId}/players/${targetId}`).remove();
+  if((!isRoomOwner && !ownerMode) || !currentRoomId || targetId === mpPlayerId) return;
+  if(mpOtherPlayers[targetId] && mpOtherPlayers[targetId].globalOwner){
+    showToast('🛡️ متقدرش تطرد الأونر');
+    return;
+  }
+    const roomId = currentRoomId;
+    // أولاً نعلّم اللاعب ده كمطرود على قناة منفصلة، عشان جهازه يوقف بعت الحركة فوراً
+    // من غير ما يعمل race مع مسح النود بتاعته
+    mpDb.ref(`rooms/${roomId}/kicked/${targetId}`).set(true)
+      .then(()=> mpDb.ref(`rooms/${roomId}/players/${targetId}`).remove())
+      .then(()=>{ showToast('🚫 تم طرد اللاعب'); })
+      .catch((err)=>{ showToast('❌ فشل الطرد: '+err.message); console.error('kick error:', err); });
   }
 
   function mpUpdatePosition(){
     if(!duelMode || !mpPlayerRef) return;
     const now = Date.now();
     const isMoving = (mpLastX !== null && (Math.abs(px - mpLastX) > 0.3 || Math.abs(py - mpLastY) > 0.3));
+    const facing = (lastDir.x < 0) ? -1 : 1;
     mpLastX = px; mpLastY = py;
-    if(now - mpLastSent < 100 && mpLastSkin === equippedSkin) return;
-    mpLastSent = now; mpLastSkin = equippedSkin;
-    mpPlayerRef.set({ name: playerName || 'لاعب', x: px, y: py, skin: equippedSkin, moving: isMoving, isOwner: isRoomOwner });
+    if(now - mpLastSent < 60 && mpLastSkin === equippedSkin && mpLastDashing === dashing && mpLastFacing === facing) return;
+    mpLastSent = now; mpLastSkin = equippedSkin; mpLastDashing = dashing; mpLastFacing = facing;
+    // مهم: بنستخدم update() مش set() هنا، وبنسيب isOwner برة الرسالة دي خالص.
+    // isOwner بيتغير من مكان واحد بس (نقل التاج) - لو بعتناه هنا كل 60ms بالقيمة
+    // القديمة المحفوظة عندنا محلياً، هيمسح أي تحديث تاج جديد وصل للسيرفر (race condition).
+    // نفس المبدأ ده كان بيمنع الطرد من الثبات لإن set() كانت بتنشئ النود تاني كل ما نبعت.
+    mpPlayerRef.update({ x: px, y: py, skin: equippedSkin, moving: isMoving, dashing: !!dashing, facing });
   }
+  function mpApplyDash(id, isDashing){
+  const st = mpOtherStates[id]; if(!st) return;
+  const el = document.getElementById('mp-'+id);
+  const body = el && el.querySelector('.mp-body');
+  if(!body) return;
+  if(isDashing === !!st.dashing) return;
+  st.dashing = isDashing;
+  const img = body.querySelector('img');
+  if(!img || !st.base) return;
+  if(isDashing){
+    if(st.animInterval){ clearInterval(st.animInterval); st.animInterval=null; }
+    if(st.dashInterval) clearInterval(st.dashInterval);
+    let df=0;
+    st.dashInterval = setInterval(()=>{
+      if(!st.dashing){ clearInterval(st.dashInterval); st.dashInterval=null; return; }
+      img.src = `${st.base}/DASH/P_3_${df}.png`;
+      df=(df+1)%4;
+      mpSpawnGhost(id);
+    },80);
+  } else {
+    if(st.dashInterval){ clearInterval(st.dashInterval); st.dashInterval=null; }
+    if(!st.animInterval){
+      st.animInterval = setInterval(()=>{
+        const frames = st.moving ? 8 : 6;
+        st.frame = (st.frame + 1) % frames;
+        const folder = st.moving ? `${st.base}/RUN/P_1_` : `${st.base}/IDLE/P_`;
+        if(img) img.src = `${folder}${st.frame}.png`;
+      },100);
+    }
+  }
+}
+function mpApplyShadowUlt(id, castAt){
+  const st = mpOtherStates[id]; if(!st || !castAt) return;
+  if(st.lastUltCast === castAt) return;
+  st.lastUltCast = castAt;
+  if(Date.now() - castAt > 8000) return; // قديمة - وقتها خلص فعلاً، متتطبقش على الداخل الجديد
+  const gaEl=document.getElementById('gameArea');
+  if(gaEl){ gaEl.classList.add('time-invert'); setTimeout(()=>gaEl.classList.remove('time-invert'),8000); }
+  showToast('🌑 خصمك فعّل الظل المطلق! السرعة اتبطأت');
+  duelSlowUntil = Date.now()+8000;
+}
 const mpParticleColors={water:'#22d3ee',wind:'#bae6fd',fire:'#f97316',light:'#fef08a',shadow:'#818cf8'};
+// بيحرك اللاعبين التانيين بسلاسة بين كل تحديث ييجي من فايربيس وبين اللي بعده
+// (بدل القفزة المباشرة اللي كانت بتبان كلاج) - بيشتغل كل فريم لوحده منفصل عن سرعة الشبكة
+function mpInterpLoop(){
+  Object.keys(mpOtherStates).forEach(id=>{
+    const st = mpOtherStates[id];
+    if(!st || st.tx===undefined) return;
+    const el = document.getElementById('mp-'+id);
+    if(!el) return;
+    st.cx += (st.tx - st.cx) * 0.25;
+    st.cy += (st.ty - st.cy) * 0.25;
+    el.style.left = st.cx + 'px';
+    el.style.top = st.cy + 'px';
+  });
+  requestAnimationFrame(mpInterpLoop);
+}
+// بيقلب صورة اللاعب التاني حسب اتجاه حركته (يمين/شمال) زي ما بيحصل عندك إنت محلياً
+function mpApplyFacing(id, facing){
+  const st = mpOtherStates[id]; if(!st) return;
+  if(st.facing === facing) return;
+  st.facing = facing;
+  const el = document.getElementById('mp-'+id);
+  const img = el && el.querySelector('.mp-body img');
+  if(img) img.style.transform = `translate(-50%,-50%) scaleX(${facing})`;
+}
+// بيرسم أثر الأشباح (ghost trail) بتاع الداش عند اللاعبين التانيين، بنفس شكل اللي عندك إنت
+function mpSpawnGhost(id){
+  if(lowGraphics) return;
+  const st = mpOtherStates[id]; if(!st) return;
+  const el = document.getElementById('mp-'+id);
+  const GA = document.getElementById('gameArea');
+  if(!el || !GA) return;
+  const sk = SKINS_DEF.find(s => s.id === st.skinId) || SKINS_DEF[0];
+  const x = parseFloat(el.style.left) || 0, y = parseFloat(el.style.top) || 0;
+  const g = document.createElement('div'); g.className = 'dash-ghost';
+  g.style.cssText = `left:${x}px;top:${y}px;background:linear-gradient(135deg,${sk.dashColor},${sk.dashColor2})`;
+  GA.appendChild(g); setTimeout(() => g.remove(), 300);
+}
 function mpStartParticles(id, skinId){
   const st = mpOtherStates[id]; if(!st) return;
+  if(lowGraphics){ if(st.particleInterval){clearInterval(st.particleInterval);st.particleInterval=null;} return; }
   if(!mpParticleColors[skinId]){ if(st.particleInterval){clearInterval(st.particleInterval);st.particleInterval=null;} return; }
   if(st.particleSkin===skinId) return;
   if(st.particleInterval) clearInterval(st.particleInterval);
@@ -1341,6 +2437,47 @@ function mpStartParticles(id, skinId){
     GA.appendChild(p); setTimeout(()=>p.remove(),900);
   },pRate);
 }
+function mpUpdateBots(id, skinId){
+  const st = mpOtherStates[id]; if(!st) return;
+  const mode = (skinId==='white') ? 'white' : (skinId==='shadow') ? 'shadow' : null;
+  if(st.botMode === mode) return;
+  st.botMode = mode;
+  if(st.botTimeout){ clearTimeout(st.botTimeout); st.botTimeout = null; }
+  if(st.botInterval){ clearInterval(st.botInterval); st.botInterval = null; }
+  const elNow = document.getElementById('mp-'+id);
+  const auraNow = elNow && elNow.querySelector('.mp-aura');
+  const botsBoxNow = elNow && elNow.querySelector('.mp-bots');
+  if(auraNow) auraNow.style.display = 'none';
+  if(botsBoxNow) botsBoxNow.innerHTML = '';
+  if(!mode) return;
+  st.botTimeout = setTimeout(()=>{
+    const el = document.getElementById('mp-'+id); if(!el) return;
+    const st2 = mpOtherStates[id]; if(!st2 || st2.botMode !== mode) return;
+    const aura = el.querySelector('.mp-aura');
+    const botsBox = el.querySelector('.mp-bots');
+    if(aura) aura.style.display = mode==='shadow' ? 'block' : 'none';
+    if(!botsBox) return;
+    const count = mode==='white' ? 3 : 1;
+    const dots = [];
+    for(let i=0;i<count;i++){
+      const d = document.createElement('div');
+      d.className = mode==='white' ? 'mp-wbot' : 'mp-sbot';
+      if(mode==='shadow') d.textContent = '👁️';
+      botsBox.appendChild(d);
+      dots.push(d);
+    }
+    st2.botInterval = setInterval(()=>{
+      const t = performance.now()/900;
+      const orbitR = mode==='white' ? 50 : 55;
+      dots.forEach((d,i)=>{
+        const ang = t + i*(Math.PI*2/count);
+        const half = mode==='white' ? 9 : 11;
+        d.style.left = (19+Math.cos(ang)*orbitR-half) + 'px';
+        d.style.top  = (19+Math.sin(ang)*orbitR-half) + 'px';
+      });
+    }, 40);
+  }, 10000);
+}
 function mpApplyVisual(id, skinId){
     const st = mpOtherStates[id];
     const el = document.getElementById('mp-' + id);
@@ -1356,7 +2493,7 @@ function mpApplyVisual(id, skinId){
   const base = sk.id==='fire'?'Player/Flame':sk.id==='green'?'Player/G':sk.id==='orange'?'Player/O':sk.id==='red'?'Player/R':sk.id==='yellow'?'Player/Y':sk.id==='white'?'Player/W':sk.id==='water'?'Player/WATER':sk.id==='wind'?'Player/WIND':sk.id==='light'?'Player/Light':sk.id==='shadow'?'Player/SHADOW':'Player/P';
       st.base = base;
       body.style.cssText = 'position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:54px;height:90px;';
-      body.innerHTML = `<img style="width:100%;height:100%;image-rendering:pixelated" src="${base}/IDLE/P_0.png">`;
+      body.innerHTML = `<img style="position:absolute;left:50%;top:50%;width:100%;height:100%;transform:translate(-50%,-50%);image-rendering:pixelated" src="${base}/IDLE/P_0.png">`;
       st.animInterval = setInterval(() => {
         const frames = st.moving ? 8 : 6;
         st.frame = (st.frame + 1) % frames;
@@ -1373,7 +2510,9 @@ function mpApplyVisual(id, skinId){
       body.style.boxShadow = `0 0 14px ${sk.glow}`;
     }
   }
-
+  function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
   function mpRenderOthers(){
     const GA = document.getElementById('gameArea');
     if(!GA) return;
@@ -1387,23 +2526,33 @@ function mpApplyVisual(id, skinId){
         el = document.createElement('div');
         el.id = 'mp-' + id;
         el.style.cssText = 'position:absolute;width:38px;height:38px;pointer-events:none;';
-        el.innerHTML = `<div class="mp-nametag" style="position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:11px;background:rgba(0,0,0,.6);padding:2px 8px;border-radius:6px;white-space:nowrap;color:#fff;font-family:var(--font-ar)"></div><div class="mp-body"></div>`;
+        el.innerHTML = `<div class="mp-nametag" style="position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:11px;background:rgba(0,0,0,.6);padding:2px 8px;border-radius:6px;white-space:nowrap;color:#fff;font-family:var(--font-ar);z-index:20"></div><div class="mp-body"></div><div class="mp-aura"></div><div class="mp-bots"></div>`;
         GA.appendChild(el);
-        mpOtherStates[id] = { skinId: null, frame: 0, animInterval: null, moving: false, particleInterval: null };
+        mpOtherStates[id] = { skinId: null, frame: 0, animInterval: null, moving: false, particleInterval: null, botMode: null, botInterval: null };
       }
       const nameTag = el.querySelector('.mp-nametag');
-      nameTag.textContent = (data.isOwner ? '👑 ' : '') + (data.name || 'لاعب');
-mpStartParticles(id, data.skin || 'purple');
-      el.style.left = (data.x || 0) + 'px';
-      el.style.top = (data.y || 0) + 'px';
+      nameTag.innerHTML = data.globalOwner
+  ? `<span class="owner-crown">👑</span><span class="owner-name-badge">${escapeHtml(data.name || 'لاعب')}</span>`
+  : `<span style="color:${typeof socialNameColor==='function' ? socialNameColor(data.name) : '#fff'}">${(data.isOwner ? '👑 ' : '') + escapeHtml(data.name || 'لاعب')}</span>`;
+      mpStartParticles(id, data.skin || 'purple');
+mpUpdateBots(id, data.skin || 'purple');
+      const st = mpOtherStates[id];
+      // بدل ما نلزق الإحداثيات الجديدة على طول (اللي بتبان كقفزة/لاج)، بنسجل الهدف
+      // بس، وفيه لوب منفصل (mpInterpLoop) بيحرك العنصر ناحيته بسلاسة كل فريم
+      st.tx = data.x || 0; st.ty = data.y || 0;
+      if(st.cx === undefined){ st.cx = st.tx; st.cy = st.ty; el.style.left = st.cx+'px'; el.style.top = st.cy+'px'; }
       el.style.zIndex = Math.floor(data.y || 0) + 10;
-      if(mpOtherStates[id]) mpOtherStates[id].moving = !!data.moving;
+      st.moving = !!data.moving;
       mpApplyVisual(id, data.skin || 'purple');
+      mpApplyFacing(id, data.facing === -1 ? -1 : 1);
+      mpApplyDash(id, !!data.dashing);
+      mpApplyShadowUlt(id, data.shadowUltCastAt);
     });
+    if(!mpRenderLoopStarted){ mpRenderLoopStarted = true; requestAnimationFrame(mpInterpLoop); }
     document.querySelectorAll('[id^="mp-"]').forEach(el => {
       const id = el.id.replace('mp-', '');
       if(!seen.has(id)){
-        if(mpOtherStates[id]){ if(mpOtherStates[id].animInterval) clearInterval(mpOtherStates[id].animInterval); if(mpOtherStates[id].particleInterval) clearInterval(mpOtherStates[id].particleInterval); }
+        if(mpOtherStates[id]){ if(mpOtherStates[id].animInterval) clearInterval(mpOtherStates[id].animInterval); if(mpOtherStates[id].particleInterval) clearInterval(mpOtherStates[id].particleInterval); if(mpOtherStates[id].dashInterval) clearInterval(mpOtherStates[id].dashInterval); if(mpOtherStates[id].botInterval) clearInterval(mpOtherStates[id].botInterval); if(mpOtherStates[id].botTimeout) clearTimeout(mpOtherStates[id].botTimeout); }
         delete mpOtherStates[id];
         el.remove();
       }
@@ -1423,14 +2572,32 @@ mpStartParticles(id, data.skin || 'purple');
     if(!playerListOverlayOpen) return;
     const body = document.getElementById('playerListBody');
     body.innerHTML = '';
-    const entries = [{ id: mpPlayerId, name: playerName || 'لاعب', isOwner: isRoomOwner }]
-      .concat(Object.keys(mpOtherPlayers).filter(id => id !== mpPlayerId).map(id => ({ id, name: mpOtherPlayers[id].name || 'لاعب', isOwner: !!mpOtherPlayers[id].isOwner })));
+    const entries = [{ id: mpPlayerId, name: playerName || 'لاعب', isOwner: isRoomOwner, globalOwner: !!ownerMode, avatar: avatarData || null }]
+    .concat(Object.keys(mpOtherPlayers).filter(id => id !== mpPlayerId).map(id => ({ id, name: mpOtherPlayers[id].name || 'لاعب', isOwner: !!mpOtherPlayers[id].isOwner, globalOwner: !!mpOtherPlayers[id].globalOwner, avatar: mpOtherPlayers[id].avatar || null })));
     entries.forEach(p => {
       const row = document.createElement('div');
-      row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.06)';
-      const kickBtn = (isRoomOwner && p.id !== mpPlayerId)
+      row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.06);gap:8px;flex-wrap:wrap';
+      const kickBtn = ((isRoomOwner || ownerMode) && p.id !== mpPlayerId && !p.globalOwner)
         ? `<button onclick="kickPlayer('${p.id}')" style="font-family:var(--font-px);font-size:6px;padding:5px 8px;background:rgba(239,68,68,.15);border:1px solid #ef4444;color:#ef4444;cursor:pointer;border-radius:5px">طرد</button>` : '';
-      row.innerHTML = `<span style="font-size:12px">${p.isOwner ? '👑 ' : ''}${p.name}${p.id===mpPlayerId?' (إنت)':''}</span>${kickBtn}`;
+      const nameColor = p.globalOwner ? '' : socialNameColor(p.name);
+      const nameHtml = p.globalOwner
+        ? `<span class="owner-crown">👑</span><span class="owner-name-badge">${escapeHtml(p.name)} (Owner)</span>`
+        : `<span style="color:${nameColor}">${p.isOwner ? '👑 ' : ''}${escapeHtml(p.name)}${p.id===mpPlayerId?' (إنت)':''}</span>`;
+      const avatarHtml = p.avatar
+        ? `<img src="${p.avatar}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,.25)">`
+        : `<span style="display:inline-flex;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.08);align-items:center;justify-content:center;font-size:13px">👤</span>`;
+      let socialBtns = '';
+      if(p.id !== mpPlayerId && currentAccount){
+        if(myFriends[p.name]){
+          socialBtns = `<button onclick="removeFriend('${p.name}')" style="font-family:var(--font-px);font-size:6px;padding:5px 8px;background:rgba(255,255,255,.06);border:1px solid #888;color:#aaa;cursor:pointer;border-radius:5px">إزالة</button>`;
+        } else if(myBlocked[p.name]){
+          socialBtns = `<button onclick="unblockUser('${p.name}')" style="font-family:var(--font-px);font-size:6px;padding:5px 8px;background:rgba(34,197,94,.15);border:1px solid #22c55e;color:#22c55e;cursor:pointer;border-radius:5px">فك الحظر</button>`;
+        } else {
+          socialBtns = `<button onclick="sendFriendRequestTo('${p.name}')" style="font-family:var(--font-px);font-size:6px;padding:5px 8px;background:rgba(194,0,251,.15);border:1px solid var(--purple);color:var(--purple);cursor:pointer;border-radius:5px">طلب صداقة</button>
+            <button onclick="blockUser('${p.name}')" style="font-family:var(--font-px);font-size:6px;padding:5px 8px;background:rgba(239,68,68,.15);border:1px solid #ef4444;color:#ef4444;cursor:pointer;border-radius:5px">حظر</button>`;
+        }
+      }
+      row.innerHTML = `<span style="display:flex;align-items:center;gap:8px">${avatarHtml}<span style="font-size:12px">${nameHtml}</span></span><span style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end">${socialBtns}${kickBtn}</span>`;
       body.appendChild(row);
     });
   }
@@ -1441,6 +2608,8 @@ mpStartParticles(id, data.skin || 'purple');
   }
 
   document.addEventListener('keydown', e=>{
+    const tag = e.target && e.target.tagName ? e.target.tagName.toLowerCase() : '';
+    if(tag==='input' || tag==='textarea') return;
     if(e.key === 'Tab' && duelMode){ e.preventDefault(); togglePlayerListOverlay(); }
   });
 </script>
@@ -1459,9 +2628,11 @@ let totalCoins   = saveData.totalCoins || 0;
 let gems         = saveData.gems || 0;
 let ownedSkins   = saveData.ownedSkins || ['purple'];
 let equippedSkin = saveData.equippedSkin || 'purple';
+let avatarData = saveData.avatar || null; // base64 data URL أو null لو مفيش صورة
 let ownedPowers  = saveData.ownedPowers || [];
 let equippedPower= saveData.equippedPower || null;
 let playerName   = saveData.playerName || '';
+let redeemedCodes= saveData.redeemedCodes || [];
 
 let introStoryEnabled = true;
 try{
@@ -1469,8 +2640,153 @@ try{
   introStoryEnabled = _vIntro===null ? true : JSON.parse(_vIntro);
 }catch{ introStoryEnabled = true; }
 
+let lowGraphics = false;
+try{
+  const _vLG = localStorage.getItem('404_lowGraphics');
+  lowGraphics = _vLG===null ? false : JSON.parse(_vLG);
+}catch{ lowGraphics = false; }
+
 function persistAll(){
-  writeSave({ hs:HS, totalCoins, gems, ownedSkins, equippedSkin, ownedPowers, equippedPower, playerName, v:1 });
+  writeSave({ hs:HS, totalCoins, gems, ownedSkins, equippedSkin, ownedPowers, equippedPower, playerName, avatar: avatarData, redeemedCodes, v:1 });
+  if(currentAccount){
+    accRef(currentAccount).child('data').update({ hs:HS, totalCoins, gems, ownedSkins, equippedSkin, ownedPowers, equippedPower, avatar: avatarData, redeemedCodes }).catch(()=>{});
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  ACCOUNT SYSTEM (Firebase-backed login / signup)
+// ══════════════════════════════════════════════════════════════
+const ACC_KEY = '404_account_user';
+let currentAccount = null;      // username of the logged-in account, or null
+let pendingOwnerSignup = false; // set true if the correct owner code was entered during signup
+
+function accRef(username){ return mpDb.ref('accounts/'+username); }
+
+async function sha256Hex(str){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+function validUsername(u){
+  return /^[A-Za-z0-9_\u0621-\u064A]{3,14}$/.test(u);
+}
+
+function applyAccountData(username, acc){
+  currentAccount = username;
+  playerName = username;
+  const d = acc.data || {};
+  HS            = d.hs || 0;
+  totalCoins    = d.totalCoins || 0;
+  gems          = d.gems || 0;
+  ownedSkins    = d.ownedSkins || ['purple'];
+  equippedSkin  = d.equippedSkin || 'purple';
+  avatarData    = d.avatar || null;
+  ownedPowers   = d.ownedPowers || [];
+  equippedPower = d.equippedPower || null;
+  redeemedCodes = d.redeemedCodes || [];
+  ownerMode = acc.isOwner === true;
+  localStorage.setItem('404_owner_mode', ownerMode ? '1' : '0');
+  localStorage.setItem(ACC_KEY, username);
+  writeSave({ hs:HS, totalCoins, gems, ownedSkins, equippedSkin, ownedPowers, equippedPower, playerName, redeemedCodes, v:1 });
+  if(typeof refreshOwnerUI==='function') refreshOwnerUI();
+  if(typeof refreshAvatarSettingsUI==='function') refreshAvatarSettingsUI();
+  if(typeof initFriendSystem==='function') initFriendSystem();
+  if(typeof initMicRequestListener==='function') initMicRequestListener();
+}
+
+async function signupAccount(username, password, isOwner){
+  if(!validUsername(username)) return { ok:false, msg:'اسم المستخدم لازم يكون 3-14 حرف/رقم من غير مسافات أو رموز.' };
+  if(!password || password.length < 4) return { ok:false, msg:'الباسورد لازم يكون 4 أحرف على الأقل.' };
+  const snap = await accRef(username).once('value');
+  if(snap.exists()) return { ok:false, msg:'الاسم ده متأخد، اختار اسم تاني.' };
+  const passwordHash = await sha256Hex(password);
+  const record = {
+    passwordHash, isOwner: isOwner===true, createdAt: Date.now(),
+    data: {
+      hs:0,
+      totalCoins: isOwner ? 5000 : 0,
+      gems: isOwner ? 1000 : 0,
+      ownedSkins: isOwner ? SKINS_DEF.map(s=>s.id) : ['purple'],
+      equippedSkin:'purple', ownedPowers:[], equippedPower:null, redeemedCodes:[]
+    }
+  };
+  await accRef(username).set(record);
+  applyAccountData(username, record);
+  return { ok:true };
+}
+
+async function loginAccount(username, password){
+  if(!username || !password) return { ok:false, msg:'اكتب اليوزر والباسورد.' };
+  const snap = await accRef(username).once('value');
+  if(!snap.exists()) return { ok:false, msg:'مفيش حساب بالاسم ده.' };
+  const acc = snap.val();
+  const passwordHash = await sha256Hex(password);
+  if(passwordHash !== acc.passwordHash) return { ok:false, msg:'الباسورد غلط.' };
+  applyAccountData(username, acc);
+  return { ok:true };
+}
+
+function logoutAccount(){
+  currentAccount = null;
+  if(typeof detachMicRequestListener==='function') detachMicRequestListener();
+  localStorage.removeItem(ACC_KEY);
+}
+function doLogout(){
+  logoutAccount();
+  location.reload();
+}
+
+async function trySilentLogin(){
+  const saved = localStorage.getItem(ACC_KEY);
+  if(!saved) return false;
+  try{
+    const snap = await accRef(saved).once('value');
+    if(!snap.exists()) return false;
+    applyAccountData(saved, snap.val());
+    return true;
+  }catch{ return false; }
+}
+
+let authMode = 'login';
+function switchAuthTab(mode){
+  authMode = mode;
+  document.getElementById('authTabLogin').style.background   = mode==='login'  ? 'rgba(0,191,255,.12)' : 'transparent';
+  document.getElementById('authTabSignup').style.background  = mode==='signup' ? 'rgba(194,0,251,.12)' : 'transparent';
+  document.getElementById('authPasswordConfirm').style.display = mode==='signup' ? 'block' : 'none';
+  document.getElementById('authOwnerBtn').style.display = mode==='signup' ? 'inline-block' : 'none';
+  document.getElementById('authOwnerStatus').style.display = (mode==='signup' && pendingOwnerSignup) ? 'inline' : 'none';
+  document.getElementById('authSubmitBtn').textContent = mode==='login' ? 'دخول ►' : 'إنشاء حساب ►';
+  document.getElementById('auth-title').textContent = mode==='login' ? '◈ تسجيل الدخول' : '◈ حساب جديد';
+  document.getElementById('authMsg').textContent = '';
+}
+
+async function submitAuth(){
+  const username = document.getElementById('authUsername').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const msgEl = document.getElementById('authMsg');
+  const btn = document.getElementById('authSubmitBtn');
+  msgEl.textContent = '';
+  btn.disabled = true;
+  try{
+    let res;
+    if(authMode === 'login'){
+      res = await loginAccount(username, password);
+    } else {
+      const confirmPw = document.getElementById('authPasswordConfirm').value;
+      if(password !== confirmPw){ msgEl.textContent = 'الباسورد وتأكيده مش متطابقين.'; return; }
+      res = await signupAccount(username, password, pendingOwnerSignup);
+    }
+    if(!res.ok){ msgEl.textContent = res.msg; return; }
+    enterGameAfterAuth();
+  }catch(e){
+    msgEl.textContent = 'حصلت مشكلة في الاتصال، حاول تاني.';
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+function enterGameAfterAuth(){
+  if(introStoryEnabled){ transition('auth','story'); runStory(); }
+  else{ transition('auth','menu'); playBgMusic('menu'); refreshMenuDisplays(); }
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1570,11 +2886,76 @@ function renderIntroToggle(){
   b.style.borderColor = introStoryEnabled ? '#22c55e' : '#ff3344';
   b.style.color = introStoryEnabled ? '#22c55e' : '#ff3344';
 }
+function toggleLowGraphics(){
+  playClick();
+  lowGraphics = !lowGraphics;
+  try{ localStorage.setItem('404_lowGraphics', JSON.stringify(lowGraphics)); }catch{}
+  if(lowGraphics) stopSkinParticles();
+  renderLowGraphicsToggle();
+}
+function renderLowGraphicsToggle(){
+  const b=document.getElementById('lowGraphicsToggle');
+  if(!b) return;
+  b.textContent = lowGraphics ? 'ON ✅' : 'OFF ❌';
+  b.style.background = lowGraphics ? 'rgba(34,197,94,.1)' : 'rgba(255,51,68,.1)';
+  b.style.borderColor = lowGraphics ? '#22c55e' : '#ff3344';
+  b.style.color = lowGraphics ? '#22c55e' : '#ff3344';
+}
 // load saved vol
 try{
   const sv = JSON.parse(localStorage.getItem('404_vol'));
   if(sv){ vol.music=sv.music||7; vol.sfx=sv.sfx||7; }
 }catch{}
+
+// ══════════════════════════════════════════════════════════════
+//  REDEEM CODES
+// ══════════════════════════════════════════════════════════════
+const REDEEM_CODES = {
+  'BEAT404_V1':  { coins:200, gems:5 },
+  'ALPHA404_V1': { coins:200, gems:5 },
+};
+
+function renderRedeemCodesList(){
+  const box = document.getElementById('redeemCodeList');
+  if(!box) return;
+  box.innerHTML = '';
+  Object.keys(REDEEM_CODES).forEach(code=>{
+    const r = REDEEM_CODES[code];
+    const used = redeemedCodes.includes(code);
+    const item = document.createElement('div');
+    item.className = 'redeem-code-item';
+    item.style.opacity = used ? '.4' : '1';
+    item.onclick = ()=>{
+      if(used) return;
+      document.getElementById('redeemCodeInput').value = code;
+      redeemCode();
+    };
+    item.innerHTML = `<span class="redeem-code-tag">${code}</span><span class="redeem-code-reward">${used ? '✅ اتاخد' : `🪙 ${r.coins} &nbsp; 💎 ${r.gems}`}</span>`;
+    box.appendChild(item);
+  });
+}
+
+function redeemCode(){
+  const input = document.getElementById('redeemCodeInput');
+  const msg = document.getElementById('redeemCodeMsg');
+  const raw = (input.value || '').trim().toUpperCase();
+  if(!raw){ msg.style.color = '#f87171'; msg.textContent = 'اكتب كود الأول.'; return; }
+  const reward = REDEEM_CODES[raw];
+  if(!reward){ msg.style.color = '#f87171'; msg.textContent = '❌ الكود ده مش موجود.'; return; }
+  if(redeemedCodes.includes(raw)){ msg.style.color = '#f87171'; msg.textContent = '⚠️ الكود ده اتاخد قبل كده.'; return; }
+  redeemedCodes.push(raw);
+  totalCoins += reward.coins;
+  gems += reward.gems;
+  persistAll();
+  refreshTopDisplays();
+  const cs = document.getElementById('coins-settings');
+  if(cs) cs.textContent = totalCoins.toLocaleString();
+  msg.style.color = '#22c55e';
+  msg.textContent = `✅ استلمت 🪙 ${reward.coins} و 💎 ${reward.gems}!`;
+  input.value = '';
+  showToast(`🎁 اتفعّل الكود! +${reward.coins} 🪙 +${reward.gems} 💎`);
+  renderRedeemCodesList();
+}
 
 // ══════════════════════════════════════════════════════════════
 //  MENU PANELS
@@ -1584,14 +2965,22 @@ function openPanel(name){
   if(name==='settings'){
     initVolBars();
     renderIntroToggle();
-    const si=document.getElementById('playerNameInputSettings');
-    if(si) si.value=playerName;
+    renderLowGraphicsToggle();
+    const ad=document.getElementById('accountUsernameDisplay');
+    if(ad) ad.textContent = playerName;
     const hs=document.getElementById('hs-settings');
     const cs=document.getElementById('coins-settings');
     if(hs) hs.textContent=HS;
     if(cs) cs.textContent=totalCoins.toLocaleString();
+    refreshAvatarSettingsUI();
+    renderMicSettingsUI();
   }
   if(name==='shop'){ buildShop(); stopBgMusic(); shopMusic.volume=vol.music/MAX_VOL; shopMusic.play().catch(()=>{}); }
+  if(name==='credits'){
+    renderRedeemCodesList();
+    const rm=document.getElementById('redeemCodeMsg'); if(rm) rm.textContent='';
+    const ri=document.getElementById('redeemCodeInput'); if(ri) ri.value='';
+  }
   document.getElementById('panel-'+name).classList.add('open');
 }
 function closePanel(name){
@@ -1786,14 +3175,23 @@ function menuAction(action){
       case 'shop':
       openPanel('shop');
       break;
-    case 'duels':
+      case 'duels':
       openDuelsList();
+      break;
+    case 'friends':
+      openPanel('friends');
+      renderFriendsList();
       break;
     case 'settings':
       openPanel('settings');
       break;
     case 'credits':
       openPanel('credits');
+      break;
+    case 'micrequests':
+      if(!ownerMode) break;
+      openPanel('micrequests');
+      renderMicRequestsList();
       break;
     case 'restart':
       openPanel('confirm');
@@ -1842,6 +3240,11 @@ function backToMenu(){
 }
 function refreshMenuDisplays(){
   refreshTopDisplays();
+  updateMenuSkinPreview();
+}
+function updateMenuSkinPreview(){
+  const img=document.getElementById('menuSkinPreview');
+  if(img) img.src=getSkin().skinImg;
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1866,7 +3269,7 @@ function triggerGlitch(dur=120){
   ov.style.transform=`translateX(${(Math.random()-.5)*8}px)`;
   setTimeout(()=>{ ov.style.opacity='0'; ov.style.transform='translateX(0)'; },dur);
 }
-setInterval(()=>{ if(Math.random()<.28) triggerGlitch(50+Math.random()*100); },3500);
+setInterval(()=>{ if(!lowGraphics && Math.random()<.28) triggerGlitch(50+Math.random()*100); },3500);
 
 function transition(from,to){
   document.getElementById(from).classList.remove('active');
@@ -1886,19 +3289,19 @@ const SKINS_DEF = [
   { id:'red',    name:'الأحمر',   icon:'🔴', skinImg:'Player/SKINS/R.png', color:'#ef4444', color2:'#b91c1c', glow:'rgba(239,68,68,.8)', dashColor:'rgba(239,68,68,.5)', dashColor2:'rgba(185,28,28,.4)', price:750, ability:'❤️ 4 قلوب بدل 3!', abilityFull:'قلب إضافي = فرصة ثانية.', abilityDesc:'extraHeart', particleCSS:'' },
   { id:'yellow', name:'الأصفر',   icon:'🟡', skinImg:'Player/SKINS/Y.png', color:'#facc15', color2:'#ca8a04', glow:'rgba(250,204,21,.8)', dashColor:'rgba(250,204,21,.5)', dashColor2:'rgba(202,138,4,.4)', price:250, ability:'⚡ سرعة أعلى + داش أطول!', abilityFull:'السرعة 40% أسرع. الداش أطول بمرتين.', abilityDesc:'speedster', particleCSS:'' },
   { id:'white',  name:'الأبيض',   icon:'⬜', skinImg:'Player/SKINS/W.png', color:'#e2e8f0', color2:'#94a3b8', glow:'rgba(226,232,240,.8)', dashColor:'rgba(226,232,240,.5)', dashColor2:'rgba(148,163,184,.4)', price:1000, ability:'👾 كل 10ث: 3 بوتات تهاجم!', abilityFull:'بوتات ذكية تتبع أقرب عدو وتدمره.', abilityDesc:'botSpawn', particleCSS:'' },
-  { id:'water',  name:'الماء',    icon:'💧', skinImg:'Player/SKINS/WATER.png', color:'#22d3ee', color2:'#0891b2', glow:'rgba(34,211,238,.9)', dashColor:'rgba(34,211,238,.5)', dashColor2:'rgba(8,145,178,.4)', price:0, gemPrice:5, rarity:'شائع', ability:'💧 3 طلقات مائية • الداش يدفع الأعداء', abilityFull:'3 طلقات في شعاع واسع.', abilityDesc:'water', particleCSS:'water', bulletCount:3 },
-  { id:'wind',   name:'الريح',    icon:'🌪️', skinImg:'Player/SKINS/WIND.png', color:'#bae6fd', color2:'#64748b', glow:'rgba(186,230,253,.7)', dashColor:'rgba(186,230,253,.4)', dashColor2:'rgba(100,116,139,.3)', price:0, gemPrice:5, rarity:'غير شائع', ability:'🌬️ عواصف تبعد الأعداء • بوشن ×3', abilityFull:'الطلقات تدفع الأعداء. كل بوشن ×3.', abilityDesc:'wind', particleCSS:'wind', bulletCount:1 },
-  { id:'fire',   name:'النار',    icon:'🔥', skinImg:'Player/SKINS/Flame.png', color:'#f97316', color2:'#991b1b', glow:'rgba(249,115,22,.9)', dashColor:'rgba(249,115,22,.6)', dashColor2:'rgba(153,27,27,.5)', price:0, gemPrice:5, rarity:'نادر', ability:'🔥 3 طلقات نارية + حرق • الداش يشعل', abilityFull:'3 طلقات تشعل الأعداء 5 ثوانٍ.', abilityDesc:'fire', particleCSS:'fire', bulletCount:3, burnDmg:true },
-  { id:'light',  name:'الضوء',    icon:'✨', skinImg:'Player/SKINS/Light.png', color:'#fef08a', color2:'#eab308', glow:'rgba(254,240,138,1)', dashColor:'rgba(254,240,138,.6)', dashColor2:'rgba(234,179,8,.4)', price:0, gemPrice:5, rarity:'ملحمي', ability:'☀️ 5 طلقات ضوئية • سرعة أعلى • بوشن ×2', abilityFull:'5 طلقات. سرعة +40%. بوشن ×2.', abilityDesc:'light', particleCSS:'light', bulletCount:5, speedBoost:1.4, puMult:2 },
-  { id:'shadow', name:'الظل',     icon:'👤', skinImg:'Player/SKINS/SHADOW.png', color:'#818cf8', color2:'#1e1b4b', glow:'rgba(129,140,248,1)', dashColor:'rgba(99,102,241,.6)', dashColor2:'rgba(30,27,75,.6)', price:0, gemPrice:5, rarity:'أسطوري', ability:'🌑 5 قلوب • الداش يجمد الزمن • E: الظل المطلق', abilityFull:'الأقوى. 5 قلوب. الداش يوقف الزمن 3ث.', abilityDesc:'shadow', particleCSS:'shadow', bulletCount:5, puMult:6 },
+  { id:'water',  name:'الماء',    icon:'💧', skinImg:'Player/SKINS/WATER.png', color:'#22d3ee', color2:'#0891b2', glow:'rgba(34,211,238,.9)', dashColor:'rgba(34,211,238,.5)', dashColor2:'rgba(8,145,178,.4)', price:0, gemPrice:5, rarity:'شائع', ability:'💧 2 طلقات مائية • الداش يدفع الأعداء', abilityFull:'2 طلقات في شعاع واسع.', abilityDesc:'water', particleCSS:'water', bulletCount:2 },
+  { id:'wind',   name:'الريح',    icon:'🌪️', skinImg:'Player/SKINS/WIND.png', color:'#bae6fd', color2:'#64748b', glow:'rgba(186,230,253,.7)', dashColor:'rgba(186,230,253,.4)', dashColor2:'rgba(100,116,139,.3)', price:0, gemPrice:5, rarity:'غير شائع', ability:'🌬️ عواصف تبعد الأعداء • بوشن ×3', abilityFull:'الطلقات تدفع الأعداء. كل بوشن ×3.', abilityDesc:'wind', particleCSS:'wind', bulletCount:2 },
+  { id:'fire',   name:'النار',    icon:'🔥', skinImg:'Player/SKINS/Flame.png', color:'#f97316', color2:'#991b1b', glow:'rgba(249,115,22,.9)', dashColor:'rgba(249,115,22,.6)', dashColor2:'rgba(153,27,27,.5)', price:0, gemPrice:5, rarity:'نادر', ability:'🔥 2 طلقات نارية + حرق • الداش يشعل', abilityFull:'2 طلقات تشعل الأعداء 5 ثوانٍ.', abilityDesc:'fire', particleCSS:'fire', bulletCount:2, burnDmg:true },
+  { id:'light',  name:'الضوء',    icon:'✨', skinImg:'Player/SKINS/Light.png', color:'#fef08a', color2:'#eab308', glow:'rgba(254,240,138,1)', dashColor:'rgba(254,240,138,.6)', dashColor2:'rgba(234,179,8,.4)', price:0, gemPrice:5, rarity:'ملحمي', ability:'☀️ 2 طلقات ضوئية • سرعة أعلى • بوشن ×2', abilityFull:'2 طلقات. سرعة +40%. بوشن ×2.', abilityDesc:'light', particleCSS:'light', bulletCount:2, speedBoost:1.4, puMult:2 },
+  { id:'shadow', name:'الظل',     icon:'👤', skinImg:'Player/SKINS/SHADOW.png', color:'#818cf8', color2:'#1e1b4b', glow:'rgba(129,140,248,1)', dashColor:'rgba(99,102,241,.6)', dashColor2:'rgba(30,27,75,.6)', price:0, gemPrice:5, rarity:'أسطوري', ability:'🌑 5 قلوب • الداش يجمد الزمن • E: الظل المطلق', abilityFull:'الأقوى. 5 قلوب. الداش يوقف الزمن 3ث.', abilityDesc:'shadow', particleCSS:'shadow', bulletCount:2, puMult:6 },
 ];
 
 const POWERS = [
-  { id:'water',  name:'الماء',  rarity:'شائع',    rarityEn:'COMMON',    icon:'<img src="Player/SKINS/WATER.png" style="width:64px;height:64px;image-rendering:pixelated">', skinImg:'WATER.png',  cost:5, color:'#22d3ee', color2:'#0891b2', desc:'3 طلقات مائية • الداش يدفع الأعداء',           bullets:3, bulletColor:'#22d3ee', bulletGlow:'rgba(34,211,238,.9)', dashPush:true },
-  { id:'wind',   name:'الريح',  rarity:'غير شائع', rarityEn:'UNCOMMON',  icon:'<img src="Player/SKINS/WIND.png" style="width:64px;height:64px;image-rendering:pixelated">',  skinImg:'WIND.png',   cost:5, color:'#94a3b8', color2:'#64748b', desc:'عواصف رياح تبعد الأعداء • مدة البوشن 3× أطول',  bullets:1, bulletColor:'#94a3b8', bulletGlow:'rgba(148,163,184,.8)', windPush:true, puMult:3 },
-  { id:'fire',   name:'النار',  rarity:'نادر',     rarityEn:'RARE',      icon:'<img src="Player/SKINS/Flame.png" style="width:64px;height:64px;image-rendering:pixelated">', skinImg:'Flame.png',  cost:5, color:'#f97316', color2:'#dc2626', desc:'3 طلقات نارية + حرق 5ث • الداش يحرق',           bullets:3, bulletColor:'#f97316', bulletGlow:'rgba(249,115,22,.9)', burnDmg:true, dashBurn:true },
-  { id:'light',  name:'الضوء',  rarity:'ملحمي',    rarityEn:'EPIC',      icon:'<img src="Player/SKINS/Light.png" style="width:64px;height:64px;image-rendering:pixelated">', skinImg:'Light.png',  cost:5, color:'#fde68a', color2:'#f59e0b', desc:'5 طلقات ضوء سريعة • سرعة أعلى • بوشن 2× أطول',  bullets:5, bulletColor:'#fde68a', bulletGlow:'rgba(253,230,138,1)',  speedBoost:1.4, puMult:2 },
-  { id:'shadow', name:'الظل',   rarity:'أسطوري',   rarityEn:'LEGENDARY', icon:'<img src="Player/SKINS/SHADOW.png" style="width:64px;height:64px;image-rendering:pixelated">', skinImg:'SHADOW.png', cost:5, color:'#818cf8', color2:'#1e1b4b', desc:'الداش يوقف الزمن 3ث • 5 طلقات • بوشن 6× أطول',   bullets:5, bulletColor:'#818cf8', bulletGlow:'rgba(129,140,248,.9)', timeStop:true, puMult:6, shadowBot:true },
+  { id:'water',  name:'الماء',  rarity:'شائع',    rarityEn:'COMMON',    icon:'<img src="Player/SKINS/WATER.png" style="width:64px;height:64px;image-rendering:pixelated">', skinImg:'WATER.png',  cost:5, color:'#22d3ee', color2:'#0891b2', desc:'2 طلقات مائية • الداش يدفع الأعداء',           bullets:2, bulletColor:'#22d3ee', bulletGlow:'rgba(34,211,238,.9)', dashPush:true },
+  { id:'wind',   name:'الريح',  rarity:'غير شائع', rarityEn:'UNCOMMON',  icon:'<img src="Player/SKINS/WIND.png" style="width:64px;height:64px;image-rendering:pixelated">',  skinImg:'WIND.png',   cost:5, color:'#94a3b8', color2:'#64748b', desc:'عواصف رياح تبعد الأعداء • مدة البوشن 3× أطول',  bullets:2, bulletColor:'#94a3b8', bulletGlow:'rgba(148,163,184,.8)', windPush:true, puMult:3 },
+  { id:'fire',   name:'النار',  rarity:'نادر',     rarityEn:'RARE',      icon:'<img src="Player/SKINS/Flame.png" style="width:64px;height:64px;image-rendering:pixelated">', skinImg:'Flame.png',  cost:5, color:'#f97316', color2:'#dc2626', desc:'2 طلقات نارية + حرق 5ث • الداش يحرق',           bullets:2, bulletColor:'#f97316', bulletGlow:'rgba(249,115,22,.9)', burnDmg:true, dashBurn:true },
+  { id:'light',  name:'الضوء',  rarity:'ملحمي',    rarityEn:'EPIC',      icon:'<img src="Player/SKINS/Light.png" style="width:64px;height:64px;image-rendering:pixelated">', skinImg:'Light.png',  cost:5, color:'#fde68a', color2:'#f59e0b', desc:'2 طلقات ضوء سريعة • سرعة أعلى • بوشن 2× أطول',  bullets:2, bulletColor:'#fde68a', bulletGlow:'rgba(253,230,138,1)',  speedBoost:1.4, puMult:2 },
+  { id:'shadow', name:'الظل',   rarity:'أسطوري',   rarityEn:'LEGENDARY', icon:'<img src="Player/SKINS/SHADOW.png" style="width:64px;height:64px;image-rendering:pixelated">', skinImg:'SHADOW.png', cost:5, color:'#818cf8', color2:'#1e1b4b', desc:'الداش يوقف الزمن 3ث • طلقتين • بوشن 6× أطول',   bullets:3, bulletColor:'#818cf8', bulletGlow:'rgba(129,140,248,.9)', timeStop:true, puMult:6, shadowBot:true },
 ];
 
 function getSkin(){ return SKINS_DEF.find(s=>s.id===equippedSkin)||SKINS_DEF[0]; }
@@ -2009,7 +3412,7 @@ function buySkin(id){
 function equipSkin(id){
   if(!ownedSkins.includes(id)) return;
   equippedSkin=id; persistAll();
-  buildShop(); buildShop2(); applyPlayerSkin();
+  buildShop(); buildShop2(); applyPlayerSkin(); updateMenuSkinPreview();
   document.getElementById('startIcon').textContent=getSkin().icon;
   const _sk = SKINS_DEF.find(s=>s.id===id);
   showToast(`🎮 جهّزت ${_sk.name}!`);
@@ -2019,7 +3422,7 @@ function equipPower(id){
   if(!ownedSkins.includes(id)) ownedSkins.push(id);
   equippedPower = equippedPower===id ? null : id;
   equippedSkin  = equippedPower ? id : 'purple';
-  persistAll(); buildShop(); buildShop2(); applyPlayerSkin(); applyActivePower();
+  persistAll(); buildShop(); buildShop2(); applyPlayerSkin(); applyActivePower(); updateMenuSkinPreview();
   const pw=POWERS.find(p=>p.id===id);
   showToast(equippedPower ? `✅ جهّزت ${pw?.name}!` : '❌ رجعت للبنفسجي');
 }
@@ -2031,7 +3434,7 @@ function runSpin(iconId, nameId, rarityId, btnId, cb){
   gems-=5; persistAll(); refreshGemDisplay();
   if(el(btnId)) el(btnId).disabled=true;
 
-  const weights=[40,28,18,10,4];
+  const weights=[60,25,10,4,1];
   let r=Math.random()*100, pw=POWERS[0], cumul=0;
   for(let i=0;i<POWERS.length;i++){ cumul+=weights[i]; if(r<cumul){ pw=POWERS[i]; break; } }
   if(!ownedPowers.includes(pw.id)) ownedPowers.push(pw.id);
@@ -2121,8 +3524,15 @@ function initNameInput(){
 }
 
 // init
-if(introStoryEnabled){ transition('boot','story'); runStory(); }
-else{ transition('boot','menu'); playBgMusic('menu'); refreshMenuDisplays(); }
+(async function bootInit(){
+  const loggedIn = await trySilentLogin();
+  if(loggedIn){
+    if(introStoryEnabled){ transition('boot','story'); runStory(); }
+    else{ transition('boot','menu'); playBgMusic('menu'); refreshMenuDisplays(); }
+  } else {
+    transition('boot','auth');
+  }
+})();
 initNameInput();
 
 let playerAnimMode=null,playerAnimIv=null,playerAnimFrame=0;
@@ -2195,6 +3605,7 @@ function applyPlayerSkin(){
 let skinParticleTimer=null;
 function stopSkinParticles(){ if(skinParticleTimer) clearInterval(skinParticleTimer); skinParticleTimer=null; }
 function startSkinParticles(sk){
+  if(lowGraphics) return;
   const colors={water:'#22d3ee',wind:'#bae6fd',fire:'#f97316',light:'#fef08a',shadow:'#818cf8'};
   const col=colors[sk.id]||sk.color;
   const pRate=sk.id==='fire'?100:sk.id==='shadow'?250:160;
@@ -2213,7 +3624,8 @@ function applyActivePower(){
   const elementalIds=['water','wind','fire','light','shadow'];
   activePower=elementalIds.includes(sk.abilityDesc)?sk.abilityDesc:null;
   burnEnemies=[]; shadowBots.forEach(b=>{try{b.el.remove();}catch{}}); shadowBots=[];
-  pwrTimeStopped=false; shadowUltCD=0; shadowUltActive=false;
+  enemyTimeScale=1; shadowUltCD=0; shadowUltActive=false;
+  const gaEl=document.getElementById('gameArea'); if(gaEl) gaEl.classList.remove('time-invert');
   const ebtn=document.getElementById('eBtnM');
   if(ebtn) ebtn.style.display=(activePower==='shadow')?'flex':'none';
   const ub=document.getElementById('ultBar');
@@ -2226,14 +3638,17 @@ function applyActivePower(){
 let GR=false,paused=false;
 let score=0,lives=3,maxLives=3,combo=1,wave=1,coins_=0,kills=0;
 let activePower=null,burnEnemies=[],shadowBots=[];
-let pwrTimeStopped=false,shadowUltCD=0,shadowUltActive=false;
+let enemyTimeScale=1,shadowUltCD=0,shadowUltActive=false,duelSlowUntil=0;
 const SHADOW_ULT_CD=1800;
+const DUEL_ULT_SLOW_SCALE=0.06;
 let fid=null,lt=0;
 let px=0,py=0;
-let dashCD=0,DASH_MAX=85,dashing=false,dashVx=0,dashVy=0,dashLeft=0,DASH_DUR=10;
+let dashCD=0,DASH_MAX=85,dashing=false,dashVx=0,dashVy=0,dashLeft=0,DASH_DUR=10,dashCDMax=DASH_MAX;
+const DUEL_DASH_CD={purple:1200,orange:1200,green:1200,red:1200,yellow:900,white:900,water:900,wind:720,fire:900,light:600,shadow:600};
 let inv=false,invT=0,shootCD=0;
 let mx=300,my=300,mouseEverMoved=false;
-let AW=800,AH=500;
+const WORLD_W=1000,WORLD_H=625;
+let AW=WORLD_W,AH=WORLD_H,arenaScale=1;
 let shOn=false,shT=0,slOn=false,slT=0,mgOn=false,mgT=0,spOn=false,spT=0,muOn=false,muT=0,x2On=false,x2T=0;
 let enemies=[],coins=[],pups=[],bullets=[],ebullets=[],wbots=[];
 let eTimer=0,cTimer=0,pTimer=0,scTimer=0,healTimer=0;
@@ -2244,7 +3659,21 @@ let bx=0,by=0,bvx=2,bvy=1.2,bHP=0,bMaxHP=0,bMT=0,bST=0,bSZ=88;
 let wbotTimer=0,pwrShadowBotT=0;
 let lastDir={x:1,y:0},storyPaused=false;
 
-function cacheArena(){ const r=document.getElementById('gameArea').getBoundingClientRect(); AW=r.width; AH=r.height; }
+function cacheArena(){
+  const ga=document.getElementById('gameArea');
+  const hdr=document.querySelector('header');
+  const topOffset=hdr?hdr.getBoundingClientRect().bottom:86;
+  const availW=window.innerWidth;
+  const availH=window.innerHeight-topOffset;
+  arenaScale=Math.max(0.1,Math.min(availW/WORLD_W,availH/WORLD_H));
+  const offX=(availW-WORLD_W*arenaScale)/2;
+  const offY=(availH-WORLD_H*arenaScale)/2;
+  ga.style.width=WORLD_W+'px'; ga.style.height=WORLD_H+'px';
+  ga.style.right='auto'; ga.style.bottom='auto';
+  ga.style.left=offX+'px'; ga.style.top=(topOffset+offY)+'px';
+  ga.style.transformOrigin='top left';
+  ga.style.transform=`scale(${arenaScale})`;
+}
 window.addEventListener('resize',cacheArena);
 setInterval(cacheArena,1000);
 
@@ -2254,11 +3683,27 @@ setInterval(cacheArena,1000);
 const K={};
 document.addEventListener('contextmenu',e=>e.preventDefault());
 document.addEventListener('keydown',e=>{
+  const tgt = e.target;
+  const tag = tgt && tgt.tagName ? tgt.tagName.toLowerCase() : '';
+  const isTyping = tag==='input' || tag==='textarea' || (tgt && tgt.isContentEditable);
+  if(isTyping){
+    if(e.key==='Escape'){
+      const fcp = document.getElementById('friendChatPanel');
+      if(fcp && fcp.style.display==='flex'){ closeFriendChat(); tgt.blur(); return; }
+    }
+    // المستخدم بيكتب جوه حقل نص (شات/بحث/باسورد...) - سيبه يكتب عادي من غير
+    // ما نخطف المسافة أو نشغّل اختصارات اللعبة (داش/شوت/بوز) وهو بس بيكتب.
+    return;
+  }
   K[e.key.toLowerCase()]=true;
   if((e.key===' '||e.key==='Shift')&&GR&&!paused) tryDash();
   if((e.key==='f'||e.key==='ف')&&GR&&!paused) shoot();
   if((e.key==='e'||e.key==='E'||e.key==='ث')&&GR&&!paused&&activePower==='shadow') shadowUltimate();
-  if(e.key==='Escape'||e.key.toLowerCase()==='p'){ const open=document.querySelector('.overlay-panel.open'); if(open){ const n=open.id.replace('panel-',''); closePanel(n); } else if(GR){ togglePause(); } }
+  if(e.key==='Escape'||e.key.toLowerCase()==='p'){
+    const fcp = document.getElementById('friendChatPanel');
+    if(e.key==='Escape' && fcp && fcp.style.display==='flex'){ closeFriendChat(); return; }
+    const open=document.querySelector('.overlay-panel.open'); if(open){ const n=open.id.replace('panel-',''); closePanel(n); } else if(GR){ togglePause(); }
+  }
   if([' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault();
 });
 document.addEventListener('keyup',e=>{ K[e.key.toLowerCase()]=false; });
@@ -2267,7 +3712,7 @@ document.addEventListener('visibilitychange',()=>{ if(document.hidden){ Object.k
 
 document.getElementById('gameArea').addEventListener('mousemove',e=>{
   const r=document.getElementById('gameArea').getBoundingClientRect();
-  mx=e.clientX-r.left; my=e.clientY-r.top; mouseEverMoved=true;
+  mx=(e.clientX-r.left)/arenaScale; my=(e.clientY-r.top)/arenaScale; mouseEverMoved=true;
   const cr=document.getElementById('crosshair'); cr.style.left=mx+'px'; cr.style.top=my+'px';
 });
 document.getElementById('gameArea').addEventListener('click',()=>{ if(GR&&!paused) shoot(); });
@@ -2316,7 +3761,8 @@ function movePlayer(dt){
   if(!joyActive&&vx!==0&&vy!==0){vx*=0.707;vy*=0.707;}
   const isYellow=getSkin().abilityDesc==='speedster';
   const lightBoost=(activePower==='light')?1.4:1;
-  const spd=(isYellow?6.8:4.8)*(spOn?1.7:1)*lightBoost;
+  const duelSlow=(duelMode && Date.now()<duelSlowUntil)?DUEL_ULT_SLOW_SCALE:1;
+  const spd=(isYellow?6.8:4.8)*(spOn?1.7:1)*lightBoost*duelSlow;
   const p=PEL();
   if(dashing&&dashLeft>0){
     dashLeft-=dt;
@@ -2343,6 +3789,7 @@ function movePlayer(dt){
 
 function tryDash(){
   if(dashCD>0) return;
+  if(duelMode && getSkin().id==='shadow'){ shadowDuelTeleport(); return; }
   let vx=0,vy=0;
   if(joyActive){vx=joyVx;vy=joyVy;}
   else{
@@ -2367,27 +3814,47 @@ function tryDash(){
     },80);
   }
   let mult=1; if(getSkin().abilityDesc==='speedster') mult=2.2; if(activePower==='shadow'){mult=1.8;dashCD=300;}
-  dashLeft=DASH_DUR*mult; dashCD=DASH_MAX; inv=true; invT=dashLeft+8;
+  dashLeft=DASH_DUR*mult;
+  dashCDMax = (duelMode && DUEL_DASH_CD[getSkin().id]) ? DUEL_DASH_CD[getSkin().id] : DASH_MAX;
+  dashCD = dashCDMax; inv=true; invT=dashLeft+8;
   const p=PEL(); if(p) p.style.filter='brightness(2.2) saturate(2)';
   for(let i=0;i<4;i++) setTimeout(()=>mkGhost(),i*45);
   flashFX('rgba(194,0,251,.2)');
   if(activePower==='water'){ enemies.forEach(e=>{const dx=(e.x+e.t.w/2)-(px+19),dy=(e.y+e.t.h/2)-(py+19),d=Math.sqrt(dx*dx+dy*dy)||1;if(d<80){e.x+=dx/d*60;e.y+=dy/d*60;}});}
   if(activePower==='fire'){ enemies.forEach(e=>{const dx=(e.x+e.t.w/2)-(px+19),dy=(e.y+e.t.h/2)-(py+19),d=Math.sqrt(dx*dx+dy*dy)||1;if(d<60&&!burnEnemies.find(x=>x.e===e))burnEnemies.push({e,t:0});});}
-    if(activePower==='shadow'){pwrTimeStopped=true;showToast('⏸ الزمن توقف... 3ث');setTimeout(()=>{pwrTimeStopped=false;},3000);}
+    if(activePower==='shadow'){enemyTimeScale=0.45;showToast('🌑 الزمن اتبطأ...');setTimeout(()=>{enemyTimeScale=1;},3000);}
 }
 
 function mkGhost(){
+  if(lowGraphics) return;
   const sk=getSkin();
   const g=document.createElement('div'); g.className='dash-ghost';
   g.style.cssText=`left:${px}px;top:${py}px;background:linear-gradient(135deg,${sk.dashColor},${sk.dashColor2})`;
   document.getElementById('gameArea').appendChild(g); setTimeout(()=>g.remove(),300);
 }
 
+function shadowDuelTeleport(){
+  playSFX('dash');
+  const fromX=px, fromY=py;
+  for(let i=0;i<6;i++) setTimeout(()=>{
+    const g=document.createElement('div'); g.className='dash-ghost';
+    g.style.cssText=`left:${fromX}px;top:${fromY}px;background:linear-gradient(135deg,rgba(129,140,248,.9),rgba(30,27,75,.9))`;
+    document.getElementById('gameArea').appendChild(g); setTimeout(()=>g.remove(),300);
+  },i*30);
+  px=Math.max(0,Math.min(AW-38,mx-19));
+  py=Math.max(0,Math.min(AH-38,my-19));
+  const p=PEL();
+  if(p){ p.style.left=px+'px'; p.style.top=py+'px'; p.style.zIndex=Math.floor(py)+10; p.style.filter='brightness(2.5) saturate(2)'; setTimeout(()=>{ if(p) p.style.filter=''; },200); }
+  flashFX('rgba(129,140,248,.35)');
+  inv=true; invT=15;
+  dashCDMax=DUEL_DASH_CD['shadow']; dashCD=dashCDMax;
+}
+
 // ══════════════════════════════════════════════════════════════
 //  SHOOT
 // ══════════════════════════════════════════════════════════════
 function shoot(){
-  if(!GR||paused||shootCD>0) return; shootCD=12;
+  if(!GR||paused||shootCD>0||duelMode) return; shootCD=12;
   const cr=document.getElementById('crosshair'); cr.classList.add('shooting'); setTimeout(()=>cr.classList.remove('shooting'),110);
   const cx=px+19,cy=py+19; let tx=mx,ty=my;
   if(!mouseEverMoved||(tx===0&&ty===0)){
@@ -2508,18 +3975,18 @@ function splitEnemy(e){
 }
 
 function moveEnemies(dt){
-  if(pwrTimeStopped) return;
+  const edt=dt*enemyTimeScale;
   for(let i=enemies.length-1;i>=0;i--){
     const e=enemies[i]; if(!e.el.parentNode){enemies.splice(i,1);continue;}
-    if(e.t.type==='t'||e.t.type==='m'){const dx=px-e.x,dy=py-e.y,d=Math.sqrt(dx*dx+dy*dy)||1;e.vx+=(dx/d)*.07*dt;e.vy+=(dy/d)*.07*dt;const sp=Math.sqrt(e.vx*e.vx+e.vy*e.vy);if(sp>1){e.vx/=sp;e.vy/=sp;}}
-    const fs=e.spd*(slOn?.35:1); e.x+=e.vx*fs*dt; e.y+=e.vy*fs*dt;
+    if(e.t.type==='t'||e.t.type==='m'){const dx=px-e.x,dy=py-e.y,d=Math.sqrt(dx*dx+dy*dy)||1;e.vx+=(dx/d)*.07*edt;e.vy+=(dy/d)*.07*edt;const sp=Math.sqrt(e.vx*e.vx+e.vy*e.vy);if(sp>1){e.vx/=sp;e.vy/=sp;}}
+    const fs=e.spd*(slOn?.35:1); e.x+=e.vx*fs*edt; e.y+=e.vy*fs*edt;
     if(e.x<=0){e.x=0;e.vx=Math.abs(e.vx)||0.5;} if(e.x>=AW-e.t.w){e.x=AW-e.t.w;e.vx=-(Math.abs(e.vx)||0.5);}
     if(e.y<=0){e.y=0;e.vy=Math.abs(e.vy)||0.5;} if(e.y>=AH-e.t.h){e.y=AH-e.t.h;e.vy=-(Math.abs(e.vy)||0.5);}
     e.el.style.left=e.x+'px'; e.el.style.top=e.y+'px';
-    if(e.t.type==='sh'){e.sT=(e.sT||0)+dt;if(e.sT>=Math.max(65,180-wave*8)){e.sT=0;spawnEB(e.x+17,e.y+17,3.5+wave*.07);}}
+    if(e.t.type==='sh'){e.sT=(e.sT||0)+edt;if(e.sT>=Math.max(65,180-wave*8)){e.sT=0;spawnEB(e.x+17,e.y+17,3.5+wave*.07);}}
   }
   if(!bAlive&&wActive&&!storyPaused){
-    eTimer+=dt; const rate=Math.max(14,62-wave*3);
+    eTimer+=edt; const rate=Math.max(14,62-wave*3);
     if(eTimer>=rate&&wSpawned<wTarget){eTimer=0;const cnt=Math.min(1+Math.floor(wave/3),4);for(let i=0;i<cnt&&wSpawned<wTarget;i++){spawnEnemy();wSpawned++;}checkWaveDone();}
   }
   if(activePower==='wind') enemies.forEach(e=>{const dx=(e.x+e.t.w/2)-(px+19),dy=(e.y+e.t.h/2)-(py+19),d=Math.sqrt(dx*dx+dy*dy)||1;if(d<140){e.x+=dx/d*2.2*dt;e.y+=dy/d*2.2*dt;}});
@@ -2532,9 +3999,10 @@ function spawnEB(x,y,spd){
   document.getElementById('gameArea').appendChild(el); ebullets.push({el,x,y,vx:dx/d*spd,vy:dy/d*spd});
 }
 function moveEBullets(dt){
+  const edt=dt*enemyTimeScale;
   for(let i=ebullets.length-1;i>=0;i--){
     const b=ebullets[i]; if(!b.el.parentNode){ebullets.splice(i,1);continue;}
-    b.x+=b.vx*dt; b.y+=b.vy*dt; b.el.style.left=b.x+'px'; b.el.style.top=b.y+'px';
+    b.x+=b.vx*edt; b.y+=b.vy*edt; b.el.style.left=b.x+'px'; b.el.style.top=b.y+'px';
     if(b.x<-20||b.x>AW+20||b.y<-20||b.y>AH+20){b.el.remove();ebullets.splice(i,1);continue;}
     if(!inv&&rectsOv(b.x,b.y,9,9,px+4,py+4,30,30)){b.el.remove();ebullets.splice(i,1);if(shOn)absorbShield();else takeHit(null);}
   }
@@ -2619,13 +4087,14 @@ function spawnEmbers(){
 }
 
 function tickBoss(dt){
+  const bdt=dt*enemyTimeScale;
   const spd=(2.4+bossCount*.55+wave*.06)*(slOn?.32:1);
-  bx+=bvx*spd*dt;by+=bvy*spd*dt;
+  bx+=bvx*spd*bdt;by+=bvy*spd*bdt;
   if(bx<=0){bx=0;bvx=Math.abs(bvx);}if(bx>=AW-bSZ){bx=AW-bSZ;bvx=-Math.abs(bvx);}
   if(by<=0){by=0;bvy=Math.abs(bvy);}if(by>=AH-bSZ){by=AH-bSZ;bvy=-Math.abs(bvy);}
   const BOSS=document.getElementById('boss');BOSS.style.left=bx+'px';BOSS.style.top=by+'px';
-  bMT+=dt;const mRate=Math.max(40,150-bossCount*20);if(bMT>=mRate){bMT=0;spawnMinion();}
-  bST+=dt;const sRate=Math.max(25,95-bossCount*12);if(bST>=sRate){bST=0;bossFire();}
+  bMT+=bdt;const mRate=Math.max(40,150-bossCount*20);if(bMT>=mRate){bMT=0;spawnMinion();}
+  bST+=bdt;const sRate=Math.max(25,95-bossCount*12);if(bST>=sRate){bST=0;bossFire();}
 }
 function spawnMinion(){
   const t=ET[5];const el=document.createElement('div');el.className=`enemy ${t.cls}`;
@@ -2749,7 +4218,7 @@ function pickupPU(pu){
 //  TIMERS
 // ══════════════════════════════════════════════════════════════
 function tickTimers(dt){
-  if(dashCD>0){dashCD=Math.max(0,dashCD-dt);document.getElementById('dashFill').style.width=((1-dashCD/DASH_MAX)*100)+'%';}
+  if(dashCD>0){dashCD=Math.max(0,dashCD-dt);document.getElementById('dashFill').style.width=((1-dashCD/dashCDMax)*100)+'%';}
   if(shootCD>0)shootCD=Math.max(0,shootCD-dt);
   if(invT>0){invT-=dt;if(invT<=0){inv=false;const p=PEL();if(p)p.classList.remove('invincible');}}
   if(shT>0){shT-=dt;if(shT<=0){shOn=false;document.getElementById('shieldRing').style.display='none';refreshPuBar();}}
@@ -2824,14 +4293,19 @@ function shadowUltimate(){
   if(activePower!=='shadow'||shadowUltCD>0) return;
   shadowUltCD=SHADOW_ULT_CD;shadowUltActive=true;
   const sf=document.getElementById('shadowFlash');
-  pwrTimeStopped=true;showToast('🌑 الظل المطلق! الزمن جامد 8ث...');
+  enemyTimeScale=0.06;showToast('🌑 الظل المطلق! الزمن بطيء جداً... 8ث');
+  const gaEl=document.getElementById('gameArea'); if(gaEl) gaEl.classList.add('time-invert');
   playSFX('dom');
-  let ultShots=0;const ultIv=setInterval(()=>{
-    if(!GR){clearInterval(ultIv);return;}
-    for(let a=0;a<6;a++){const ang=(a/6)*Math.PI*2;mkBulletPow(px+19,py+19,Math.cos(ang)*9,Math.sin(ang)*9,POWERS.find(p=>p.id==='shadow'));}
-    ultShots++;if(ultShots>=6)clearInterval(ultIv);
-  },500);
-  setTimeout(()=>{pwrTimeStopped=false;shadowUltActive=false;showToast('🌑 عاد الزمن...');},8000);
+  if(duelMode){
+    if(mpPlayerRef) mpPlayerRef.update({ shadowUltCastAt: Date.now() });
+  } else {
+    let ultShots=0;const ultIv=setInterval(()=>{
+      if(!GR){clearInterval(ultIv);return;}
+      for(let a=0;a<6;a++){const ang=(a/6)*Math.PI*2;mkBulletPow(px+19,py+19,Math.cos(ang)*9,Math.sin(ang)*9,POWERS.find(p=>p.id==='shadow'));}
+      ultShots++;if(ultShots>=6)clearInterval(ultIv);
+    },500);
+  }
+  setTimeout(()=>{enemyTimeScale=1;shadowUltActive=false;if(gaEl) gaEl.classList.remove('time-invert');showToast('🌑 عاد الزمن...');},8000);
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -2914,7 +4388,8 @@ function startGame(){
   _sc=_co=_wv=_cn=_kl=-1;
   dashCD=0;dashing=false;dashLeft=0;inv=false;invT=0;shootCD=0;
   shOn=false;shT=0;slOn=false;slT=0;mgOn=false;mgT=0;spOn=false;spT=0;muOn=false;muT=0;x2On=false;x2T=0;
-  shadowUltCD=0;shadowUltActive=false;pwrTimeStopped=false;
+  shadowUltCD=0;shadowUltActive=false;enemyTimeScale=1;
+  { const gaEl=document.getElementById('gameArea'); if(gaEl) gaEl.classList.remove('time-invert'); }
   eTimer=0;cTimer=0;pTimer=0;scTimer=0;healTimer=0;wbotTimer=0;pwrShadowBotT=0;
   wSpawned=0;wTarget=8;wActive=false;storyPaused=false;
   bAlive=false;bReady=false;bMT=0;bST=0;bSZ=88;
@@ -3058,5 +4533,678 @@ setInterval(() => {
 }, 150);
 function flashFX(color){const f=document.getElementById('flash');f.style.background=color;f.classList.add('show');setTimeout(()=>f.classList.remove('show'),280);}
 </script>
+
+<!-- ══════════════════════════════════════════════════════════════
+     OWNER SYSTEM — MOGOGO only. Local access-code gate.
+     NOTE: this code lives in client-side JS, so it can be found by
+     anyone who opens dev tools. It only grants perks on THIS
+     browser (resources, skins, badge, and flavor-text chat
+     commands). It does NOT bypass real room-owner permissions
+     (kicking players still requires being the actual room host),
+     and the "character" commands act on the local skins list only
+     — there's no other real player's data for them to touch.
+════════════════════════════════════════════════════════════════ -->
+<script>
+const OWNER_CODE = "MOGOGO_KING_OF_WORLD_9";
+let ownerMode = localStorage.getItem('404_owner_mode') === '1';
+
+let ownerCodeModalCtx = 'local';
+function openOwnerCodeModal(ctx){
+  ownerCodeModalCtx = ctx || 'local';
+  document.getElementById('ownerCodeMsg').textContent = '';
+  document.getElementById('ownerCodeInput').value = '';
+  document.getElementById('ownerCodeModal').classList.add('open');
+  setTimeout(()=>document.getElementById('ownerCodeInput').focus(), 50);
+}
+function closeOwnerCodeModal(){
+  document.getElementById('ownerCodeModal').classList.remove('open');
+}
+function tryOwnerCode(){
+  const val = document.getElementById('ownerCodeInput').value.trim();
+  if(val === OWNER_CODE){
+    if(ownerCodeModalCtx === 'signup'){
+      pendingOwnerSignup = true;
+      document.getElementById('authOwnerStatus').style.display = 'inline';
+    } else {
+      activateOwnerMode();
+    }
+    closeOwnerCodeModal();
+  } else {
+    document.getElementById('ownerCodeMsg').textContent = 'كود غلط.';
+  }
+}
+document.addEventListener('DOMContentLoaded', ()=>{
+  const inp = document.getElementById('ownerCodeInput');
+  if(inp) inp.addEventListener('keydown', e=>{ if(e.key==='Enter') tryOwnerCode(); });
+  refreshOwnerUI();
+});
+
+function activateOwnerMode(){
+  ownerMode = true;
+  localStorage.setItem('404_owner_mode','1');
+  // one-time resource grant, only the first time it's activated
+  if(localStorage.getItem('404_owner_granted') !== '1'){
+    totalCoins = Math.max(totalCoins, 5000);
+    gems = Math.max(gems, 1000);
+    ownedSkins = SKINS_DEF.map(s=>s.id);
+    if(typeof persistAll === 'function') persistAll();
+    if(typeof refreshTopDisplays === 'function') refreshTopDisplays();
+    localStorage.setItem('404_owner_granted','1');
+  }
+  refreshOwnerUI();
+}
+function refreshOwnerUI(){
+  const btn = document.getElementById('ownerCmdToggleBtn');
+  if(btn) btn.classList.toggle('show', ownerMode);
+  const badge = document.getElementById('ownerBadgeSettings');
+  if(badge) badge.style.display = ownerMode ? 'inline' : 'none';
+  const micMenuItem = document.getElementById('micRequestsMenuItem');
+  if(micMenuItem) micMenuItem.style.display = ownerMode ? 'flex' : 'none';
+  if(!ownerMode){
+    document.getElementById('ownerCmdPanel').classList.remove('open');
+  } else if(typeof initOwnerMicBadgeListener==='function'){
+    initOwnerMicBadgeListener();
+  }
+  if(typeof renderMicSettingsUI==='function') renderMicSettingsUI();
+}
+function toggleOwnerCmdPanel(){
+  if(!ownerMode) return;
+  document.getElementById('ownerCmdPanel').classList.toggle('open');
+}
+
+// ── Chat command interception ──────────────────────────────────
+const OWNER_CMD_PREFIXES = ['اقتل_','ابلع_','هات_'];
+
+function ownerBigMessage(title, text){
+  const box = document.getElementById('ownerBigMsg');
+  document.getElementById('ownerBigMsgTitle').textContent = title;
+  document.getElementById('ownerBigMsgText').textContent = text;
+  box.classList.add('show');
+  setTimeout(()=>box.classList.remove('show'), 2600);
+}
+
+function findOwnerCmdMatch(raw){
+  for(const p of OWNER_CMD_PREFIXES){
+    if(raw.startsWith(p)) return { prefix:p, rest: raw.slice(p.length) };
+  }
+  return null;
+}
+
+function runOwnerChatCommand(prefix, name){
+  let title, text;
+  if(prefix === 'اقتل_'){
+    title = '💀 تم القضاء عليك';
+    text = 'تم القضاء عليك بواسطة Owner.';
+  } else if(prefix === 'ابلع_'){
+    title = '🍽️ ابتلاع';
+    text = 'أخدت 1000 فلوس و50 جوهرة من Owner.';
+  } else if(prefix === 'هات_'){
+    title = '🫳 تم السحب';
+    text = 'Owner سحب منك كل فلوسك وجواهرك وبقت صفر.';
+  } else return;
+
+  if(!duelMode || !currentRoomId){
+    showToast('⚠️ الأوامر شغالة بس جوه غرفة');
+    return;
+  }
+  const targetId = Object.keys(mpOtherPlayers).find(id => (mpOtherPlayers[id].name||'').trim() === name.trim());
+  if(!targetId){
+    showToast('⚠️ محدش اسمه كده في الغرفة');
+    return;
+  }
+
+  if(prefix === 'اقتل_'){
+    mpDb.ref(`rooms/${currentRoomId}/ownerCmd/${targetId}`).push({ type:'kill', title, text, ts: Date.now() });
+    mpDb.ref(`rooms/${currentRoomId}/kicked/${targetId}`).set(true)
+      .then(()=> mpDb.ref(`rooms/${currentRoomId}/players/${targetId}`).remove());
+  } else {
+    const type = prefix === 'ابلع_' ? 'give' : 'drain';
+    mpDb.ref(`rooms/${currentRoomId}/ownerCmd/${targetId}`).push({ type, title, text, ts: Date.now() });
+  }
+  showToast(`✅ اتبعت الأمر لـ ${name}`);
+  if(mpChatRef){
+    mpChatRef.push({ playerId:'system', name:'⚙️ SYSTEM', text:`${title} — تم تنفيذه على "${name}"`, ts: Date.now() });
+  }
+}
+
+function applyIncomingOwnerCmd(cmd){
+  if(cmd.type === 'give'){
+    totalCoins += 1000; gems += 50;
+    persistAll(); refreshMenuDisplays();
+  } else if(cmd.type === 'drain'){
+    totalCoins = 0; gems = 0;
+    persistAll(); refreshMenuDisplays();
+  }
+  if(cmd.title && cmd.text) ownerBigMessage(cmd.title, cmd.text);
+}
+
+// wrap the original sendChatMsg so owner commands never actually get sent as chat text
+if(typeof sendChatMsg === 'function'){
+  const _origSendChatMsg = sendChatMsg;
+  sendChatMsg = function(){
+    const inp = document.getElementById('chatInput');
+    const raw = inp ? inp.value.trim() : '';
+    if(ownerMode && raw){
+      const m = findOwnerCmdMatch(raw);
+      if(m && m.rest){
+        runOwnerChatCommand(m.prefix, m.rest);
+        inp.value = '';
+        hideOwnerAutocomplete();
+        return;
+      }
+    }
+    _origSendChatMsg();
+  };
+}
+
+// ── Autocomplete for character names ─────────────────────────────
+function hideOwnerAutocomplete(){
+  const ac = document.getElementById('ownerCmdAutocomplete');
+  if(ac){ ac.classList.remove('open'); ac.innerHTML=''; }
+}
+document.addEventListener('DOMContentLoaded', ()=>{
+  const chatInp = document.getElementById('chatInput');
+  if(!chatInp) return;
+  chatInp.addEventListener('input', ()=>{
+    if(!ownerMode) return;
+    const raw = chatInp.value;
+    const m = findOwnerCmdMatch(raw);
+    const ac = document.getElementById('ownerCmdAutocomplete');
+    if(!m){ hideOwnerAutocomplete(); return; }
+    const query = m.rest.trim().toLowerCase();
+    const playerNames = Object.keys(mpOtherPlayers)
+      .filter(id => id !== mpPlayerId)
+      .map(id => mpOtherPlayers[id].name || 'لاعب')
+      .filter(n => !query || n.toLowerCase().includes(query));
+    if(playerNames.length === 0){ hideOwnerAutocomplete(); return; }
+    ac.innerHTML = '';
+    playerNames.forEach(n=>{
+      const item = document.createElement('div');
+      item.className = 'owner-ac-item';
+      item.textContent = `👤 ${n}`;
+      item.onclick = ()=>{
+        chatInp.value = m.prefix + n;
+        hideOwnerAutocomplete();
+        chatInp.focus();
+      };
+      ac.appendChild(item);
+    });
+    ac.classList.add('open');
+  });
+  chatInp.addEventListener('blur', ()=> setTimeout(hideOwnerAutocomplete, 150));
+});
+function handleAvatarUpload(event){
+  const file = event.target.files && event.target.files[0];
+  if(!file) return;
+  if(!file.type.startsWith('image/')){ showToast('⚠️ لازم تختار صورة'); event.target.value=''; return; }
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const img = new Image();
+    img.onload = function(){
+      const SIZE = 128;
+      const canvas = document.createElement('canvas');
+      canvas.width = SIZE; canvas.height = SIZE;
+      const ctx = canvas.getContext('2d');
+      const side = Math.min(img.width, img.height);
+      const sx = (img.width - side) / 2;
+      const sy = (img.height - side) / 2;
+      ctx.drawImage(img, sx, sy, side, side, 0, 0, SIZE, SIZE);
+      avatarData = canvas.toDataURL('image/jpeg', 0.75);
+      persistAll();
+      refreshAvatarSettingsUI();
+      if(mpPlayerRef){ mpPlayerRef.update({ avatar: avatarData }).catch(()=>{}); }
+      showToast('✅ اتغيرت الصورة');
+    };
+    img.onerror = ()=> showToast('❌ فشل تحميل الصورة');
+    img.src = e.target.result;
+  };
+  reader.onerror = ()=> showToast('❌ فشل قراءة الملف');
+  reader.readAsDataURL(file);
+  event.target.value = '';
+}
+
+function refreshAvatarSettingsUI(){
+  const img = document.getElementById('avatarPreview');
+  const ph = document.getElementById('avatarPlaceholder');
+  if(!img || !ph) return;
+  if(avatarData){
+    img.src = avatarData;
+    img.style.display = 'block';
+    ph.style.display = 'none';
+  } else {
+    img.style.display = 'none';
+    ph.style.display = 'flex';
+  }
+}
+// ══════════════════════════════════════════════════════════════
+//  FRIENDS SYSTEM
+// ══════════════════════════════════════════════════════════════
+let friendsListenerRef = null;
+let friendReqListenerRef = null;
+let friendReqAddedListenerRef = null;
+let friendReqSessionStart = 0;
+let inviteListenerRef = null;
+let blockedListenerRef = null;
+let currentFriendChatRef = null;
+let currentFriendChatWith = null;
+let myFriends = {};
+let unreadFriendMsgs = {};
+let friendMsgListeners = {};
+let currentTypingRef = null;
+let typingHideTimer = null;
+let typingThrottleTs = 0;
+let myIncomingRequests = {};
+let myBlocked = {};
+
+function initFriendSystem(){
+  if(!currentAccount) return;
+  if(friendsListenerRef) friendsListenerRef.off();
+  friendsListenerRef = mpDb.ref('friends/' + currentAccount);
+  friendsListenerRef.on('value', snap=>{ myFriends = snap.val() || {}; renderFriendsList(); mpRenderOthers(); syncFriendMsgListeners(); });
+
+  friendReqSessionStart = Date.now();
+  if(friendReqListenerRef) friendReqListenerRef.off();
+  friendReqListenerRef = mpDb.ref('friendRequests/' + currentAccount);
+  friendReqListenerRef.on('value', snap=>{ myIncomingRequests = snap.val() || {}; renderFriendRequests(); });
+
+  if(friendReqAddedListenerRef) friendReqAddedListenerRef.off();
+  friendReqAddedListenerRef = mpDb.ref('friendRequests/' + currentAccount);
+  friendReqAddedListenerRef.on('child_added', snap=>{
+    const req = snap.val();
+    if(req && req.ts >= friendReqSessionStart) showFriendReqToast(snap.key);
+  });
+
+  if(blockedListenerRef) blockedListenerRef.off();
+  blockedListenerRef = mpDb.ref('blocked/' + currentAccount);
+  blockedListenerRef.on('value', snap=>{ myBlocked = snap.val() || {}; renderBlockedList(); mpRenderOthers(); voiceSyncPeers(); });
+
+  if(inviteListenerRef) inviteListenerRef.off();
+  inviteListenerRef = mpDb.ref('invites/' + currentAccount);
+  inviteListenerRef.on('child_added', snap=>{
+    const inv = snap.val();
+    snap.ref.remove();
+    if(inv) showGameInvite(inv);
+  });
+}
+
+// لون اسم اللاعب حسب علاقتك بيه: صديق = أخضر، محظور = أحمر، غير كده = أبيض
+function socialNameColor(username){
+  if(!username) return '#fff';
+  if(myBlocked && myBlocked[username]) return '#ef4444';
+  if(myFriends && myFriends[username]) return '#22c55e';
+  return '#fff';
+}
+
+async function sendFriendRequestTo(target){
+  if(!target || !currentAccount) return;
+  if(target === currentAccount){ showToast('⚠️ متقدرش تضيف نفسك'); return; }
+  if(myFriends[target]){ showToast('✅ هو صاحبك أصلاً'); return; }
+  if(myBlocked[target]){ showToast('⚠️ شيل الحظر عنه الأول'); return; }
+  try{
+    const theirBlockSnap = await mpDb.ref(`blocked/${target}/${currentAccount}`).once('value');
+    if(theirBlockSnap.exists()){ showToast('⚠️ متقدرش تبعتله طلب صداقة'); return; }
+    const snap = await accRef(target).once('value');
+    if(!snap.exists()){ showToast('⚠️ الاسم ده مش موجود'); return; }
+    await mpDb.ref(`friendRequests/${target}/${currentAccount}`).set({ ts: Date.now() });
+    showToast('✅ اتبعت طلب الصداقة');
+  }catch(err){ showToast('❌ فشل: '+err.message); }
+}
+// نفس القديمة لسه شغالة لو حد بينده عليها من مكان تاني، بس دلوقتي بتاخد الاسم من نتيجة البحث
+async function sendFriendRequest(){
+  const inp = document.getElementById('addFriendInput');
+  const target = (inp.value || '').trim();
+  if(!target) return;
+  await sendFriendRequestTo(target);
+  inp.value = '';
+  const results = document.getElementById('friendSearchResults');
+  if(results){ results.innerHTML=''; results.style.display='none'; }
+}
+
+function acceptFriendRequest(fromUser){
+  const updates = {};
+  updates[`friends/${currentAccount}/${fromUser}`] = true;
+  updates[`friends/${fromUser}/${currentAccount}`] = true;
+  updates[`friendRequests/${currentAccount}/${fromUser}`] = null;
+  mpDb.ref().update(updates).then(()=> showToast('🤝 بقيتوا أصحاب'));
+}
+function rejectFriendRequest(fromUser){
+  mpDb.ref(`friendRequests/${currentAccount}/${fromUser}`).remove();
+}
+
+function removeFriend(target){
+  if(!currentAccount || !target) return;
+  if(!confirm(`متأكد إنك عايز تشيل "${target}" من قائمة أصحابك؟`)) return;
+  const updates = {};
+  updates[`friends/${currentAccount}/${target}`] = null;
+  updates[`friends/${target}/${currentAccount}`] = null;
+  mpDb.ref().update(updates).then(()=> showToast('🗑️ اتشال من قائمة أصحابك'));
+}
+
+function blockUser(target){
+  if(!currentAccount || !target) return;
+  if(target === currentAccount) return;
+  if(!confirm(`متأكد إنك عايز تحظر "${target}"؟ مش هيقدر يبعتلك طلب صداقة وهتبطل تشوف كلامه في الشات.`)) return;
+  const updates = {};
+  updates[`blocked/${currentAccount}/${target}`] = true;
+  updates[`friends/${currentAccount}/${target}`] = null;
+  updates[`friends/${target}/${currentAccount}`] = null;
+  updates[`friendRequests/${currentAccount}/${target}`] = null;
+  mpDb.ref().update(updates).then(()=>{
+    showToast('🚫 اتحظر');
+    renderPlayerListOverlay();
+  });
+}
+function unblockUser(target){
+  if(!currentAccount || !target) return;
+  mpDb.ref(`blocked/${currentAccount}/${target}`).remove().then(()=>{
+    showToast('✅ اتفك الحظر');
+    renderPlayerListOverlay();
+  });
+}
+
+function renderBlockedList(){
+  const box = document.getElementById('blockedListBox');
+  if(!box) return;
+  const ids = Object.keys(myBlocked);
+  if(ids.length === 0){ box.innerHTML = ''; return; }
+  box.innerHTML = `<div style="font-family:var(--font-px);font-size:8px;color:#ef4444;margin:14px 0 8px">◈ المحظورين</div>` +
+    ids.map(id => `
+      <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.25);border-radius:8px;padding:8px 10px;margin-bottom:6px">
+        <span style="font-size:12px;color:#ef4444">${escapeHtml(id)}</span>
+        <button onclick="unblockUser('${id}')" style="font-family:var(--font-px);font-size:6px;padding:6px 8px;background:rgba(34,197,94,.15);border:1px solid #22c55e;color:#22c55e;cursor:pointer;border-radius:5px">فك الحظر</button>
+      </div>`).join('');
+}
+
+// ── بحث فوري عن لاعبين (زي روبلوكس) ──────────────
+let friendSearchTimer = null;
+function onFriendSearchInput(){
+  const inp = document.getElementById('addFriendInput');
+  const box = document.getElementById('friendSearchResults');
+  if(!inp || !box) return;
+  const q = inp.value.trim().toLowerCase();
+  clearTimeout(friendSearchTimer);
+  if(!q){ box.innerHTML=''; box.style.display='none'; return; }
+  box.style.display = 'block';
+  box.innerHTML = '<div style="padding:9px;font-size:11px;color:#667">بيدوّر...</div>';
+  friendSearchTimer = setTimeout(async ()=>{
+    try{
+      const snap = await mpDb.ref('accounts').limitToFirst(3000).once('value');
+      const all = snap.val() || {};
+      const matches = Object.keys(all)
+        .filter(u => u.toLowerCase().startsWith(q) && u !== currentAccount)
+        .slice(0, 15);
+      if(matches.length === 0){ box.innerHTML = '<div style="padding:9px;font-size:11px;color:#667">مفيش نتايج</div>'; return; }
+      box.innerHTML = matches.map(u=>{
+        const acc = all[u] || {};
+        const avatar = acc.data && acc.data.avatar;
+        const avatarHtml = avatar
+          ? `<img src="${avatar}" style="width:26px;height:26px;border-radius:50%;object-fit:cover">`
+          : `<span style="display:inline-flex;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.08);align-items:center;justify-content:center;font-size:12px">👤</span>`;
+        let actionHtml;
+        if(myFriends[u]) actionHtml = `<span style="font-size:9px;color:#22c55e">✅ صاحبك</span>`;
+        else if(myBlocked[u]) actionHtml = `<button onclick="unblockUser('${u}')" style="font-family:var(--font-px);font-size:6px;padding:5px 8px;background:rgba(34,197,94,.15);border:1px solid #22c55e;color:#22c55e;cursor:pointer;border-radius:5px">فك الحظر</button>`;
+        else actionHtml = `<button onclick="sendFriendRequestTo('${u}')" style="font-family:var(--font-px);font-size:6px;padding:5px 8px;background:rgba(194,0,251,.15);border:1px solid var(--purple);color:var(--purple);cursor:pointer;border-radius:5px">إضافة</button>`;
+        return `<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.05)">
+          <span style="display:flex;align-items:center;gap:8px">${avatarHtml}<span style="font-size:12px;color:${socialNameColor(u)}">${escapeHtml(u)}</span></span>
+          ${actionHtml}
+        </div>`;
+      }).join('');
+    }catch(e){ box.innerHTML = '<div style="padding:9px;font-size:11px;color:#f66">فشل البحث</div>'; }
+  }, 250);
+}
+
+function renderFriendRequests(){
+  const ids = Object.keys(myIncomingRequests);
+  const badge = document.getElementById('friendReqBadge');
+  if(badge){
+    if(ids.length > 0){ badge.textContent = ids.length; badge.style.display='inline-block'; }
+    else badge.style.display='none';
+  }
+  const box = document.getElementById('friendRequestsBox');
+  if(!box) return;
+  if(ids.length === 0){ box.innerHTML=''; return; }
+  box.innerHTML = `<div style="font-family:var(--font-px);font-size:8px;color:var(--sky);margin-bottom:8px">◈ طلبات صداقة جديدة</div>` +
+    ids.map(id => `
+      <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.04);border:1px solid rgba(194,0,251,.2);border-radius:8px;padding:8px 10px;margin-bottom:6px">
+        <span style="font-size:12px">${escapeHtml(id)}</span>
+        <div style="display:flex;gap:6px">
+          <button onclick="acceptFriendRequest('${id}')" style="font-family:var(--font-px);font-size:6px;padding:6px 8px;background:rgba(34,197,94,.15);border:1px solid #22c55e;color:#22c55e;cursor:pointer;border-radius:5px">قبول</button>
+          <button onclick="rejectFriendRequest('${id}')" style="font-family:var(--font-px);font-size:6px;padding:6px 8px;background:rgba(239,68,68,.15);border:1px solid #ef4444;color:#ef4444;cursor:pointer;border-radius:5px">رفض</button>
+        </div>
+      </div>`).join('');
+}
+
+function renderFriendsList(){
+  const box = document.getElementById('friendsListBox');
+  if(!box) return;
+  const ids = Object.keys(myFriends);
+  if(ids.length === 0){
+    box.innerHTML = '<div style="text-align:center;color:#556;font-size:12px;padding:20px 0">مفيش أصدقاء لسه</div>';
+    return;
+  }
+  box.innerHTML = ids.map(id => {
+    const inviteBtn = (typeof duelMode!=='undefined' && duelMode && typeof currentRoomId!=='undefined' && currentRoomId)
+      ? `<button onclick="sendGameInvite('${id}')" title="دعوة للعب" style="width:32px;height:32px;border-radius:8px;background:rgba(194,0,251,.15);border:1px solid var(--purple);color:var(--purple);cursor:pointer;font-size:15px">🎮</button>`
+      : '';
+    return `
+    <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.04);border:1px solid rgba(194,0,251,.2);border-radius:8px;padding:9px 10px;margin-bottom:6px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <img id="friendAvatar-${id}" src="" alt="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid rgba(34,197,94,.4);background:rgba(34,197,94,.1);display:none">
+        <div id="friendAvatarPlaceholder-${id}" style="width:32px;height:32px;border-radius:50%;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.4);display:flex;align-items:center;justify-content:center;font-size:14px">👤</div>
+        <span style="font-size:13px;color:#22c55e;font-weight:700">${escapeHtml(id)}</span>
+      </div>
+      <div style="display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end">
+        <button onclick="openFriendChat('${id}')" title="دردشة" style="width:32px;height:32px;border-radius:8px;background:rgba(34,211,238,.15);border:1px solid #22d3ee;color:#22d3ee;cursor:pointer;font-size:15px">💬</button>
+        ${inviteBtn}
+        <button onclick="removeFriend('${id}')" title="إزالة من الأصدقاء" style="width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid #888;color:#aaa;cursor:pointer;font-size:15px">🗑️</button>
+        <button onclick="blockUser('${id}')" title="حظر" style="width:32px;height:32px;border-radius:8px;background:rgba(239,68,68,.15);border:1px solid #ef4444;color:#ef4444;cursor:pointer;font-size:15px">🚫</button>
+      </div>
+    </div>`;
+  }).join('');
+  ids.forEach(fid=>{
+    accRef(fid).child('data').child('avatar').once('value').then(snap=>{
+      const url = snap.val();
+      if(!url) return;
+      const img = document.getElementById('friendAvatar-'+fid);
+      const ph = document.getElementById('friendAvatarPlaceholder-'+fid);
+      if(img){ img.src = url; img.style.display = 'block'; }
+      if(ph){ ph.style.display = 'none'; }
+    }).catch(()=>{});
+  });
+  renderBlockedList();
+}
+
+// ── دعوة للعب (كولداون دقيقة لكل صديق) ──────────────
+function sendGameInvite(friendUsername){
+  if(!duelMode || !currentRoomId){ showToast('⚠️ لازم تكون جوه غرفة الأول'); return; }
+  const key = 'invite_cd_' + currentAccount + '_' + friendUsername;
+  const last = parseInt(localStorage.getItem(key) || '0', 10);
+  const now = Date.now();
+  if(now - last < 60000){
+    showToast(`⏳ استنى ${Math.ceil((60000-(now-last))/1000)} ثانية قبل ما تدعوه تاني`);
+    return;
+  }
+  localStorage.setItem(key, String(now));
+  mpDb.ref(`invites/${friendUsername}`).push({ from: currentAccount, roomId: currentRoomId, ts: now })
+    .then(()=> showToast('✅ اتبعتت الدعوة'))
+    .catch(err=> showToast('❌ فشل: '+err.message));
+}
+function showFriendReqToast(fromUser){
+  const box = document.getElementById('friendReqToast');
+  if(!box) return;
+  document.getElementById('friendReqToastText').textContent = `${fromUser} بعتلك طلب صداقة!`;
+  document.getElementById('friendReqToastAcceptBtn').onclick = ()=>{
+    box.style.display = 'none';
+    acceptFriendRequest(fromUser);
+  };
+  document.getElementById('friendReqToastRejectBtn').onclick = ()=>{
+    box.style.display = 'none';
+    rejectFriendRequest(fromUser);
+  };
+  box.style.display = 'block';
+}
+function showGameInvite(inv){
+  const box = document.getElementById('inviteToast');
+  document.getElementById('inviteToastText').textContent = `${inv.from} دعاك تلعب معاه!`;
+  document.getElementById('inviteToastJoinBtn').onclick = ()=>{
+    box.style.display = 'none';
+    if(currentRoomId) finalizeLeave(false);
+    joinDuelRoom(inv.roomId, false);
+  };
+  box.style.display = 'block';
+  setTimeout(()=>{ if(box.style.display==='block') box.style.display='none'; }, 15000);
+}
+
+// ── شات خاص لكل صديق ──────────────
+function friendChatKey(a, b){ return [a,b].sort().join('__'); }
+
+function syncFriendMsgListeners(){
+  const ids = Object.keys(myFriends);
+  Object.keys(friendMsgListeners).forEach(f=>{
+    if(!ids.includes(f)){ friendMsgListeners[f].off(); delete friendMsgListeners[f]; delete unreadFriendMsgs[f]; }
+  });
+  ids.forEach(f=>{
+    if(friendMsgListeners[f]) return;
+    const ref = mpDb.ref('chats/' + friendChatKey(currentAccount, f)).orderByChild('ts').startAt(Date.now());
+    friendMsgListeners[f] = ref;
+    ref.on('child_added', snap=>{
+      const m = snap.val();
+      if(!m || m.from === currentAccount) return;
+      if(currentFriendChatWith === f) return;
+      unreadFriendMsgs[f] = (unreadFriendMsgs[f]||0) + 1;
+      renderFriendMsgBadge();
+    });
+  });
+  renderFriendMsgBadge();
+}
+function renderFriendMsgBadge(){
+  const badge = document.getElementById('friendMsgBadge');
+  if(!badge) return;
+  const total = Object.values(unreadFriendMsgs).reduce((a,b)=>a+b, 0);
+  if(total > 0){ badge.textContent = total > 9 ? '9+' : String(total); badge.style.display = 'inline-block'; }
+  else badge.style.display = 'none';
+}
+function openFriendChat(friendUsername){
+  if(!currentAccount) return;
+  if(typeof duelMode !== 'undefined' && duelMode){ showToast('⚠️ مينفعش تفتح شات الأصدقاء وانت جوه غرفة'); return; }
+  closeFriendChat();
+  currentFriendChatWith = friendUsername;
+  unreadFriendMsgs[friendUsername] = 0;
+  renderFriendMsgBadge();
+  document.getElementById('friendChatTitle').textContent = '💬 ' + friendUsername;
+  document.getElementById('friendChatMessages').innerHTML = '';
+  document.getElementById('friendChatPanel').style.display = 'flex';
+  currentFriendChatRef = mpDb.ref('chats/' + friendChatKey(currentAccount, friendUsername)).limitToLast(50);
+  currentFriendChatRef.on('child_added', snap => appendFriendChatMessage(snap.val()));
+  currentTypingRef = mpDb.ref('typing/' + friendChatKey(currentAccount, friendUsername) + '/' + friendUsername);
+  currentTypingRef.on('value', snap=>{
+    const ts = snap.val();
+    const indicator = document.getElementById('friendTypingIndicator');
+    if(!indicator) return;
+    clearTimeout(typingHideTimer);
+    if(ts && Date.now() - ts < 3000){
+      indicator.style.display = 'flex';
+      typingHideTimer = setTimeout(()=>{ indicator.style.display = 'none'; }, 3000 - (Date.now() - ts));
+    } else {
+      indicator.style.display = 'none';
+    }
+  });
+}
+function closeFriendChat(){
+  if(currentFriendChatRef){ currentFriendChatRef.off(); currentFriendChatRef = null; }
+  if(currentTypingRef){ currentTypingRef.off(); currentTypingRef = null; }
+  clearTimeout(typingHideTimer);
+  currentFriendChatWith = null;
+  const p = document.getElementById('friendChatPanel');
+  if(p) p.style.display = 'none';
+  const indicator = document.getElementById('friendTypingIndicator');
+  if(indicator) indicator.style.display = 'none';
+}
+function appendFriendChatMessage(m){
+  if(!m) return;
+  const box = document.getElementById('friendChatMessages');
+  const own = m.from === currentAccount;
+  const row = document.createElement('div');
+  row.style.cssText = `display:flex;${own ? 'justify-content:flex-end' : 'justify-content:flex-start'}`;
+  const bubble = document.createElement('div');
+  bubble.style.cssText = `max-width:75%;padding:7px 11px;border-radius:12px;font-size:12px;color:#fff;line-height:1.4;word-break:break-word;background:${own ? 'rgba(34,211,238,.25)' : 'rgba(232,121,249,.18)'};border:1px solid ${own ? 'rgba(34,211,238,.4)' : 'rgba(232,121,249,.35)'}`;
+  bubble.textContent = m.text;
+  row.appendChild(bubble);
+  box.appendChild(row);
+  box.scrollTop = box.scrollHeight;
+}
+function notifyTyping(){
+  if(!currentFriendChatWith || !currentAccount) return;
+  const now = Date.now();
+  if(now - typingThrottleTs < 1200) return;
+  typingThrottleTs = now;
+  mpDb.ref('typing/' + friendChatKey(currentAccount, currentFriendChatWith) + '/' + currentAccount).set(now);
+}
+function sendFriendChatMsg(){
+  if(!currentFriendChatWith || !currentAccount) return;
+  const inp = document.getElementById('friendChatInput');
+  const text = (inp.value || '').trim();
+  if(!text) return;
+  mpDb.ref('chats/' + friendChatKey(currentAccount, currentFriendChatWith))
+    .push({ from: currentAccount, text: filterProfanity(text.slice(0,200)), ts: Date.now() });
+  mpDb.ref('typing/' + friendChatKey(currentAccount, currentFriendChatWith) + '/' + currentAccount).remove();
+  inp.value = '';
+}
+</script>
+<!-- ══ PANEL: FRIENDS ══ -->
+<div class="overlay-panel" id="panel-friends">
+  <div class="panel-box">
+    <button class="panel-close" onclick="closePanel('friends')">✕ إغلاق</button>
+    <div class="panel-title">◈ الأصدقاء</div>
+    <div style="position:relative;margin-bottom:14px">
+      <input type="text" id="addFriendInput" placeholder="ابحث عن..." autocomplete="off" oninput="onFriendSearchInput()"
+        style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid rgba(194,0,251,.4);background:rgba(0,13,8,.6);color:#fff;font-size:12px;font-family:var(--font-ar)">
+      <div id="friendSearchResults" style="display:none;position:absolute;top:100%;right:0;left:0;margin-top:4px;max-height:220px;overflow-y:auto;background:rgba(0,13,8,.98);border:1px solid rgba(194,0,251,.4);border-radius:8px;z-index:50;box-shadow:0 8px 20px rgba(0,0,0,.4)"></div>
+    </div>
+    <div id="friendRequestsBox" style="margin-bottom:14px"></div>
+    <div id="friendsListBox">
+      <div style="text-align:center;color:#556;font-size:12px;padding:20px 0">مفيش أصدقاء لسه</div>
+    </div>
+    <div id="blockedListBox"></div>
+  </div>
+</div>
+
+<style>
+.typing-dot{width:6px;height:6px;border-radius:50%;background:#aaa;display:inline-block;animation:typingBounce 1.2s infinite ease-in-out}
+.typing-dot:nth-child(2){animation-delay:.2s}
+.typing-dot:nth-child(3){animation-delay:.4s}
+@keyframes typingBounce{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-5px);opacity:1}}
+</style>
+<!-- ══ FRIEND PRIVATE CHAT ══ -->
+<div id="friendChatPanel" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:340px;max-width:92vw;height:460px;max-height:78vh;background:var(--night2);border:1px solid var(--purple);box-shadow:0 0 30px var(--purple-glow);z-index:600;flex-direction:column;border-radius:12px">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid rgba(194,0,251,.3)">
+    <span id="friendChatTitle" style="font-family:var(--font-px);font-size:9px;color:var(--purple)"></span>
+    <button onclick="closeFriendChat()" style="cursor:pointer;color:#666;font-size:14px;background:none;border:none">✕</button>
+  </div>
+  <div id="friendChatMessages" style="flex:1;overflow-y:auto;padding:8px 10px;display:flex;flex-direction:column;gap:6px"></div>
+  <div id="friendTypingIndicator" style="display:none;align-items:center;gap:4px;padding:0 12px 6px">
+    <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>
+  </div>
+  <div style="display:flex;gap:6px;padding:8px;border-top:1px solid rgba(194,0,251,.2)">
+    <input type="text" id="friendChatInput" maxlength="200" placeholder="اكتب رسالة..." oninput="notifyTyping()" onkeydown="if(event.key==='Enter')sendFriendChatMsg()" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid rgba(194,0,251,.4);background:rgba(0,13,8,.6);color:#fff;font-size:12px;font-family:var(--font-ar)">
+    <button onclick="sendFriendChatMsg()" style="padding:8px 12px;font-family:var(--font-px);font-size:7px;background:linear-gradient(135deg,var(--purple),var(--purple-dim));border:none;color:#fff;border-radius:6px;cursor:pointer">◀</button>
+  </div>
+</div>
+
+<!-- ══ INCOMING GAME INVITE TOAST ══ -->
+<div id="friendReqToast" style="display:none;position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--night2);border:1px solid #22c55e;box-shadow:0 0 20px rgba(34,197,94,.4);padding:12px 16px;border-radius:10px;z-index:700;text-align:center">
+  <div id="friendReqToastText" style="font-size:12px;color:#fff;margin-bottom:8px"></div>
+  <div style="display:flex;gap:8px">
+    <button id="friendReqToastAcceptBtn" style="flex:1;padding:8px;font-family:var(--font-px);font-size:7px;background:linear-gradient(135deg,#22c55e,#16a34a);border:none;color:#fff;border-radius:6px;cursor:pointer">قبول</button>
+    <button id="friendReqToastRejectBtn" style="flex:1;padding:8px;font-family:var(--font-px);font-size:7px;background:transparent;border:1px solid #ef4444;color:#ef4444;border-radius:6px;cursor:pointer">رفض</button>
+  </div>
+</div>
+<div id="inviteToast" style="display:none;position:fixed;top:16px;left:50%;transform:translateX(-50%);background:var(--night2);border:1px solid var(--purple);box-shadow:0 0 20px var(--purple-glow);padding:12px 16px;border-radius:10px;z-index:700;text-align:center">
+  <div id="inviteToastText" style="font-size:12px;color:#fff;margin-bottom:8px"></div>
+  <div style="display:flex;gap:8px">
+    <button id="inviteToastJoinBtn" style="flex:1;padding:8px;font-family:var(--font-px);font-size:7px;background:linear-gradient(135deg,var(--purple),var(--purple-dim));border:none;color:#fff;border-radius:6px;cursor:pointer">انضمام</button>
+    <button onclick="document.getElementById('inviteToast').style.display='none'" style="flex:1;padding:8px;font-family:var(--font-px);font-size:7px;background:transparent;border:1px solid #555;color:#aaa;border-radius:6px;cursor:pointer">تجاهل</button>
+  </div>
+</div>
 </body>
 </html>
