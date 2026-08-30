@@ -552,10 +552,13 @@ header {
   #gameArea{cursor:default;}
   #crosshair{display:none;}
   #puStatus{bottom:138px;}
-  #dashBar{bottom:148px;}
+  #dashBar{bottom:14px;width:72px;}
+  #dashBar .dash-label{font-size:6px;}
+  #ultBar{bottom:38px;width:88px;}
   #bossHpWrap{bottom:138px;}
 }
-#joyZone  { position:absolute; bottom:10px; right:14px; width:110px; height:110px; pointer-events:all; }
+#joyZone  { position:fixed; width:110px; height:110px; pointer-events:none; opacity:0; transition:opacity .12s; z-index:95; }
+#joyZone.active { opacity:1; }
 #joyBase  { position:absolute; inset:0; border-radius:50%; background:rgba(194,0,251,.12); border:2px solid rgba(194,0,251,.35); }
 #joyKnob  { position:absolute; width:44px; height:44px; border-radius:50%; background:radial-gradient(circle at 35% 35%,rgba(194,0,251,.9),rgba(99,102,241,.7)); border:2px solid rgba(194,0,251,.8); box-shadow:0 0 14px rgba(194,0,251,.5); top:50%; left:50%; transform:translate(-50%,-50%); transition:transform .05s; }
 #actionBtns { position:absolute; bottom:10px; left:14px; display:flex; flex-direction:column; gap:10px; pointer-events:all; }
@@ -795,18 +798,27 @@ header {
   .toast{ top:74px; }
 }
 @media(max-height:400px) and (pointer:coarse){
-  #joyZone{ width:88px; height:88px; bottom:6px; }
+  #joyZone{ width:88px; height:88px; }
   #joyKnob{ width:36px; height:36px; }
   #actionBtns{ bottom:6px; gap:6px; }
   .act-btn{ width:46px; height:46px; font-size:18px; }
   #mobileControls{ height:100px; }
 }
+@media(max-height:420px) and (pointer:coarse){
+  .menu-item{ padding:5px 14px; margin-bottom:2px; font-size:8px; }
+  .logo{ font-size:22px; }
+  .menu-wrap{ padding:.3rem 1rem; }
+  #menuSkinPreview{ display:none; }
+}
+@media(pointer:coarse){
+  #chatPanel{ width:min(92vw,320px); }
+  #chatInput,.chat-msg{ font-size:14px; }
+}
 @media(pointer:coarse) and (orientation:landscape){
-  #chatToggleBtn,#inviteFriendBtn,#micToggleBtn,#micMuteBtn{ top:auto; bottom:6px; }
-  #chatToggleBtn{ right:6px; }
-  #inviteFriendBtn{ right:60px; }
-  #micToggleBtn{ right:114px; }
-  #micMuteBtn{ right:168px; }
+  #chatToggleBtn{ top:8px; right:6px; }
+  #inviteFriendBtn{ top:8px; right:60px; }
+  #micToggleBtn{ top:8px; right:114px; }
+  #micMuteBtn{ top:8px; right:168px; }
 }
 </style>
 </head>
@@ -1587,6 +1599,12 @@ function ownerDeleteRoom(roomId){
         voiceSyncPeers();
       }, err => console.error('[MP DEBUG] players LIST LISTENER ERROR (permission?):', err));
 
+      mpPlayersListenerRef.on('child_changed', snapC => {
+        if(snapC.key === mpPlayerId) return;
+        const val = snapC.val();
+        if(val && val.shadowUltCastAt) mpApplyShadowUlt(snapC.key, val.shadowUltCastAt);
+      });
+
       mpMyPlayerListenerRef = mpDb.ref(`rooms/${roomId}/players/${mpPlayerId}`);
       mpMyPlayerListenerRef.on('value', snap3 => {
         const val = snap3.val();
@@ -1622,6 +1640,17 @@ function ownerDeleteRoom(roomId){
     });
   }
 
+  if(window.visualViewport){
+    window.visualViewport.addEventListener('resize', ()=>{
+      const cp=document.getElementById('chatPanel');
+      if(cp && cp.classList.contains('open')){
+        const vv=window.visualViewport;
+        cp.style.height = Math.min(300, vv.height*0.5)+'px';
+        cp.style.bottom = (window.innerHeight - vv.height - vv.offsetTop + 8)+'px';
+        cp.style.top = 'auto';
+      }
+    });
+  }
   function initChatListener(roomId){
     const btn = document.getElementById('chatToggleBtn');
     if(btn) btn.style.display = 'flex';
@@ -1641,6 +1670,8 @@ function ownerDeleteRoom(roomId){
   const b = document.createElement('div');
   b.className = 'head-chat-bubble';
   b.textContent = text;
+  b.style.transform = `translateX(-50%) scale(${1/(arenaScale||1)})`;
+  b.style.transformOrigin = 'bottom center';
   hostEl.appendChild(b);
   b._t1 = setTimeout(()=>{ b.classList.add('fade'); }, 5000);
   b._t2 = setTimeout(()=>{ b.remove(); }, 6100);
@@ -1997,7 +2028,12 @@ function appendChatMessage(msg){
     if(voiceEnabled){ leaveVoiceChat(); return; }
     try{
       localVoiceStream = await navigator.mediaDevices.getUserMedia({ audio:true });
-    }catch(err){ showToast('❌ متقدرش أوصل للمايك: '+err.message); return; }
+    }catch(err){
+      if(err.name==='NotAllowedError') showToast('❌ لازم تسمح بإذن المايك من إعدادات المتصفح للموقع');
+      else if(err.name==='NotFoundError') showToast('❌ مفيش مايك متاح على الجهاز');
+      else showToast('❌ متقدرش أوصل للمايك: '+err.message);
+      return;
+    }
     voiceEnabled = true; voiceMuted = false;
     ensureVoiceAudioCtx();
     const selfSrc = voiceAudioCtx.createMediaStreamSource(localVoiceStream);
@@ -2373,7 +2409,6 @@ function mpApplyShadowUlt(id, castAt){
   const st = mpOtherStates[id]; if(!st || !castAt) return;
   if(st.lastUltCast === castAt) return;
   st.lastUltCast = castAt;
-  if(Date.now() - castAt > 8000) return; // قديمة - وقتها خلص فعلاً، متتطبقش على الداخل الجديد
   const gaEl=document.getElementById('gameArea');
   if(gaEl){ gaEl.classList.add('time-invert'); setTimeout(()=>gaEl.classList.remove('time-invert'),8000); }
   showToast('🌑 خصمك فعّل الظل المطلق! السرعة اتبطأت');
@@ -2546,7 +2581,6 @@ mpUpdateBots(id, data.skin || 'purple');
       mpApplyVisual(id, data.skin || 'purple');
       mpApplyFacing(id, data.facing === -1 ? -1 : 1);
       mpApplyDash(id, !!data.dashing);
-      mpApplyShadowUlt(id, data.shadowUltCastAt);
     });
     if(!mpRenderLoopStarted){ mpRenderLoopStarted = true; requestAnimationFrame(mpInterpLoop); }
     document.querySelectorAll('[id^="mp-"]').forEach(el => {
@@ -3720,17 +3754,42 @@ document.getElementById('gameArea').addEventListener('click',()=>{ if(GR&&!pause
 // joystick
 const joyZone=document.getElementById('joyZone');
 const joyKnob=document.getElementById('joyKnob');
-let joyActive=false,joyId=null,joyOx=0,joyOy=0,joyVx=0,joyVy=0;
+let joyActive=false,joyId=null,joyOx=0,joyOy=0,joyVx=0,joyVy=0,shadowTeleportArmed=false;
 const JOY_R=32;
-function joyStart(e){ e.preventDefault(); const t=e.changedTouches?e.changedTouches[0]:e; const r=joyZone.getBoundingClientRect(); joyOx=r.left+r.width/2; joyOy=r.top+r.height/2; joyId=t.identifier||0; joyActive=true; }
+function joyStart(e){
+  const t=e.changedTouches?e.changedTouches[0]:e;
+  joyOx=t.clientX; joyOy=t.clientY; joyId=t.identifier||0; joyActive=true;
+  joyZone.style.left=(joyOx-55)+'px'; joyZone.style.top=(joyOy-55)+'px';
+  joyZone.classList.add('active'); joyKnob.style.transform='translate(-50%,-50%)';
+}
 function joyMove(e){ e.preventDefault(); if(!joyActive) return; let t=null; if(e.changedTouches){for(let i=0;i<e.changedTouches.length;i++) if(e.changedTouches[i].identifier===joyId){t=e.changedTouches[i];break;}}else t=e; if(!t) return; let dx=t.clientX-joyOx,dy=t.clientY-joyOy,dist=Math.sqrt(dx*dx+dy*dy); if(dist>JOY_R){dx=dx/dist*JOY_R;dy=dy/dist*JOY_R;} joyVx=dx/JOY_R; joyVy=dy/JOY_R; joyKnob.style.transform=`translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px))`; }
-function joyEnd(e){ e.preventDefault(); joyActive=false; joyVx=0; joyVy=0; joyKnob.style.transform='translate(-50%,-50%)'; }
-joyZone.addEventListener('touchstart',joyStart,{passive:false});
-joyZone.addEventListener('touchmove',joyMove,{passive:false});
-joyZone.addEventListener('touchend',joyEnd,{passive:false});
-joyZone.addEventListener('touchcancel',joyEnd,{passive:false});
+function joyEnd(e){ e.preventDefault(); joyActive=false; joyVx=0; joyVy=0; joyKnob.style.transform='translate(-50%,-50%)'; joyZone.classList.remove('active'); }
+document.getElementById('gameArea').addEventListener('touchstart',e=>{
+  if(shadowTeleportArmed){
+    shadowTeleportArmed=false; e.preventDefault();
+    const t=e.changedTouches[0];
+    const r=document.getElementById('gameArea').getBoundingClientRect();
+    mx=(t.clientX-r.left)/arenaScale; my=(t.clientY-r.top)/arenaScale;
+    tryDash();
+    return;
+  }
+  e.preventDefault(); joyStart(e);
+},{passive:false});
+document.getElementById('gameArea').addEventListener('touchmove',joyMove,{passive:false});
+document.getElementById('gameArea').addEventListener('touchend',joyEnd,{passive:false});
+document.getElementById('gameArea').addEventListener('touchcancel',joyEnd,{passive:false});
 document.getElementById('shootBtnM').addEventListener('touchstart',e=>{e.preventDefault();if(GR&&!paused)shoot();},{passive:false});
-document.getElementById('dashBtnM').addEventListener('touchstart',e=>{e.preventDefault();if(GR&&!paused)tryDash();},{passive:false});
+document.getElementById('dashBtnM').addEventListener('touchstart',e=>{
+  e.preventDefault();
+  if(!GR||paused) return;
+  if(duelMode && getSkin().id==='shadow'){
+    if(dashCD>0) return;
+    shadowTeleportArmed=true;
+    showToast('👆 دوس دلوقتي في المكان اللي عايز تتنقل له');
+    return;
+  }
+  tryDash();
+},{passive:false});
 document.getElementById('eBtnM').addEventListener('touchstart',e=>{e.preventDefault();if(GR&&!paused&&activePower==='shadow')shadowUltimate();},{passive:false});
 
 // ══════════════════════════════════════════════════════════════
@@ -4403,6 +4462,7 @@ function startGame(){
   document.getElementById('puStatus').innerHTML='';
   document.getElementById('dashFill').style.width='100%';
   document.getElementById('gameArea').classList.remove('boss-mode');
+  document.getElementById('shootBtnM').style.display='';
   const p=PEL();if(p){p.style.filter='';p.className='';}
   applyPlayerSkin();updateHearts();cacheArena();
   px=AW/2-19;py=AH/2-19;if(p){p.style.left=px+'px';p.style.top=py+'px';}
@@ -4429,6 +4489,8 @@ function startDuelGame(){
   document.getElementById('gameArea').classList.remove('boss-mode');
   document.getElementById('hud').style.display='none';
   document.getElementById('waveBanner').style.display='none';
+  applyActivePower();
+  document.getElementById('shootBtnM').style.display='none';
   const p=PEL();if(p){p.style.filter='';p.className='';}
   applyPlayerSkin();cacheArena();
   px=AW/2-19;py=AH/2-19;if(p){p.style.left=px+'px';p.style.top=py+'px';}
