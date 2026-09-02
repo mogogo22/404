@@ -2823,7 +2823,8 @@ async function submitAuth(){
     if(!res.ok){ msgEl.textContent = res.msg; return; }
     enterGameAfterAuth();
   }catch(e){
-    msgEl.textContent = 'حصلت مشكلة في الاتصال، حاول تاني.';
+    console.error('AUTH ERROR:', e);
+    msgEl.textContent = 'خطأ: ' + (e.code || e.message || 'غير معروف');
   }finally{
     btn.disabled = false;
   }
