@@ -197,6 +197,45 @@ body::before {
 .setting-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.4rem; gap:1rem; }
 .setting-label { font-family:var(--font-px); font-size:clamp(8px,1.2vw,9px); color:var(--sky); letter-spacing:2px; }
 .setting-control { display:flex; align-items:center; gap:10px; }
+/* ══ CREATE ROOM PANEL — REDESIGN ══ */
+.room-create-box { animation: roomPanelIn .35s cubic-bezier(.22,1,.36,1); transition: transform .25s ease; }
+@keyframes roomPanelIn {
+  from { opacity:0; transform:scale(.92) translateY(14px); }
+  to   { opacity:1; transform:scale(1) translateY(0); }
+}
+.room-name-input {
+  width:100%; padding:12px 14px; border-radius:10px;
+  border:1px solid rgba(194,0,251,.4); background:rgba(0,13,8,.6);
+  color:#fff; font-size:14px; font-family:var(--font-ar);
+  margin-bottom:4px; transition:border-color .2s, box-shadow .2s;
+}
+.room-name-input:focus {
+  outline:none; border-color:var(--purple);
+  box-shadow:0 0 0 3px rgba(194,0,251,.18), 0 0 14px rgba(194,0,251,.3);
+}
+.room-max-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:20px; }
+.room-max-pill {
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+  padding:10px 4px; border-radius:10px; cursor:pointer;
+  background:rgba(0,13,8,.55); border:1px solid rgba(194,0,251,.25);
+  color:#8a8a9a; font-size:18px; font-family:var(--font-mono);
+  transition:all .2s cubic-bezier(.22,1,.36,1);
+}
+.room-max-pill span { font-size:8px; font-family:var(--font-ar); letter-spacing:0; color:inherit; }
+.room-max-pill:hover { border-color:var(--purple); color:#fff; transform:translateY(-2px); }
+.room-max-pill.selected {
+  background:linear-gradient(135deg,rgba(194,0,251,.28),rgba(122,0,153,.28));
+  border-color:var(--purple); color:#fff;
+  box-shadow:0 0 14px rgba(194,0,251,.35);
+  transform:translateY(-2px) scale(1.04);
+}
+.room-create-submit { position:relative; overflow:hidden; animation:pulse-border 2.4s ease-in-out infinite; }
+.room-create-submit:active { transform:scale(.96); }
+@media (max-width:640px){
+  .room-max-grid { gap:6px; }
+  .room-max-pill { padding:9px 2px; font-size:16px; }
+  .room-max-pill span { font-size:7px; }
+}
 .vol-btn {
   width:28px; height:28px; background:transparent; border:1px solid var(--purple);
   color:var(--purple); cursor:pointer; font-size:14px; font-family:var(--font-mono);
@@ -593,6 +632,20 @@ header {
   transition:transform .15s;
 }
 #chatToggleBtn:hover { transform:scale(1.06); }
+#playerListToggleBtn {
+  display:none; position:fixed; top:96px; left:14px; z-index:200;
+  width:48px; height:48px; border-radius:50%; border:2px solid var(--sky);
+  background:radial-gradient(circle at 30% 30%, rgba(0,191,255,.25), rgba(0,13,8,.95));
+  color:var(--sky); font-size:19px; cursor:pointer;
+  align-items:center; justify-content:center; box-shadow:0 0 16px rgba(0,191,255,.4);
+  transition:transform .15s;
+}
+#playerListToggleBtn:hover { transform:scale(1.06); }
+#playerListToggleBtn .pl-badge {
+  position:absolute; top:-4px; left:-4px; background:var(--sky); color:#001018;
+  font-family:var(--font-px); font-size:8px; border-radius:50%; width:18px; height:18px;
+  display:flex; align-items:center; justify-content:center; box-shadow:0 0 6px rgba(0,191,255,.6);
+}
 #inviteFriendBtn {
   display:none; position:fixed; top:96px; right:70px; z-index:200;
   width:48px; height:48px; border-radius:50%; border:2px solid #22c55e;
@@ -811,14 +864,23 @@ header {
   #menuSkinPreview{ display:none; }
 }
 @media(pointer:coarse){
-  #chatPanel{ width:min(92vw,320px); }
+  #chatPanel{
+    top:auto; right:8px; left:8px; bottom:140px;
+    width:auto; max-width:none; height:min(50vh,380px); max-height:60vh;
+    border-radius:18px 18px 12px 12px;
+  }
+  #chatPanel.open{ animation:chatSlideUpMobile .25s cubic-bezier(.22,1,.36,1); }
   #chatInput,.chat-msg{ font-size:14px; }
+  #chatInput{ min-height:42px; }
+  #chatSendBtn{ min-height:42px; min-width:64px; }
 }
+@keyframes chatSlideUpMobile{ from{opacity:0;transform:translateY(24px);} to{opacity:1;transform:translateY(0);} }
 @media(pointer:coarse) and (orientation:landscape){
   #chatToggleBtn{ top:8px; right:6px; }
   #inviteFriendBtn{ top:8px; right:60px; }
   #micToggleBtn{ top:8px; right:114px; }
   #micMuteBtn{ top:8px; right:168px; }
+  #playerListToggleBtn{ top:8px; left:6px; }
 }
 </style>
 </head>
@@ -908,6 +970,12 @@ header {
       </div>
       <div class="menu-item" id="micRequestsMenuItem" tabindex="0" role="button" style="display:none" onclick="menuAction('micrequests')" onkeydown="if(event.key==='Enter')menuAction('micrequests')">
         <span class="item-emoji">🎤</span><span class="item-icon">►</span><span>المايك <span id="micReqBadge" style="display:none;background:#ef4444;color:#fff;border-radius:50%;font-size:9px;padding:2px 6px;margin-inline-start:4px">0</span></span>
+      </div>
+      <div class="menu-item" tabindex="0" role="button" onclick="menuAction('reportbug')" onkeydown="if(event.key==='Enter')menuAction('reportbug')">
+        <span class="item-emoji">🐞</span><span class="item-icon">►</span><span>الإبلاغ عن مشكلة</span>
+      </div>
+      <div class="menu-item" id="reportsMenuItem" tabindex="0" role="button" style="display:none" onclick="menuAction('reports')" onkeydown="if(event.key==='Enter')menuAction('reports')">
+        <span class="item-emoji">🚩</span><span class="item-icon">►</span><span>مشاكل وبلاغات <span id="reportsBadge" style="display:none;background:#ef4444;color:#fff;border-radius:50%;font-size:9px;padding:2px 6px;margin-inline-start:4px">0</span></span>
       </div>
       <div class="menu-item" tabindex="0" role="button" onclick="menuAction('settings')" onkeydown="if(event.key==='Enter')menuAction('settings')">
         <span class="item-emoji">⚙️</span><span class="item-icon">►</span><span>الإعدادات</span>
@@ -1000,6 +1068,35 @@ header {
   </div>
 </div>
 
+<!-- ══ PANEL: SUBMIT REPORT (bug or player) ══ -->
+<div class="overlay-panel" id="panel-reportbug">
+  <div class="panel-box">
+    <button class="panel-close" onclick="closePanel('reportbug')">✕ إغلاق</button>
+    <div class="panel-title" id="reportModalTitle">◈ الإبلاغ عن مشكلة</div>
+    <div id="reportTargetInfo" style="display:none;margin-bottom:10px;font-size:11px;color:var(--sky)"></div>
+    <textarea id="reportReasonInput" rows="4" placeholder="اكتب المشكلة أو السبب هنا..." style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(194,0,251,.4);background:rgba(0,13,8,.6);color:#fff;font-size:12px;font-family:var(--font-ar);resize:vertical;margin-bottom:10px"></textarea>
+    <div style="margin-bottom:12px">
+      <input type="file" id="reportScreenshotInput" accept="image/*" style="display:none" onchange="handleReportScreenshot(event)">
+      <button onclick="document.getElementById('reportScreenshotInput').click()" style="width:100%;padding:9px;font-size:9px;letter-spacing:1px;font-family:var(--font-px);color:var(--sky);border:1px solid var(--sky);background:transparent;cursor:pointer">📎 إرفاق سكرين شوت (اختياري)</button>
+      <img id="reportScreenshotPreview" src="" style="display:none;max-width:100%;margin-top:8px;border-radius:8px;border:1px solid rgba(255,255,255,.2)">
+    </div>
+    <button onclick="submitReport()" style="width:100%;padding:11px;font-family:var(--font-px);font-size:9px;letter-spacing:1px;cursor:pointer;background:rgba(34,197,94,.15);border:2px solid #22c55e;color:#22c55e">إرسال</button>
+  </div>
+</div>
+
+<!-- ══ PANEL: REPORTS & ISSUES (Owner only) ══ -->
+<div class="overlay-panel" id="panel-reports">
+  <div class="panel-box" style="max-width:520px">
+    <button class="panel-close" onclick="closePanel('reports')">✕ إغلاق</button>
+    <div class="panel-title">◈ مشاكل وبلاغات</div>
+    <div style="display:flex;gap:6px;margin-bottom:14px">
+      <button id="reportsTabPlayers" onclick="switchReportsTab('players')" style="flex:1;padding:9px;font-family:var(--font-px);font-size:8px;cursor:pointer;background:rgba(239,68,68,.15);border:1px solid #ef4444;color:#ef4444">بلاغات اللاعبين</button>
+      <button id="reportsTabBugs" onclick="switchReportsTab('bugs')" style="flex:1;padding:9px;font-family:var(--font-px);font-size:8px;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid #888;color:#aaa">المشاكل</button>
+    </div>
+    <div id="reportsListBox"></div>
+  </div>
+</div>
+
 <!-- ══ PANEL: CREDITS ══ -->
 <div class="overlay-panel" id="panel-credits">
   <div class="panel-box">
@@ -1078,6 +1175,22 @@ header {
   </div>
 </div>
 
+<!-- ══ BAN NOTICE MODAL ══ -->
+<div id="banNoticeModal" style="display:none;position:fixed;inset:0;background:rgba(0,5,3,.9);z-index:950;align-items:center;justify-content:center">
+  <div style="background:var(--night2);border:1px solid #ef4444;box-shadow:0 0 40px rgba(239,68,68,.5);padding:2rem 1.8rem;max-width:360px;width:88%;text-align:center;border-radius:10px">
+    <div style="font-family:var(--font-px);font-size:13px;color:#ef4444;letter-spacing:2px;margin-bottom:16px">🚫 محظور</div>
+    <div id="banNoticeText" style="font-size:13px;color:#ddd;margin-bottom:22px;line-height:1.8;font-family:var(--font-ar)"></div>
+    <button onclick="closeBanNoticeModal()" style="width:100%;padding:11px;font-family:var(--font-px);font-size:9px;letter-spacing:1px;background:rgba(239,68,68,.15);border:1px solid #ef4444;color:#ef4444;cursor:pointer;border-radius:6px">تمام</button>
+  </div>
+</div>
+<!-- ══ TIMEOUT NOTICE MODAL ══ -->
+<div id="timeoutNoticeModal" style="display:none;position:fixed;inset:0;background:rgba(0,5,3,.85);z-index:950;align-items:center;justify-content:center">
+  <div style="background:var(--night2);border:1px solid #ff9800;box-shadow:0 0 40px rgba(255,152,0,.4);padding:2rem 1.8rem;max-width:360px;width:88%;text-align:center;border-radius:10px">
+    <div style="font-family:var(--font-px);font-size:12px;color:#ff9800;letter-spacing:2px;margin-bottom:16px">⏱ تايم اوت</div>
+    <div id="timeoutNoticeText" style="font-size:13px;color:#ddd;margin-bottom:22px;line-height:1.8;font-family:var(--font-ar)"></div>
+    <button onclick="closeTimeoutNoticeModal()" style="width:100%;padding:11px;font-family:var(--font-px);font-size:9px;letter-spacing:1px;background:rgba(255,152,0,.15);border:1px solid #ff9800;color:#ff9800;cursor:pointer;border-radius:6px">تمام</button>
+  </div>
+</div>
 <!-- ══ GENERIC CONFIRM MODAL ══ -->
 <div id="genericConfirmModal" style="display:none;position:fixed;inset:0;background:rgba(0,5,3,.85);z-index:900;align-items:center;justify-content:center">
   <div style="background:var(--night2);border:1px solid var(--red);box-shadow:0 0 30px rgba(239,68,68,.4);padding:1.8rem 2rem;max-width:340px;width:88%;text-align:center;border-radius:10px">
@@ -1171,20 +1284,23 @@ header {
 
 <!-- ══ PANEL: CREATE ROOM ══ -->
 <div class="overlay-panel" id="panel-create-room">
-  <div class="panel-box">
+  <div class="panel-box room-create-box">
     <button class="panel-close" onclick="closeCreateRoom()">✕ إغلاق</button>
-    <div class="panel-title">◈ غرفة جديدة</div>
-    <div class="setting-label" style="margin-bottom:6px">اسم الغرفة</div>
-    <input type="text" id="roomNameInput" maxlength="20" placeholder="اكتب اسم الغرفة..."
-      style="width:100%;padding:9px 12px;border-radius:8px;border:1px solid rgba(194,0,251,.4);background:rgba(0,13,8,.6);color:#fff;font-size:13px;font-family:var(--font-ar);margin-bottom:16px">
-    <div class="setting-label" style="margin-bottom:6px">أقصى عدد لاعبين</div>
-    <select id="roomMaxSelect" style="width:100%;padding:9px;border-radius:8px;background:#0f1419;color:#fff;border:1px solid rgba(194,0,251,.4);margin-bottom:16px">
-      <option value="2">2</option>
-      <option value="4" selected>4</option>
-      <option value="6">6</option>
-      <option value="8">8</option>
-    </select>
-    <button class="play-btn" onclick="submitCreateRoom()">إنشاء الغرفة</button>
+    <div class="panel-title">🕹️ غرفة جديدة</div>
+
+    <div class="setting-label" style="margin-bottom:8px">📝 اسم الغرفة</div>
+    <input type="text" id="roomNameInput" maxlength="20" placeholder="اكتب اسم الغرفة..." class="room-name-input">
+
+    <div class="setting-label" style="margin:18px 0 10px">👥 أقصى عدد لاعبين</div>
+    <div class="room-max-grid" id="roomMaxGrid">
+      <button type="button" class="room-max-pill selected" data-val="4" onclick="selectMaxPlayers(4)">4️⃣<span>4 لاعبين</span></button>
+      <button type="button" class="room-max-pill" data-val="6" onclick="selectMaxPlayers(6)">6️⃣<span>6 لاعبين</span></button>
+      <button type="button" class="room-max-pill" data-val="8" onclick="selectMaxPlayers(8)">8️⃣<span>8 لاعبين</span></button>
+      <button type="button" class="room-max-pill" data-val="10" onclick="selectMaxPlayers(10)">🔟<span>10 لاعبين</span></button>
+    </div>
+    <input type="hidden" id="roomMaxSelect" value="4">
+
+    <button class="play-btn room-create-submit" onclick="submitCreateRoom()">🚀 إنشاء الغرفة</button>
   </div>
 </div>
 
@@ -1266,6 +1382,8 @@ header {
     <span id="ultLabel" style="font-size:7px;color:#818cf8;font-family:var(--font-px)">جاهز!</span>
   </div>
 
+  <!-- player list (بديل Tab للموبايل) -->
+  <button id="playerListToggleBtn" onclick="togglePlayerListOverlay()" title="اللاعبين">👥<span class="pl-badge" id="playerListBadge">1</span></button>
   <!-- duel chat -->
   <button id="chatToggleBtn" onclick="toggleChatPanel()">💬<span class="chat-badge" id="chatBadge">0</span></button>
   <!-- invite a friend while inside a duel room -->
@@ -1518,7 +1636,17 @@ let mpOwnerCmdRef = null;
   }
 
   // ------------ إنشاء غرفة ------------
-  function openCreateRoom(){ document.getElementById('panel-create-room').classList.add('open'); }
+  function openCreateRoom(){
+    document.getElementById('panel-create-room').classList.add('open');
+    document.getElementById('roomNameInput').value = '';
+    selectMaxPlayers(4);
+  }
+  function selectMaxPlayers(n){
+    document.getElementById('roomMaxSelect').value = n;
+    document.querySelectorAll('.room-max-pill').forEach(btn=>{
+      btn.classList.toggle('selected', parseInt(btn.dataset.val,10) === n);
+    });
+  }
   function closeCreateRoom(){ document.getElementById('panel-create-room').classList.remove('open'); }
   function submitCreateRoom(){
     const nameInp = document.getElementById('roomNameInput');
@@ -1662,17 +1790,32 @@ function ownerDeleteRoom(roomId){
       }
     });
   }
+    if(window.visualViewport){
+    function adjustCreateRoomForKeyboard(){
+      const panel = document.getElementById('panel-create-room');
+      if(!panel || !panel.classList.contains('open')) return;
+      const box = panel.querySelector('.panel-box');
+      if(!box) return;
+      const vv = window.visualViewport;
+      const kbHeight = window.innerHeight - vv.height - vv.offsetTop;
+      box.style.transform = kbHeight > 80 ? `translateY(-${Math.min(kbHeight*0.55, 90)}px)` : '';
+    }
+    window.visualViewport.addEventListener('resize', adjustCreateRoomForKeyboard);
+    window.visualViewport.addEventListener('scroll', adjustCreateRoomForKeyboard);
+  }
   function initChatListener(roomId){
     const btn = document.getElementById('chatToggleBtn');
     if(btn) btn.style.display = 'flex';
+    const plBtn = document.getElementById('playerListToggleBtn');
+    if(plBtn) plBtn.style.display = 'flex';
     const inviteBtn = document.getElementById('inviteFriendBtn');
     if(inviteBtn) inviteBtn.style.display = 'flex';
     const micBtn = document.getElementById('micToggleBtn');
     if(micBtn) micBtn.style.display = micAllowed() ? 'flex' : 'none';
     document.getElementById('chatMessages').innerHTML = '';
     chatUnread = 0; updateChatBadge();
-    mpChatRef = mpDb.ref(`rooms/${roomId}/chat`);
-    mpChatRef.limitToLast(50).on('child_added', snap => appendChatMessage(snap.val()));
+    mpChatRef = mpDb.ref(`rooms/${roomId}/chat`).orderByChild('ts').startAt(Date.now());
+    mpChatRef.on('child_added', snap => appendChatMessage(snap.val()));
   }
   function showHeadChatBubble(hostEl, text){
   if(!hostEl || !text) return;
@@ -1752,6 +1895,7 @@ function appendChatMessage(msg){
 
   function sendChatMsg(){
     if(!mpChatRef || !currentRoomId) return;
+    if(typeof isTimedOut==='function' && isTimedOut()){ showToast('🔇 عندك تايم اوت على الشات لسه باقيله '+fmtRemaining(myTimeoutUntil)); return; }
     const inp = document.getElementById('chatInput');
     const text = (inp.value || '').trim();
     if(!text) return;
@@ -1767,13 +1911,14 @@ function appendChatMessage(msg){
         e.stopPropagation();
       });
     }
-    const friendSearchInp = document.getElementById('addFriendInput');
-    if(friendSearchInp){
-      friendSearchInp.addEventListener('blur', ()=> setTimeout(()=>{
-        const box = document.getElementById('friendSearchResults');
-        if(box) box.style.display = 'none';
-      }, 200));
-    }
+    document.addEventListener('mousedown', (e)=>{
+      const box = document.getElementById('friendSearchResults');
+      const inp = document.getElementById('addFriendInput');
+      if(!box || !inp) return;
+      if(box.style.display === 'none') return;
+      if(e.target === inp || box.contains(e.target)) return;
+      box.style.display = 'none';
+    });
   });
 
   function leaveDuelRoom(wasKicked){
@@ -1861,6 +2006,8 @@ function appendChatMessage(msg){
     if(chatPanelEl) chatPanelEl.classList.remove('open');
     const chatBtnEl = document.getElementById('chatToggleBtn');
     if(chatBtnEl) chatBtnEl.style.display = 'none';
+    const plBtnEl = document.getElementById('playerListToggleBtn');
+    if(plBtnEl) plBtnEl.style.display = 'none';
     const inviteBtnEl = document.getElementById('inviteFriendBtn');
     if(inviteBtnEl) inviteBtnEl.style.display = 'none';
     const chatMsgsEl = document.getElementById('chatMessages');
@@ -2035,6 +2182,7 @@ function appendChatMessage(msg){
   }
   async function toggleVoiceChat(){
     if(!currentRoomId){ showToast('⚠️ لازم تكون جوه غرفة'); return; }
+    if(!voiceEnabled && typeof isTimedOut==='function' && isTimedOut()){ showToast('🔇 عندك تايم اوت على المايك لسه باقيله '+fmtRemaining(myTimeoutUntil)); return; }
     if(!micAllowed()){ showToast('🔒 المايك محتاج موافقة الأونر الأول، من الإعدادات'); return; }
     if(voiceEnabled){ leaveVoiceChat(); return; }
     try{
@@ -2112,7 +2260,115 @@ function appendChatMessage(msg){
   let micReqAllListenerAttached = false;
   let micStatusTickInterval = null;
 
-  function micAllowed(){
+  let reportContext = null, reportScreenshotData = null, reportsTab = 'players', allPlayerReports = {}, allBugReports = {};
+
+function openReportBugModal(){
+  reportContext = { type:'bug' };
+  document.getElementById('reportModalTitle').textContent = '◈ الإبلاغ عن مشكلة';
+  document.getElementById('reportTargetInfo').style.display = 'none';
+  document.getElementById('reportReasonInput').value = '';
+  document.getElementById('reportReasonInput').placeholder = 'اشرح المشكلة اللي حصلتلك...';
+  reportScreenshotData = null;
+  document.getElementById('reportScreenshotPreview').style.display = 'none';
+  document.getElementById('reportScreenshotInput').value = '';
+  openPanel('reportbug');
+}
+function openReportPlayerModal(targetId, targetName){
+  reportContext = { type:'player', targetId, targetName };
+  document.getElementById('reportModalTitle').textContent = '◈ الإبلاغ عن لاعب';
+  const info = document.getElementById('reportTargetInfo');
+  info.style.display = 'block';
+  info.textContent = '🚩 بتبلّغ عن: ' + targetName;
+  document.getElementById('reportReasonInput').value = '';
+  document.getElementById('reportReasonInput').placeholder = 'إيه سبب البلاغ؟';
+  reportScreenshotData = null;
+  document.getElementById('reportScreenshotPreview').style.display = 'none';
+  document.getElementById('reportScreenshotInput').value = '';
+  openPanel('reportbug');
+}
+function handleReportScreenshot(e){
+  const file = e.target.files[0]; if(!file) return;
+  if(file.size > 4*1024*1024){ showToast('⚠️ الصورة كبيرة أوي، اختار واحدة أصغر'); e.target.value=''; return; }
+  const reader = new FileReader();
+  reader.onload = ev => {
+    reportScreenshotData = ev.target.result;
+    const prev = document.getElementById('reportScreenshotPreview');
+    prev.src = reportScreenshotData; prev.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+function submitReport(){
+  const reason = document.getElementById('reportReasonInput').value.trim();
+  if(!reason){ showToast('⚠️ اكتب السبب/المشكلة الأول'); return; }
+  if(!reportContext) return;
+  const base = { reporterId: mpPlayerId || 'guest', reporterName: playerName || 'لاعب', reason, screenshot: reportScreenshotData || null, ts: Date.now() };
+  if(reportContext.type === 'player'){
+    mpDb.ref('playerReports').push({ ...base, targetId: reportContext.targetId, targetName: reportContext.targetName })
+      .then(()=>{ showToast('✅ اتبعت البلاغ'); closePanel('reportbug'); })
+      .catch(()=> showToast('❌ حصل خطأ، جرب تاني'));
+  } else {
+    mpDb.ref('bugReports').push(base)
+      .then(()=>{ showToast('✅ اتبعتت المشكلة'); closePanel('reportbug'); })
+      .catch(()=> showToast('❌ حصل خطأ، جرب تاني'));
+  }
+}
+function switchReportsTab(tab){
+  reportsTab = tab;
+  const pb = document.getElementById('reportsTabPlayers'), bb = document.getElementById('reportsTabBugs');
+  if(tab==='players'){
+    pb.style.background='rgba(239,68,68,.15)'; pb.style.borderColor='#ef4444'; pb.style.color='#ef4444';
+    bb.style.background='rgba(255,255,255,.05)'; bb.style.borderColor='#888'; bb.style.color='#aaa';
+  } else {
+    bb.style.background='rgba(239,68,68,.15)'; bb.style.borderColor='#ef4444'; bb.style.color='#ef4444';
+    pb.style.background='rgba(255,255,255,.05)'; pb.style.borderColor='#888'; pb.style.color='#aaa';
+  }
+  renderReportsList();
+}
+function renderReportsList(){
+  const box = document.getElementById('reportsListBox');
+  if(!box) return;
+  const data = reportsTab==='players' ? allPlayerReports : allBugReports;
+  const ids = Object.keys(data||{}).sort((a,b)=> (data[b].ts||0)-(data[a].ts||0));
+  if(ids.length===0){ box.innerHTML = '<div style="text-align:center;color:#666;font-size:11px;padding:20px">مفيش حاجة دلوقتي</div>'; return; }
+  box.innerHTML = ids.map(id=>{
+    const r = data[id];
+    const targetLine = reportsTab==='players' ? `<div style="font-size:11px;color:#ef4444;margin-bottom:4px">🚩 ضد: ${escapeHtml(r.targetName||'?')}</div>` : '';
+    const shot = r.screenshot ? `<img src="${r.screenshot}" style="max-width:100%;border-radius:6px;margin-top:6px;cursor:pointer" onclick="window.open(this.src,'_blank')">` : '';
+    return `<div style="padding:10px;border:1px solid rgba(255,255,255,.1);border-radius:8px;margin-bottom:8px;background:rgba(255,255,255,.03)">
+      <div style="font-size:10px;color:#888;margin-bottom:4px">من: ${escapeHtml(r.reporterName||'?')} — ${new Date(r.ts||0).toLocaleString('ar-EG')}</div>
+      ${targetLine}
+      <div style="font-size:12px;color:#eee;white-space:pre-wrap">${escapeHtml(r.reason||'')}</div>
+      ${shot}
+      <button onclick="deleteReport('${id}')" style="margin-top:8px;font-family:var(--font-px);font-size:6px;padding:6px 10px;background:rgba(239,68,68,.15);border:1px solid #ef4444;color:#ef4444;cursor:pointer;border-radius:5px">🗑 حذف نهائي</button>
+    </div>`;
+  }).join('');
+}
+function deleteReport(id){
+  const path = reportsTab==='players' ? 'playerReports/' : 'bugReports/';
+  mpDb.ref(path+id).remove().catch(()=>{});
+}
+function initReportsListener(){
+  if(!ownerMode) return;
+  mpDb.ref('playerReports').on('value', snap=>{
+    allPlayerReports = snap.val() || {};
+    updateReportsBadge();
+    const p = document.getElementById('panel-reports');
+    if(p && p.classList.contains('open') && reportsTab==='players') renderReportsList();
+  });
+  mpDb.ref('bugReports').on('value', snap=>{
+    allBugReports = snap.val() || {};
+    updateReportsBadge();
+    const p = document.getElementById('panel-reports');
+    if(p && p.classList.contains('open') && reportsTab==='bugs') renderReportsList();
+  });
+}
+function updateReportsBadge(){
+  const total = Object.keys(allPlayerReports||{}).length + Object.keys(allBugReports||{}).length;
+  const badge = document.getElementById('reportsBadge');
+  if(badge){ badge.style.display = total>0 ? 'inline-block' : 'none'; badge.textContent = total; }
+}
+
+function micAllowed(){
     return !!ownerMode || micApprovalStatus === 'approved';
   }
 
@@ -2142,6 +2398,7 @@ function appendChatMessage(msg){
   function requestMicAccess(){
     if(ownerMode) return;
     if(!currentAccount){ showToast('⚠️ سجّل دخول الأول من الإعدادات'); return; }
+    if(typeof isTimedOut==='function' && isTimedOut()){ showToast('🔇 عندك تايم اوت على المايك لسه باقيله '+fmtRemaining(myTimeoutUntil)); return; }
     if(micApprovalStatus === 'pending'){ showToast('🕒 طلبك لسه قيد المراجعة'); return; }
     if(micApprovalStatus === 'rejected' && micDecidedAt && (Date.now() - micDecidedAt) < MIC_COOLDOWN_MS){
       showToast('❌ لازم تستنى قبل ما تطلب تاني'); return;
@@ -2614,6 +2871,8 @@ mpUpdateBots(id, data.skin || 'purple');
     const ov = document.getElementById('playerListOverlay');
     if(!ov) return;
     if(forceShow){ ov.style.display='block'; playerListOverlayOpen = true; }
+    const plBadge = document.getElementById('playerListBadge');
+    if(plBadge) plBadge.textContent = Object.keys(mpOtherPlayers).filter(id=>id!==mpPlayerId).length + 1;
     if(!playerListOverlayOpen) return;
     const body = document.getElementById('playerListBody');
     body.innerHTML = '';
@@ -2624,6 +2883,8 @@ mpUpdateBots(id, data.skin || 'purple');
       row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.06);gap:8px;flex-wrap:wrap';
       const kickBtn = ((isRoomOwner || ownerMode) && p.id !== mpPlayerId && !p.globalOwner)
         ? `<button onclick="kickPlayer('${p.id}')" style="font-family:var(--font-px);font-size:6px;padding:5px 8px;background:rgba(239,68,68,.15);border:1px solid #ef4444;color:#ef4444;cursor:pointer;border-radius:5px">طرد</button>` : '';
+      const reportBtn = (p.id !== mpPlayerId)
+        ? `<button onclick="openReportPlayerModal('${p.id}','${escapeHtml(p.name).replace(/'/g,"\\'")}')" style="font-family:var(--font-px);font-size:6px;padding:5px 8px;background:rgba(251,146,60,.15);border:1px solid #fb923c;color:#fb923c;cursor:pointer;border-radius:5px">🚩 بلّغ</button>` : '';
       const nameColor = p.globalOwner ? '' : socialNameColor(p.name);
       const nameHtml = p.globalOwner
         ? `<span class="owner-crown">👑</span><span class="owner-name-badge">${escapeHtml(p.name)} (Owner)</span>`
@@ -2642,7 +2903,7 @@ mpUpdateBots(id, data.skin || 'purple');
             <button onclick="blockUser('${p.name}')" style="font-family:var(--font-px);font-size:6px;padding:5px 8px;background:rgba(239,68,68,.15);border:1px solid #ef4444;color:#ef4444;cursor:pointer;border-radius:5px">حظر</button>`;
         }
       }
-      row.innerHTML = `<span style="display:flex;align-items:center;gap:8px">${avatarHtml}<span style="font-size:12px">${nameHtml}</span></span><span style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end">${socialBtns}${kickBtn}</span>`;
+      row.innerHTML = `<span style="display:flex;align-items:center;gap:8px">${avatarHtml}<span style="font-size:12px">${nameHtml}</span></span><span style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end">${socialBtns}${reportBtn}${kickBtn}</span>`;
       body.appendChild(row);
     });
   }
@@ -2736,6 +2997,7 @@ function applyAccountData(username, acc){
   if(typeof refreshAvatarSettingsUI==='function') refreshAvatarSettingsUI();
   if(typeof initFriendSystem==='function') initFriendSystem();
   if(typeof initMicRequestListener==='function') initMicRequestListener();
+  if(typeof attachModerationListeners==='function') attachModerationListeners();
 }
 
 async function signupAccount(username, password, isOwner){
@@ -2755,6 +3017,7 @@ async function signupAccount(username, password, isOwner){
     }
   };
   await accRef(username).set(record);
+  await mpDb.ref('usernames/' + username).set(true);
   applyAccountData(username, record);
   return { ok:true };
 }
@@ -2766,6 +3029,8 @@ async function loginAccount(username, password){
   const acc = snap.val();
   const passwordHash = await sha256Hex(password);
   if(passwordHash !== acc.passwordHash) return { ok:false, msg:'الباسورد غلط.' };
+  const banSnap = await mpDb.ref('moderation/bans/'+username).once('value');
+  if(banSnap.exists()) return { ok:false, msg: banMessageText() };
   applyAccountData(username, acc);
   return { ok:true };
 }
@@ -2773,6 +3038,7 @@ async function loginAccount(username, password){
 function logoutAccount(){
   currentAccount = null;
   if(typeof detachMicRequestListener==='function') detachMicRequestListener();
+  if(typeof detachModerationListeners==='function') detachModerationListeners();
   localStorage.removeItem(ACC_KEY);
 }
 function doLogout(){
@@ -2784,11 +3050,136 @@ async function trySilentLogin(){
   const saved = localStorage.getItem(ACC_KEY);
   if(!saved) return false;
   try{
+    const banSnap = await mpDb.ref('moderation/bans/'+saved).once('value');
+    if(banSnap.exists()){
+      localStorage.removeItem(ACC_KEY);
+      try{ localStorage.setItem('404_ban_notice_msg', banMessageText()); }catch{}
+      return false;
+    }
     const snap = await accRef(saved).once('value');
     if(!snap.exists()) return false;
     applyAccountData(saved, snap.val());
     return true;
   }catch{ return false; }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  MODERATION (Owner-only): timeouts on chat/mic + full account bans
+// ══════════════════════════════════════════════════════════════
+const TIMEOUT_OPTIONS = [
+  { label:'ساعة',    hours:1 },
+  { label:'ساعتين',   hours:2 },
+  { label:'5 ساعات',  hours:5 },
+  { label:'10 ساعات', hours:10 },
+  { label:'24 ساعة',  hours:24 },
+  { label:'48 ساعة',  hours:48 },
+];
+let myTimeoutUntil = 0;
+let myBanListenerRef = null;
+let myTimeoutListenerRef = null;
+
+function banMessageText(){
+  return 'اتحظر حسابك من اللعبة، متقدرش تسجل دخول بيه تاني. لو فيه استفسار كلم صاحب اللعبة.';
+}
+function isTimedOut(){
+  return !!(myTimeoutUntil && Date.now() < myTimeoutUntil);
+}
+function fmtRemaining(until){
+  const ms = Math.max(0, until - Date.now());
+  const totalMin = Math.ceil(ms/60000);
+  const h = Math.floor(totalMin/60), m = totalMin%60;
+  if(h > 0) return m > 0 ? (h+'س '+m+'د') : (h+'س');
+  return m+'د';
+}
+function timeoutNoticeText(){
+  return `عندك تايم اوت على الشات والمايك من صاحب اللعبة، لسه باقيلك ${fmtRemaining(myTimeoutUntil)}. متقدرش تبعت رسايل في الشات أو تفتح المايك للمدة دي.`;
+}
+function openBanNoticeModal(msg){
+  const box = document.getElementById('banNoticeModal');
+  const txt = document.getElementById('banNoticeText');
+  if(!box || !txt) return;
+  txt.textContent = msg || banMessageText();
+  box.style.display = 'flex';
+}
+function closeBanNoticeModal(){
+  const box = document.getElementById('banNoticeModal');
+  if(box) box.style.display = 'none';
+}
+function openTimeoutNoticeModal(){
+  const box = document.getElementById('timeoutNoticeModal');
+  const txt = document.getElementById('timeoutNoticeText');
+  if(!box || !txt) return;
+  txt.textContent = timeoutNoticeText();
+  box.style.display = 'flex';
+}
+function closeTimeoutNoticeModal(){
+  const box = document.getElementById('timeoutNoticeModal');
+  if(box) box.style.display = 'none';
+}
+// بتتنده لما اللاعب يدخل اللعبة (بعد لوجين أو لوجين تلقائي) عشان تعرض له رسالة لو عنده تايم اوت شغال
+async function checkAndShowTimeoutNotice(){
+  if(!currentAccount) return;
+  try{
+    const snap = await mpDb.ref('moderation/timeouts/'+currentAccount).once('value');
+    const d = snap.val();
+    myTimeoutUntil = (d && d.until) ? d.until : 0;
+    if(isTimedOut()) openTimeoutNoticeModal();
+  }catch{}
+}
+function attachModerationListeners(){
+  detachModerationListeners();
+  if(!currentAccount) return;
+  myBanListenerRef = mpDb.ref('moderation/bans/'+currentAccount);
+  myBanListenerRef.on('value', snap=>{
+    if(snap.exists()) forceBanKick();
+  });
+  myTimeoutListenerRef = mpDb.ref('moderation/timeouts/'+currentAccount);
+  myTimeoutListenerRef.on('value', snap=>{
+    const d = snap.val();
+    const wasTimedOut = isTimedOut();
+    myTimeoutUntil = (d && d.until) ? d.until : 0;
+    if(!wasTimedOut && isTimedOut()){
+      openTimeoutNoticeModal();
+      if(typeof voiceEnabled!=='undefined' && voiceEnabled && typeof leaveVoiceChat==='function') leaveVoiceChat();
+    }
+  });
+}
+function detachModerationListeners(){
+  if(myBanListenerRef){ myBanListenerRef.off(); myBanListenerRef = null; }
+  if(myTimeoutListenerRef){ myTimeoutListenerRef.off(); myTimeoutListenerRef = null; }
+  myTimeoutUntil = 0;
+}
+function forceBanKick(){
+  try{ localStorage.setItem('404_ban_notice_msg', banMessageText()); }catch{}
+  logoutAccount();
+  location.reload();
+}
+// ── أدوات الأونر: إعطاء/إلغاء تايم اوت وبان لأي حساب ──────────────
+function ownerSetTimeout(username, hours){
+  if(!ownerMode || !username) return;
+  const until = Date.now() + hours*3600000;
+  mpDb.ref('moderation/timeouts/'+username).set({ until, by: currentAccount, ts: Date.now() })
+    .then(()=>{ showToast('⏱ اتحط تايم اوت على '+username); onFriendSearchInput(); })
+    .catch(err=> showToast('❌ فشل: '+err.message));
+}
+function ownerRemoveTimeout(username){
+  if(!ownerMode || !username) return;
+  mpDb.ref('moderation/timeouts/'+username).remove()
+    .then(()=>{ showToast('✅ اتشال التايم اوت عن '+username); onFriendSearchInput(); })
+    .catch(err=> showToast('❌ فشل: '+err.message));
+}
+function ownerSetBan(username){
+  if(!ownerMode || !username) return;
+  if(!confirm('متأكد إنك عايز تبند "'+username+'"؟ هيتشال من اللعبة نهائيًا لحد ما تفك الحظر.')) return;
+  mpDb.ref('moderation/bans/'+username).set({ by: currentAccount, ts: Date.now() })
+    .then(()=>{ showToast('🔨 اتبند '+username); onFriendSearchInput(); })
+    .catch(err=> showToast('❌ فشل: '+err.message));
+}
+function ownerRemoveBan(username){
+  if(!ownerMode || !username) return;
+  mpDb.ref('moderation/bans/'+username).remove()
+    .then(()=>{ showToast('✅ اتفك الحظر عن '+username); onFriendSearchInput(); })
+    .catch(err=> showToast('❌ فشل: '+err.message));
 }
 
 let authMode = 'login';
@@ -2833,6 +3224,7 @@ async function submitAuth(){
 function enterGameAfterAuth(){
   if(introStoryEnabled){ transition('auth','story'); runStory(); }
   else{ transition('auth','menu'); playBgMusic('menu'); refreshMenuDisplays(); }
+  checkAndShowTimeoutNotice();
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -3234,10 +3626,19 @@ function menuAction(action){
     case 'credits':
       openPanel('credits');
       break;
-    case 'micrequests':
+      case 'micrequests':
       if(!ownerMode) break;
       openPanel('micrequests');
       renderMicRequestsList();
+      break;
+    case 'reportbug':
+      openReportBugModal();
+      break;
+    case 'reports':
+      if(!ownerMode) break;
+      reportsTab = 'players';
+      openPanel('reports');
+      renderReportsList();
       break;
     case 'restart':
       openPanel('confirm');
@@ -3575,8 +3976,13 @@ function initNameInput(){
   if(loggedIn){
     if(introStoryEnabled){ transition('boot','story'); runStory(); }
     else{ transition('boot','menu'); playBgMusic('menu'); refreshMenuDisplays(); }
+    checkAndShowTimeoutNotice();
   } else {
     transition('boot','auth');
+    try{
+      const banMsg = localStorage.getItem('404_ban_notice_msg');
+      if(banMsg){ localStorage.removeItem('404_ban_notice_msg'); openBanNoticeModal(banMsg); }
+    }catch{}
   }
 })();
 initNameInput();
@@ -4516,6 +4922,7 @@ function startDuelGame(){
   document.getElementById('gameArea').classList.remove('boss-mode');
   document.getElementById('hud').style.display='none';
   document.getElementById('waveBanner').style.display='none';
+  const sd=document.getElementById('storyDialog'); if(sd) sd.style.display='none';
   applyActivePower();
   document.getElementById('shootBtnM').style.display='none';
   const p=PEL();if(p){p.style.filter='';p.className='';}
@@ -4576,6 +4983,7 @@ let storyShownWaves=new Set();
 try{const sv=JSON.parse(localStorage.getItem('404_story')||'[]');storyShownWaves=new Set(sv);}catch{}
 
 function checkStory(w){
+  if(duelMode) return;
   const chapter=GAME_STORY.find(c=>c.wave===w&&!storyShownWaves.has(w));
   if(!chapter)return;storyShownWaves.add(w);
   try{localStorage.setItem('404_story',JSON.stringify([...storyShownWaves]));}catch{}
@@ -4689,6 +5097,9 @@ function refreshOwnerUI(){
   if(badge) badge.style.display = ownerMode ? 'inline' : 'none';
   const micMenuItem = document.getElementById('micRequestsMenuItem');
   if(micMenuItem) micMenuItem.style.display = ownerMode ? 'flex' : 'none';
+  const reportsMenuItem = document.getElementById('reportsMenuItem');
+  if(reportsMenuItem) reportsMenuItem.style.display = ownerMode ? 'flex' : 'none';
+  if(ownerMode) initReportsListener();
   if(!ownerMode){
     document.getElementById('ownerCmdPanel').classList.remove('open');
   } else if(typeof initOwnerMicBadgeListener==='function'){
@@ -5003,24 +5414,43 @@ function renderBlockedList(){
         <button onclick="unblockUser('${id}')" style="font-family:var(--font-px);font-size:6px;padding:6px 8px;background:rgba(34,197,94,.15);border:1px solid #22c55e;color:#22c55e;cursor:pointer;border-radius:5px">فك الحظر</button>
       </div>`).join('');
 }
-
+function normalizeArabicSearch(s){
+  return (s || '')
+    .toLowerCase()
+    .replace(/[\u064B-\u0652]/g, '')   // شيل التشكيل
+    .replace(/[إأآا]/g, 'ا')            // توحيد الألف والهمزة
+    .replace(/ى/g, 'ي')                 // ألف مقصورة -> ياء
+    .replace(/ة/g, 'ه')                 // تاء مربوطة -> هاء
+    .trim();
+}
 // ── بحث فوري عن لاعبين (زي روبلوكس) ──────────────
 let friendSearchTimer = null;
 function onFriendSearchInput(){
   const inp = document.getElementById('addFriendInput');
   const box = document.getElementById('friendSearchResults');
   if(!inp || !box) return;
-  const q = inp.value.trim().toLowerCase();
+  const q = normalizeArabicSearch(inp.value);
   clearTimeout(friendSearchTimer);
   if(!q){ box.innerHTML=''; box.style.display='none'; return; }
   box.style.display = 'block';
   box.innerHTML = '<div style="padding:9px;font-size:11px;color:#667">بيدوّر...</div>';
   friendSearchTimer = setTimeout(async ()=>{
     try{
-      const snap = await mpDb.ref('accounts').limitToFirst(3000).once('value');
+      const snap = await mpDb.ref('usernames').once('value');
       const all = snap.val() || {};
+      let modTimeouts = {}, modBans = {};
+      if(ownerMode){
+        try{
+          const [toSnap, banSnap] = await Promise.all([
+            mpDb.ref('moderation/timeouts').once('value'),
+            mpDb.ref('moderation/bans').once('value')
+          ]);
+          modTimeouts = toSnap.val() || {};
+          modBans = banSnap.val() || {};
+        }catch{}
+      }
       const matches = Object.keys(all)
-        .filter(u => u.toLowerCase().startsWith(q) && u !== currentAccount)
+        .filter(u => normalizeArabicSearch(u).includes(q) && u !== currentAccount)
         .slice(0, 15);
       if(matches.length === 0){ box.innerHTML = '<div style="padding:9px;font-size:11px;color:#667">مفيش نتايج</div>'; return; }
       box.innerHTML = matches.map(u=>{
@@ -5033,9 +5463,32 @@ function onFriendSearchInput(){
         if(myFriends[u]) actionHtml = `<span style="font-size:9px;color:#22c55e">✅ صاحبك</span>`;
         else if(myBlocked[u]) actionHtml = `<button onclick="unblockUser('${u}')" style="font-family:var(--font-px);font-size:6px;padding:5px 8px;background:rgba(34,197,94,.15);border:1px solid #22c55e;color:#22c55e;cursor:pointer;border-radius:5px">فك الحظر</button>`;
         else actionHtml = `<button onclick="sendFriendRequestTo('${u}')" style="font-family:var(--font-px);font-size:6px;padding:5px 8px;background:rgba(194,0,251,.15);border:1px solid var(--purple);color:var(--purple);cursor:pointer;border-radius:5px">إضافة</button>`;
-        return `<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.05)">
-          <span style="display:flex;align-items:center;gap:8px">${avatarHtml}<span style="font-size:12px;color:${socialNameColor(u)}">${escapeHtml(u)}</span></span>
-          ${actionHtml}
+
+        let ownerCtrlHtml = '';
+        if(ownerMode){
+          const to = modTimeouts[u];
+          const toActive = to && to.until && to.until > Date.now();
+          const banned = !!modBans[u];
+          const toCtrl = toActive
+            ? `<button onclick="ownerRemoveTimeout('${u}')" style="font-family:var(--font-px);font-size:6px;padding:5px 7px;background:rgba(255,152,0,.15);border:1px solid #ff9800;color:#ff9800;cursor:pointer;border-radius:5px">⏱ إلغاء (${fmtRemaining(to.until)})</button>`
+            : `<select id="toSel-${u}" style="font-size:10px;font-family:var(--font-ar);background:rgba(0,13,8,.7);color:#fff;border:1px solid rgba(255,152,0,.4);border-radius:5px;padding:4px">${TIMEOUT_OPTIONS.map(o=>`<option value="${o.hours}">${o.label}</option>`).join('')}</select>
+               <button onclick="ownerSetTimeout('${u}', parseInt(document.getElementById('toSel-${u}').value,10))" style="font-family:var(--font-px);font-size:6px;padding:5px 7px;background:rgba(255,152,0,.15);border:1px solid #ff9800;color:#ff9800;cursor:pointer;border-radius:5px">⏱ تايم اوت</button>`;
+          const banCtrl = banned
+            ? `<button onclick="ownerRemoveBan('${u}')" style="font-family:var(--font-px);font-size:6px;padding:5px 7px;background:rgba(34,197,94,.15);border:1px solid #22c55e;color:#22c55e;cursor:pointer;border-radius:5px">✅ فك البان</button>`
+            : `<button onclick="ownerSetBan('${u}')" style="font-family:var(--font-px);font-size:6px;padding:5px 7px;background:rgba(239,68,68,.15);border:1px solid #ef4444;color:#ef4444;cursor:pointer;border-radius:5px">🔨 بان</button>`;
+          ownerCtrlHtml = `<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:6px;padding-top:6px;border-top:1px dashed rgba(255,215,0,.25)">
+            ${toCtrl}
+            ${banCtrl}
+            ${banned ? '<span style="font-size:8px;color:#ef4444">محظور حاليًا</span>' : ''}
+          </div>`;
+        }
+
+        return `<div style="padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.05)">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span style="display:flex;align-items:center;gap:8px">${avatarHtml}<span style="font-size:12px;color:${socialNameColor(u)}">${escapeHtml(u)}</span></span>
+            ${actionHtml}
+          </div>
+          ${ownerCtrlHtml}
         </div>`;
       }).join('');
     }catch(e){ box.innerHTML = '<div style="padding:9px;font-size:11px;color:#f66">فشل البحث</div>'; }
@@ -5231,6 +5684,7 @@ function notifyTyping(){
 }
 function sendFriendChatMsg(){
   if(!currentFriendChatWith || !currentAccount) return;
+  if(typeof isTimedOut==='function' && isTimedOut()){ showToast('🔇 عندك تايم اوت على الشات لسه باقيله '+fmtRemaining(myTimeoutUntil)); return; }
   const inp = document.getElementById('friendChatInput');
   const text = (inp.value || '').trim();
   if(!text) return;
@@ -5248,7 +5702,7 @@ function sendFriendChatMsg(){
     <div style="position:relative;margin-bottom:14px">
       <input type="text" id="addFriendInput" placeholder="ابحث عن..." autocomplete="off" oninput="onFriendSearchInput()"
         style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid rgba(194,0,251,.4);background:rgba(0,13,8,.6);color:#fff;font-size:12px;font-family:var(--font-ar)">
-      <div id="friendSearchResults" style="display:none;position:absolute;top:100%;right:0;left:0;margin-top:4px;max-height:220px;overflow-y:auto;background:rgba(0,13,8,.98);border:1px solid rgba(194,0,251,.4);border-radius:8px;z-index:50;box-shadow:0 8px 20px rgba(0,0,0,.4)"></div>
+        <div id="friendSearchResults" onmousedown="event.stopPropagation()" style="display:none;position:absolute;top:100%;right:0;left:0;margin-top:4px;max-height:220px;overflow-y:auto;background:rgba(0,13,8,.98);border:1px solid rgba(194,0,251,.4);border-radius:8px;z-index:50;box-shadow:0 8px 20px rgba(0,0,0,.4)"></div>
     </div>
     <div id="friendRequestsBox" style="margin-bottom:14px"></div>
     <div id="friendsListBox">
