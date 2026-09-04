@@ -2135,6 +2135,21 @@ function appendChatMessage(msg){
       audioEl.style.display = 'none';
       document.body.appendChild(audioEl);
       audioEl.play().catch(()=>{});
+      if(typeof audioEl.setSinkId === 'function'){
+        navigator.mediaDevices.enumerateDevices().then(devices=>{
+          const outputs = devices.filter(d=> d.kind==='audiooutput');
+          let box = document.getElementById('voiceDebugBox');
+          if(!box){
+            box = document.createElement('div');
+            box.id = 'voiceDebugBox';
+            box.style.cssText = 'position:fixed;top:5px;left:5px;right:5px;z-index:99999;background:#000;color:#0f0;font-size:11px;font-family:monospace;padding:8px;border-radius:6px;max-height:40vh;overflow:auto;white-space:pre-wrap;direction:ltr;text-align:left;';
+            document.body.appendChild(box);
+          }
+          box.textContent = 'AUDIO OUTPUTS:\n' + outputs.map((d,i)=> `${i}) id="${d.deviceId}" label="${d.label||'(no label)'}"`).join('\n');
+          const headset = outputs.find(d=> /bluetooth|headset|headphone|wired|earbud|سماعة/i.test(d.label));
+          if(headset) audioEl.setSinkId(headset.deviceId).catch(()=>{});
+        }).catch(()=>{});
+      }
       const src = voiceAudioCtx.createMediaStreamSource(stream);
       const analyser = voiceAudioCtx.createAnalyser();
       analyser.fftSize = 256;
