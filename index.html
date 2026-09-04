@@ -880,7 +880,7 @@ header {
   #inviteFriendBtn{ top:8px; right:60px; }
   #micToggleBtn{ top:8px; right:114px; }
   #micMuteBtn{ top:8px; right:168px; }
-  #playerListToggleBtn{ top:8px; left:6px; }
+  #playerListToggleBtn{ top:50px; left:6px; }
 }
 </style>
 </head>
@@ -1550,6 +1550,7 @@ let mpOwnerCmdRef = null;
   let mpMyPlayerListenerRef = null;
   let roomsListenerRef = null;
   let mpChatRef = null;
+  let mpChatWriteRef = null;
   let chatOpen = false;
   let chatUnread = 0;
 
@@ -1814,7 +1815,8 @@ function ownerDeleteRoom(roomId){
     if(micBtn) micBtn.style.display = micAllowed() ? 'flex' : 'none';
     document.getElementById('chatMessages').innerHTML = '';
     chatUnread = 0; updateChatBadge();
-    mpChatRef = mpDb.ref(`rooms/${roomId}/chat`).orderByChild('ts').startAt(Date.now());
+    mpChatWriteRef = mpDb.ref(`rooms/${roomId}/chat`);
+    mpChatRef = mpChatWriteRef.orderByChild('ts').startAt(Date.now());
     mpChatRef.on('child_added', snap => appendChatMessage(snap.val()));
   }
   function showHeadChatBubble(hostEl, text){
@@ -1894,12 +1896,12 @@ function appendChatMessage(msg){
   }
 
   function sendChatMsg(){
-    if(!mpChatRef || !currentRoomId) return;
+    if(!mpChatWriteRef || !currentRoomId) return;
     if(typeof isTimedOut==='function' && isTimedOut()){ showToast('🔇 عندك تايم اوت على الشات لسه باقيله '+fmtRemaining(myTimeoutUntil)); return; }
     const inp = document.getElementById('chatInput');
     const text = (inp.value || '').trim();
     if(!text) return;
-    mpChatRef.push({ playerId: mpPlayerId, name: playerName || 'لاعب', text: filterProfanity(text.slice(0,120)), ts: Date.now() });
+    mpChatWriteRef.push({ playerId: mpPlayerId, name: playerName || 'لاعب', text: filterProfanity(text.slice(0,120)), ts: Date.now() }).catch(err=> console.error('[CHAT] send failed', err));
     inp.value = '';
   }
 
@@ -2001,6 +2003,7 @@ function appendChatMessage(msg){
     }
 
     if(mpChatRef){ mpChatRef.off(); mpChatRef = null; }
+    mpChatWriteRef = null;
     chatOpen = false; chatUnread = 0;
     const chatPanelEl = document.getElementById('chatPanel');
     if(chatPanelEl) chatPanelEl.classList.remove('open');
@@ -4142,6 +4145,8 @@ document.addEventListener('keydown',e=>{
     if(e.key==='Escape'){
       const fcp = document.getElementById('friendChatPanel');
       if(fcp && fcp.style.display==='flex'){ closeFriendChat(); tgt.blur(); return; }
+      const cp = document.getElementById('chatPanel');
+      if(cp && cp.classList.contains('open')){ toggleChatPanel(); tgt.blur(); return; }
     }
     // المستخدم بيكتب جوه حقل نص (شات/بحث/باسورد...) - سيبه يكتب عادي من غير
     // ما نخطف المسافة أو نشغّل اختصارات اللعبة (داش/شوت/بوز) وهو بس بيكتب.
@@ -5162,8 +5167,8 @@ function runOwnerChatCommand(prefix, name){
     mpDb.ref(`rooms/${currentRoomId}/ownerCmd/${targetId}`).push({ type, title, text, ts: Date.now() });
   }
   showToast(`✅ اتبعت الأمر لـ ${name}`);
-  if(mpChatRef){
-    mpChatRef.push({ playerId:'system', name:'⚙️ SYSTEM', text:`${title} — تم تنفيذه على "${name}"`, ts: Date.now() });
+  if(mpChatWriteRef){
+    mpChatWriteRef.push({ playerId:'system', name:'⚙️ SYSTEM', text:`${title} — تم تنفيذه على "${name}"`, ts: Date.now() });
   }
 }
 
