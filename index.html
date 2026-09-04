@@ -2096,11 +2096,11 @@ function appendChatMessage(msg){
         if(entry.analyser && !otherData.micMuted) level = getAnalyserLevel(entry.analyser, entry.dataArr);
         updateVoiceBadge(peerId, { micOn: !!otherData.micOn, muted: !!otherData.micMuted, level });
         const theirEl = document.getElementById('mp-'+peerId);
-        if(theirEl && entry.gainNode){
+        if(theirEl && entry.audioEl){
           const tx = parseFloat(theirEl.style.left)||0, ty = parseFloat(theirEl.style.top)||0;
           const dist = Math.hypot(myX-tx, myY-ty);
           const gain = Math.max(0, Math.min(1, 1 - dist/VOICE_MAX_DIST));
-          entry.gainNode.gain.setTargetAtTime(gain, voiceAudioCtx.currentTime, 0.15);
+          entry.audioEl.volume = gain;
         }
       });
     }, 150);
@@ -2117,7 +2117,7 @@ function appendChatMessage(msg){
 
   function createVoicePeer(peerId, isInitiator){
     const pc = new RTCPeerConnection(VOICE_ICE);
-    const entry = { pc, gainNode:null, analyser:null, dataArr:null };
+    const entry = { pc, audioEl:null, analyser:null, dataArr:null };
     voicePeers[peerId] = entry;
     if(localVoiceStream) localVoiceStream.getTracks().forEach(t=> pc.addTrack(t, localVoiceStream));
     pc.onicecandidate = e=>{
@@ -2127,13 +2127,19 @@ function appendChatMessage(msg){
     };
     pc.ontrack = e=>{
       ensureVoiceAudioCtx();
-      const src = voiceAudioCtx.createMediaStreamSource(e.streams[0]);
-      const gainNode = voiceAudioCtx.createGain();
+      const stream = e.streams[0];
+      const audioEl = document.createElement('audio');
+      audioEl.autoplay = true;
+      audioEl.playsInline = true;
+      audioEl.srcObject = stream;
+      audioEl.style.display = 'none';
+      document.body.appendChild(audioEl);
+      audioEl.play().catch(()=>{});
+      const src = voiceAudioCtx.createMediaStreamSource(stream);
       const analyser = voiceAudioCtx.createAnalyser();
       analyser.fftSize = 256;
-      src.connect(gainNode); gainNode.connect(voiceAudioCtx.destination);
       src.connect(analyser);
-      entry.gainNode = gainNode; entry.analyser = analyser; entry.dataArr = new Uint8Array(analyser.frequencyBinCount);
+      entry.audioEl = audioEl; entry.analyser = analyser; entry.dataArr = new Uint8Array(analyser.frequencyBinCount);
     };
     pc.onconnectionstatechange = ()=>{
       if(['failed','closed','disconnected'].includes(pc.connectionState)) closeVoicePeer(peerId);
@@ -2148,6 +2154,7 @@ function appendChatMessage(msg){
   function closeVoicePeer(peerId){
     const entry = voicePeers[peerId];
     if(entry && entry.pc){ try{ entry.pc.close(); }catch{} }
+    if(entry && entry.audioEl){ try{ entry.audioEl.pause(); entry.audioEl.srcObject=null; entry.audioEl.remove(); }catch{} }
     delete voicePeers[peerId];
     const el = document.getElementById('mp-'+peerId);
     if(el){ const badge = el.querySelector('.voice-badge'); if(badge) badge.remove(); }
@@ -4159,6 +4166,8 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape'||e.key.toLowerCase()==='p'){
     const fcp = document.getElementById('friendChatPanel');
     if(e.key==='Escape' && fcp && fcp.style.display==='flex'){ closeFriendChat(); return; }
+    const cp = document.getElementById('chatPanel');
+    if(e.key==='Escape' && cp && cp.classList.contains('open')){ toggleChatPanel(); return; }
     const open=document.querySelector('.overlay-panel.open'); if(open){ const n=open.id.replace('panel-',''); closePanel(n); } else if(GR){ togglePause(); }
   }
   if([' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault();
@@ -5458,9 +5467,11 @@ function onFriendSearchInput(){
         .filter(u => normalizeArabicSearch(u).includes(q) && u !== currentAccount)
         .slice(0, 15);
       if(matches.length === 0){ box.innerHTML = '<div style="padding:9px;font-size:11px;color:#667">مفيش نتايج</div>'; return; }
+      const avatarSnaps = await Promise.all(matches.map(u => accRef(u).child('data').child('avatar').once('value').catch(()=>null)));
+      const avatarMap = {};
+      matches.forEach((u,i)=>{ avatarMap[u] = avatarSnaps[i] ? avatarSnaps[i].val() : null; });
       box.innerHTML = matches.map(u=>{
-        const acc = all[u] || {};
-        const avatar = acc.data && acc.data.avatar;
+        const avatar = avatarMap[u];
         const avatarHtml = avatar
           ? `<img src="${avatar}" style="width:26px;height:26px;border-radius:50%;object-fit:cover">`
           : `<span style="display:inline-flex;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.08);align-items:center;justify-content:center;font-size:12px">👤</span>`;
