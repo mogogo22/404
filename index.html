@@ -2196,7 +2196,13 @@ function appendChatMessage(msg){
     if(!micAllowed()){ showToast('🔒 المايك محتاج موافقة الأونر الأول، من الإعدادات'); return; }
     if(voiceEnabled){ leaveVoiceChat(); return; }
     try{
-      localVoiceStream = await navigator.mediaDevices.getUserMedia({ audio:true });
+      localVoiceStream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
+      });
     }catch(err){
       if(err.name==='NotAllowedError') showToast('❌ لازم تسمح بإذن المايك من إعدادات المتصفح للموقع');
       else if(err.name==='NotFoundError') showToast('❌ مفيش مايك متاح على الجهاز');
