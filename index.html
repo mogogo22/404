@@ -2135,13 +2135,6 @@ function appendChatMessage(msg){
       audioEl.style.display = 'none';
       document.body.appendChild(audioEl);
       audioEl.play().catch(()=>{});
-      // محاولة إجبار الصوت يطلع من نفس جهاز الإخراج الافتراضي (مدعومة جزئيًا وفي متصفحات قليلة على الموبايل)
-      if(typeof audioEl.setSinkId === 'function'){
-        navigator.mediaDevices.enumerateDevices().then(devices=>{
-          const def = devices.find(d=> d.kind==='audiooutput' && d.deviceId==='default');
-          if(def) audioEl.setSinkId(def.deviceId).catch(()=>{});
-        }).catch(()=>{});
-      }
       const src = voiceAudioCtx.createMediaStreamSource(stream);
       const analyser = voiceAudioCtx.createAnalyser();
       analyser.fftSize = 256;
