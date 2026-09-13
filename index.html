@@ -377,10 +377,11 @@ body::before {
 .crown-winner-crown { font-size:20px; position:absolute; top:34px; left:50%; transform:translateX(-50%); animation:crownBounce 1s ease-in-out infinite; filter:drop-shadow(0 0 10px rgba(250,204,21,.7)); }
 
 .crown-spot-avatarwrap { flex:1; width:100%; display:flex; align-items:flex-end; justify-content:center; min-height:0; }
-.crown-podium-avatar { width:50%; max-width:135px; height:auto; object-fit:contain; image-rendering:pixelated; animation:crownIdleBob 1.6s ease-in-out infinite; filter:drop-shadow(0 0 8px var(--pglow,rgba(194,0,251,.6))); }
+.crown-podium-avatar { width:38%; max-width:100px; height:auto; object-fit:contain; image-rendering:pixelated; animation:crownIdleBob 1.6s ease-in-out infinite; filter:drop-shadow(0 0 8px var(--pglow,rgba(194,0,251,.6))); }
 @keyframes crownIdleBob { 0%,100%{transform:translateY(20px)} 50%{transform:translateY(15px)} }
 
-.crown-podium-vessel { width:62%; max-width:185px; height:auto; object-fit:contain; image-rendering:pixelated; margin-top:-34px; flex-shrink:0; }
+.crown-podium-vessel { width:auto; height:128px; max-width:170px; object-fit:contain; image-rendering:pixelated; margin-top:-24px; flex-shrink:0; }
+.crown-podium-vessel.board-gold { height:144px; }
 
 .crown-podium-info { display:flex; flex-direction:column; align-items:center; gap:6px; margin-top:10px; width:100%; }
 .crown-podium-name { font-family:var(--font-ar); font-size:clamp(11px,2.6vw,14px); color:#fff; font-weight:800; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -404,6 +405,21 @@ body::before {
   .crown-chip { font-size:9px; padding:2px 7px; }
   .crown-spot-rankbadge { font-size:9px; padding:5px 10px; }
   .crown-winner-banner { font-size:13px; }
+}
+@media (max-height:430px) and (orientation:landscape){
+  .crown-stage-box { padding:8px 8px 8px; }
+  .crown-winner-banner { font-size:11px; margin:-2px 0 4px; }
+  .crown-podium-row { gap:4px; padding:0; }
+  .crown-spot-card { padding:4px 2px 6px; }
+  .crown-podium-avatar { width:32%; max-width:52px; }
+  .crown-podium-vessel { width:42%; max-width:74px; margin-top:-12px; }
+  .crown-podium-info { margin-top:3px; gap:2px; }
+  .crown-podium-name { font-size:8px; }
+  .crown-podium-score { font-size:8px; }
+  .crown-chip { font-size:6px; padding:1px 5px; }
+  .crown-spot-rankbadge { font-size:6px; padding:3px 7px; margin:3px auto 0; }
+  .crown-winner-crown { font-size:13px; top:14px; }
+  .crown-stage-box .play-btn { margin-top:5px; padding:7px; font-size:7px; }
 }
 .vol-btn {
   width:28px; height:28px; background:transparent; border:1px solid var(--purple);
@@ -633,7 +649,6 @@ header {
   background-size:64px 64px,50px 50px,50px 50px;
   background-position:0 0,0 0,0 0;
   opacity:.55;
-  animation:duelGlow 10s linear infinite;
 }
 @keyframes duelGlow {
   0%   { background-position:0 0,0 0,0 0; }
@@ -642,6 +657,41 @@ header {
 
 #gameArea.boss-mode { background:#1a0000; }
 #gameArea.boss-mode #gameBg { opacity:.05; }
+
+#gameArea.arena-shield.shield-live {
+  background:
+    radial-gradient(ellipse 600px 420px at 50% 30%, rgba(239,68,68,.22), transparent 60%),
+    radial-gradient(ellipse 500px 380px at 10% 90%, rgba(153,27,27,.2), transparent 62%),
+    radial-gradient(ellipse 500px 380px at 90% 90%, rgba(153,27,27,.2), transparent 62%),
+    linear-gradient(165deg, #1a0505 0%, #2a0808 40%, #1c0404 70%, #0d0202 100%);
+}
+#gameArea.arena-shield.shield-live #gameBg {
+  background-image:
+    linear-gradient(rgba(239,68,68,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(239,68,68,.06) 1px,transparent 1px);
+  background-size:50px 50px;
+  opacity:.6;
+}
+.shield-pickup{ position:absolute; width:34px; height:34px; font-size:26px; display:flex; align-items:center; justify-content:center; z-index:8; filter:drop-shadow(0 0 8px rgba(59,130,246,.8)); animation:shieldFloat 1.4s ease-in-out infinite; pointer-events:none; }
+.shield-holder::after{
+  content:'';
+  position:absolute;
+  top:50%;left:50%;
+  width:52px;height:52px;
+  margin:-26px 0 0 -26px;
+  border-radius:50%;
+  border:3px solid transparent;
+  border-top-color:#00bfff;
+  border-bottom-color:#00bfff;
+  box-shadow:0 0 10px rgba(0,191,255,.6);
+  animation:shieldHolderSpin 1s linear infinite;
+  pointer-events:none;
+  z-index:1;
+}
+@keyframes shieldHolderSpin{ to{ transform:rotate(360deg); } }
+@keyframes shieldFloat{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+.shield-bomb-fx{ position:absolute; width:64px; height:64px; z-index:40; pointer-events:none; animation:shieldBombPop .6s ease-out forwards; }
+@keyframes shieldBombPop{ 0%{transform:scale(.3);opacity:1} 70%{transform:scale(1.3);opacity:1} 100%{transform:scale(1.6);opacity:0} }
+@keyframes shieldVictimPulse{ 0%,100%{transform:translateX(-50%) scale(1)} 50%{transform:translateX(-50%) scale(1.05)} }
 
 #crosshair { position:absolute; width:20px; height:20px; pointer-events:none; z-index:50; transform:translate(-50%,-50%); }
 #crosshair::before,#crosshair::after { content:''; position:absolute; background:rgba(255,255,255,.75); border-radius:2px; }
@@ -656,6 +706,11 @@ header {
 #crownAura { position:absolute; width:60px; height:60px; z-index:11; border-radius:50%; pointer-events:none; background:radial-gradient(circle, rgba(250,204,21,.55) 0%, rgba(250,204,21,.18) 55%, transparent 75%); box-shadow:0 0 30px 10px rgba(250,204,21,.35); animation:crownAuraPulse 1.2s ease-in-out infinite; display:none; }
 @keyframes crownAuraPulse { 0%,100%{transform:scale(1);opacity:.85} 50%{transform:scale(1.15);opacity:1} }
 .crown-point-pop { position:absolute; z-index:5001; font-family:var(--font-px); font-size:11px; color:#facc15; text-shadow:0 0 6px rgba(250,204,21,.9); pointer-events:none; transform:translateX(-50%); animation:crownPointPop .7s ease-out forwards; }
+.math-choice-btn{ min-width:60px; padding:10px 14px; font-family:var(--font-px); font-size:14px; border-radius:10px; border:2px solid #22c55e; background:rgba(34,197,94,.12); color:#fff; cursor:pointer; transition:all .12s; }
+.math-choice-btn:active{ transform:scale(.9); }
+.math-choice-btn:disabled{ cursor:default; }
+.math-choice-btn.correct{ background:#22c55e; color:#001018; }
+.math-choice-btn.wrong{ background:#ef4444; border-color:#ef4444; }
 @keyframes crownPointPop { 0%{opacity:1; transform:translate(-50%,0) scale(.8);} 55%{opacity:1; transform:translate(-50%,-24px) scale(1);} 100%{opacity:0; transform:translate(-50%,-36px) scale(.9);} }
 
 /* ══ COINS MINI-GAME ══ */
@@ -828,17 +883,21 @@ header {
   #mobileControls{display:block;}
   #gameArea{cursor:default;}
   #crosshair{display:none;}
-  #puStatus{bottom:138px;}
-  #dashBar{bottom:14px;width:72px;}
+  #dashBar{bottom:12px;width:64px;}
   #dashBar .dash-label{font-size:6px;}
-  #ultBar{bottom:38px;width:88px;}
-  #bossHpWrap{bottom:138px;}
+  #ultBar{bottom:44px;width:78px;}
+  #ultBar span{font-size:6px!important;}
+  #puStatus{bottom:82px;transform:translateX(-50%) scale(.85);}
+  .pu-pill{padding:2px 6px;font-size:8px;}
+  .pu-bar{width:28px;}
+  #bossHpWrap{bottom:112px;width:70%;}
 }
 #joyZone  { position:fixed; width:110px; height:110px; pointer-events:none; opacity:0; transition:opacity .12s; z-index:95; }
 #joyZone.active { opacity:1; }
 #joyBase  { position:absolute; inset:0; border-radius:50%; background:rgba(194,0,251,.12); border:2px solid rgba(194,0,251,.35); }
 #joyKnob  { position:absolute; width:44px; height:44px; border-radius:50%; background:radial-gradient(circle at 35% 35%,rgba(194,0,251,.9),rgba(99,102,241,.7)); border:2px solid rgba(194,0,251,.8); box-shadow:0 0 14px rgba(194,0,251,.5); top:50%; left:50%; transform:translate(-50%,-50%); transition:transform .05s; }
 #actionBtns { position:absolute; bottom:10px; left:14px; display:flex; flex-direction:column; gap:10px; pointer-events:all; }
+body.mirror-controls #actionBtns { left:auto; right:14px; }
 .act-btn { width:56px; height:56px; border-radius:50%; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:900; transition:all .1s; -webkit-tap-highlight-color:transparent; }
 .act-btn:active { transform:scale(.88); }
 #shootBtnM { background:linear-gradient(135deg,var(--purple),var(--purple-dim)); box-shadow:0 0 16px rgba(194,0,251,.5); color:#fff; }
@@ -1105,6 +1164,16 @@ header {
   #actionBtns{ bottom:6px; gap:6px; }
   .act-btn{ width:46px; height:46px; font-size:18px; }
   #mobileControls{ height:100px; }
+  .gscreen-card{ padding:14px 12px; max-height:96vh; }
+  .gscreen-icon{ font-size:30px; margin-bottom:4px; }
+  .gscreen-title{ font-size:13px; margin-bottom:4px; }
+  .gscreen-sub{ font-size:9px; margin-bottom:8px; }
+  .stats-row{ gap:5px; margin-bottom:8px; }
+  .stat-b{ padding:6px 3px; }
+  .stat-b .sv{ font-size:13px; }
+  .hs-badge{ padding:4px 9px; font-size:9px; margin-bottom:8px; }
+  .play-btn{ padding:9px; font-size:8px; margin-bottom:6px; }
+  .sec-btn{ padding:7px; font-size:7px; margin-bottom:4px; }
 }
 @media(max-height:420px) and (pointer:coarse){
   .menu-item{ padding:5px 14px; margin-bottom:2px; font-size:8px; }
@@ -1342,6 +1411,12 @@ header {
     <div class="setting-row">
       <div class="setting-label">⚡ وضع أداء خفيف</div>
       <button id="lowGraphicsToggle" onclick="toggleLowGraphics()"
+        style="font-family:var(--font-px);font-size:7px;letter-spacing:1px;padding:7px 14px;background:rgba(255,51,68,.1);border:2px solid #ff3344;color:#ff3344;cursor:pointer;transition:all .15s">OFF ❌</button>
+    </div>
+    <hr class="setting-divider">
+    <div class="setting-row">
+      <div class="setting-label">🔄 عكس أزرار التحكم</div>
+      <button id="mirrorControlsToggle" onclick="toggleMirrorControls()"
         style="font-family:var(--font-px);font-size:7px;letter-spacing:1px;padding:7px 14px;background:rgba(255,51,68,.1);border:2px solid #ff3344;color:#ff3344;cursor:pointer;transition:all .15s">OFF ❌</button>
     </div>
     <hr class="setting-divider">
@@ -1663,6 +1738,42 @@ header {
   <div>🔴 <span id="coinsRedScore" style="color:#ef4444;font-weight:800">0</span> &nbsp;—&nbsp; <span id="coinsBlueScore" style="color:#3b82f6;font-weight:800">0</span> 🔵</div>
 </div>
 
+<!-- ══ MATH QUIZ GAME UI ══ -->
+<div id="mathLobbyScreen" style="position:fixed;top:96px;left:50%;transform:translateX(-50%);z-index:600;background:rgba(0,13,8,.88);border:1px solid #22c55e;border-radius:10px;padding:8px 20px;text-align:center;pointer-events:none;display:none">
+  <div style="font-family:var(--font-px);font-size:9px;color:#22c55e;letter-spacing:1px;margin-bottom:4px">🧮 اختبار الحساب</div>
+  <div id="mathLobbyStatus" style="font-family:var(--font-ar);color:#fff;font-size:12px">مستني لاعبين...</div>
+  <div id="mathCountdownNum" style="font-family:var(--font-px);font-size:26px;color:#22c55e;display:none;margin-top:2px">10</div>
+</div>
+
+<div id="mathScoreHud" style="position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:600;background:rgba(0,13,8,.85);border:1px solid #22c55e;border-radius:12px;padding:9px 20px;font-family:var(--font-ar);color:#fff;font-size:clamp(12px,2.8vw,16px);line-height:1.6;text-align:center;max-width:85vw;box-shadow:0 0 14px rgba(34,197,94,.25);display:none">
+  <div>⏱ <span id="mathTimeLeft">2:00</span> &nbsp; 🎯 <span id="mathMyScore">0</span> نقطة</div>
+</div>
+
+<div id="mathQuizBox" style="position:fixed;bottom:150px;left:50%;transform:translateX(-50%);z-index:600;background:rgba(0,13,8,.93);border:2px solid #22c55e;border-radius:16px;padding:12px 16px;text-align:center;min-width:230px;box-shadow:0 0 20px rgba(34,197,94,.3);display:none">
+  <div id="mathQuestionText" style="font-family:var(--font-px);font-size:15px;color:#fff;margin-bottom:10px">? + ? = ?</div>
+  <div style="display:flex;gap:8px;justify-content:center">
+    <button class="math-choice-btn" id="mathChoiceBtn0" onclick="answerMathQuestion(0)"></button>
+    <button class="math-choice-btn" id="mathChoiceBtn1" onclick="answerMathQuestion(1)"></button>
+    <button class="math-choice-btn" id="mathChoiceBtn2" onclick="answerMathQuestion(2)"></button>
+  </div>
+</div>
+
+<!-- ══ SHIELD BOMB GAME UI ══ -->
+<div id="shieldLobbyScreen" style="position:fixed;top:96px;left:50%;transform:translateX(-50%);z-index:600;background:rgba(0,13,8,.88);border:1px solid #ef4444;border-radius:10px;padding:8px 20px;text-align:center;pointer-events:none;display:none">
+  <div style="font-family:var(--font-px);font-size:9px;color:#ef4444;letter-spacing:1px;margin-bottom:4px">💣 قنبلة الدروع</div>
+  <div id="shieldLobbyStatus" style="font-family:var(--font-ar);color:#fff;font-size:12px">مستني لاعبين...</div>
+  <div id="shieldCountdownNum" style="font-family:var(--font-px);font-size:26px;color:#ef4444;display:none;margin-top:2px">10</div>
+</div>
+
+<div id="shieldStatusHud" style="position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:600;background:rgba(0,13,8,.85);border:1px solid #ef4444;border-radius:12px;padding:9px 20px;font-family:var(--font-ar);color:#fff;font-size:clamp(12px,2.8vw,16px);text-align:center;box-shadow:0 0 14px rgba(239,68,68,.25);display:none">
+  💀 الباقيين: <span id="shieldAliveCount">0</span>
+</div>
+
+<div id="shieldVictimBar" style="position:fixed;top:96px;left:50%;transform:translateX(-50%);z-index:610;background:rgba(60,0,0,.92);border:2px solid #ef4444;border-radius:12px;padding:8px 22px;text-align:center;pointer-events:none;display:none;animation:shieldVictimPulse .5s ease-in-out infinite">
+  <div style="font-family:var(--font-ar);color:#fff;font-size:13px">⚠️ <span id="shieldVictimName">لاعب</span> من غير درع!</div>
+  <div id="shieldVictimNum" style="font-family:var(--font-px);font-size:24px;color:#ef4444;margin-top:2px">10</div>
+</div>
+
 <div class="overlay-panel" id="crownStageScreen">
   <div class="panel-box crown-stage-box">
     <div class="panel-title">🏆 النتيجة النهائية</div>
@@ -1681,7 +1792,8 @@ header {
   </div>
 </div>
 <!-- ══ PLAYER LIST OVERLAY (Tab) ══ -->
-<div id="playerListOverlay" style="position:fixed;top:60px;left:20px;z-index:900;background:rgba(0,13,8,.97);border:2px solid var(--purple);border-radius:14px;padding:14px;min-width:240px;display:none">
+<div id="playerListOverlay" style="position:fixed;top:150px;left:20px;z-index:900;background:rgba(0,13,8,.97);border:2px solid var(--purple);border-radius:14px;padding:14px;min-width:240px;max-height:55vh;overflow-y:auto;display:none">
+  <button onclick="togglePlayerListOverlay()" style="position:absolute;top:6px;left:6px;width:24px;height:24px;border-radius:50%;border:1px solid var(--purple);background:rgba(194,0,251,.15);color:var(--purple);font-size:12px;cursor:pointer;line-height:1">✕</button>
   <div style="font-family:var(--font-px);font-size:10px;color:var(--purple);margin-bottom:10px;text-align:center">◈ اللاعبين في الغرفة (Tab)</div>
   <div id="playerListBody"></div>
 </div>
@@ -1943,11 +2055,11 @@ let mpOwnerCmdRef = null;
   const MINI_GAMES = [
     { id:'crown', name:'تاج الملك',  img:'MiniGames/crown.png', players:[2,3,4,5,6,7,8,9,10], color:'#facc15', glow:'rgba(250,204,21,.35)' },
     { id:'coins', name:'العملات',    img:'MiniGames/red.png', players:[4,6,8,10], color:'#f59e0b', glow:'rgba(245,158,11,.35)' },
-    { id:'duel',  name:'مبارزة 404', icon:'⚔️', players:[4,6,8,10], color:'#c200fb', glow:'rgba(194,0,251,.35)' },
-    { id:'race',  name:'السباق',     icon:'🏁', players:[4,6], color:'#00e5ff', glow:'rgba(0,229,255,.35)' },
-    { id:'hide',  name:'اختباء',      icon:'🙈', players:[6,8,10], color:'#ff2ecb', glow:'rgba(255,46,203,.35)' },
+    { id:'duel',  name:'أوضة الدردشة', icon:'🎤', players:[4,6,8,10], color:'#c200fb', glow:'rgba(194,0,251,.35)' },
+    { id:'math',  name:'اختبار الحساب', icon:'🧮', players:[2,3,4,5,6,7,8,9,10], color:'#22c55e', glow:'rgba(34,197,94,.35)' },
+    { id:'shield', name:'قنبلة الدروع', img:'Player/E/BOMB.png', players:[2,3,4,5,6,7,8,9,10], color:'#ef4444', glow:'rgba(239,68,68,.4)' },
   ];
-  const MG_ICON = { crown:'👑', coins:'🪙', duel:'⚔️', race:'🏁', hide:'🙈' };
+  const MG_ICON = { crown:'👑', coins:'🪙', duel:'🎤', math:'🧮', shield:'💣' };
   let selectedMiniGame = null;
   let roomsListenerRef = null;
   let mpChatRef = null;
@@ -2100,15 +2212,32 @@ let mpOwnerCmdRef = null;
     document.getElementById('roomStepLine2').classList.add('done');
     document.getElementById('roomStep3').classList.add('active');
     const maxGrid = document.getElementById('roomMaxGrid');
-    maxGrid.innerHTML = selectedMiniGame.players.map((n,i) => `
-      <button type="button" class="room-max-pill${i===0 ? ' selected':''}" data-val="${n}" onclick="selectMaxPlayers(${n})">${n===10?'🔟':n+'️⃣'}<span>${n} لاعبين</span></button>
-    `).join('');
+    if(id === 'duel'){
+      maxGrid.innerHTML = `
+        <div style="grid-column:1/-1;display:flex;flex-direction:column;align-items:center;gap:8px">
+          <input type="number" id="customMaxInput" min="2" max="30" value="10" oninput="onCustomMaxInput(this.value)"
+            style="width:120px;padding:10px;text-align:center;border-radius:10px;border:1px solid rgba(194,0,251,.4);background:rgba(0,13,8,.6);color:#fff;font-size:16px;font-family:var(--font-mono)">
+          <span style="font-family:var(--font-ar);font-size:10px;color:#7888a8">اكتب أي عدد لاعبين تحبه (من 2 لحد 30)</span>
+        </div>
+      `;
+      document.getElementById('roomMaxSelect').value = 10;
+    } else {
+      maxGrid.innerHTML = selectedMiniGame.players.map((n,i) => `
+        <button type="button" class="room-max-pill${i===0 ? ' selected':''}" data-val="${n}" onclick="selectMaxPlayers(${n})">${n===10?'🔟':n+'️⃣'}<span>${n} لاعبين</span></button>
+      `).join('');
+      document.getElementById('roomMaxSelect').value = selectedMiniGame.players[0];
+    }
     maxGrid.classList.remove('locked');
     document.getElementById('roomMaxLockNote').classList.remove('show');
-    document.getElementById('roomMaxSelect').value = selectedMiniGame.players[0];
     document.getElementById('roomCreateSubmitBtn').style.display = 'block';
     document.getElementById('panel-select-minigame').classList.remove('open');
     document.getElementById('panel-create-room').classList.add('open');
+  }
+  function onCustomMaxInput(v){
+    let n = parseInt(v,10);
+    if(isNaN(n)) n = 2;
+    n = Math.max(2, Math.min(30, n));
+    document.getElementById('roomMaxSelect').value = n;
   }
   function selectMaxPlayers(n){
     document.getElementById('roomMaxSelect').value = n;
@@ -2403,12 +2532,29 @@ function ownerDeleteRoom(roomId){
     });
   }
 
+  let mpCosmeticCache = {};
   function crownSkinFor(id){
-    const skinId = id === mpPlayerId ? equippedSkin : ((mpOtherPlayers[id] && mpOtherPlayers[id].skin) || 'purple');
+    let skinId;
+    if(id === mpPlayerId){ skinId = equippedSkin; }
+    else if(mpOtherPlayers[id] && mpOtherPlayers[id].skin){
+      skinId = mpOtherPlayers[id].skin;
+      mpCosmeticCache[id] = mpCosmeticCache[id] || {};
+      mpCosmeticCache[id].skin = skinId;
+    } else {
+      skinId = (mpCosmeticCache[id] && mpCosmeticCache[id].skin) || 'purple';
+    }
     return SKINS_DEF.find(s=>s.id===skinId) || SKINS_DEF[0];
   }
   function crownBoardFor(id){
-    const boardId = id === mpPlayerId ? equippedBoard : ((mpOtherPlayers[id] && mpOtherPlayers[id].board) || 'default');
+    let boardId;
+    if(id === mpPlayerId){ boardId = equippedBoard; }
+    else if(mpOtherPlayers[id] && mpOtherPlayers[id].board){
+      boardId = mpOtherPlayers[id].board;
+      mpCosmeticCache[id] = mpCosmeticCache[id] || {};
+      mpCosmeticCache[id].board = boardId;
+    } else {
+      boardId = (mpCosmeticCache[id] && mpCosmeticCache[id].board) || 'default';
+    }
     return BOARDS_DEF.find(b=>b.id===boardId) || BOARDS_DEF[0];
   }
   function skinBaseFolder(id){
@@ -2491,7 +2637,7 @@ function ownerDeleteRoom(roomId){
             <img class="crown-podium-avatar" id="crownPodiumAvatar_${p.id}" src="${skinBaseFolder(skin.id)}/IDLE/P_0.png" style="--pglow:${skin.glow}">
           </div>
           <div class="crown-spot-rankbadge">${medal} المركز ${p.rank}</div>
-          <img class="crown-podium-vessel" src="${boardSkin.img}">
+          <img class="crown-podium-vessel board-${boardSkin.id}" src="${boardSkin.img}">
           <div class="crown-podium-info">
             <div class="crown-podium-name">${p.name}</div>
             <div class="crown-podium-score">👑 <span class="crown-count-up" data-target="${p.score}">0</span></div>
@@ -2543,6 +2689,706 @@ function ownerDeleteRoom(roomId){
     crownLive = null; crownPlayingInited = false; crownLobbyWaiting = false; crownCountdownStarted = false;
     crownEndedShown = false; crownRewardApplied = false; crownSoloEndTriggered = false;
     crownPopHolderSince = null; crownPopCount = 0;
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  //  MATH MINI-GAME (اختبار الحساب)
+  // ══════════════════════════════════════════════════════════════
+  let mathRoomId=null,mathMaxPlayers=4,mathRoomRef=null,mathStateRef=null,mathIsHost=false;
+  let mathListener=null,mathCountdownIv=null,mathLobbyWaiting=false,mathCountdownStarted=false;
+  let mathLive=null,mathPlayingInited=false,mathRenderFid=null,mathHostIv=null,mathSoloEndTriggered=false;
+  let mathRewardApplied=false,mathEndedShown=false,mathMode=false;
+  let mathUsedKeys=new Set(),mathCurrentQuestion=null;
+
+  function startMathGame(roomId,maxPlayers){
+    activeMiniGameType='math';
+    mathMode=true;
+    mathRoomId=roomId; mathMaxPlayers=maxPlayers;
+    mathRoomRef=mpDb.ref('duelRooms/'+roomId);
+    mathStateRef=mpDb.ref('rooms/'+roomId+'/math');
+    mathIsHost=isRoomOwner;
+
+    document.querySelectorAll('.enemy,.coin,.powerup,.dash-ghost,.particle,.float-text,.bullet,.ebullet,.bp,.wbot,.sk-particle').forEach(el=>el.remove());
+    enemies=[];coins=[];pups=[];bullets=[];ebullets=[];wbots=[];
+    document.getElementById('boss').style.display='none';
+    document.getElementById('bossHpWrap').classList.remove('show');
+    wActive=false;bAlive=false;bReady=false;
+
+    document.getElementById('hud').style.display='none';
+    document.getElementById('gameArea').classList.remove('arena-waves');
+    document.getElementById('gameArea').classList.add('arena-duel');
+    hideAllGScreens();
+    cacheArena();
+    applyPlayerSkin();
+    px=AW/2-19; py=AH/2-19;
+    const p=PEL(); if(p){ p.style.left=px+'px'; p.style.top=py+'px'; }
+    GR=true; paused=false;
+    lt=performance.now();
+    fid=requestAnimationFrame(ts=>{ lt=ts; loop(ts); });
+
+    document.getElementById('mathLobbyScreen').style.display='block';
+    document.getElementById('mathLobbyStatus').textContent='مستني لاعبين...';
+    mathLobbyWaiting=true;
+    mathCountdownStarted=false;
+    playBgMusic('duel');
+
+    mathRoomRef.child('playerCount').on('value', snap=>{
+      if(!mathLobbyWaiting||mathCountdownStarted) return;
+      const count=snap.val()||1;
+      const st=document.getElementById('mathLobbyStatus');
+      if(st) st.textContent=`مستني لاعبين... (${count}/${mathMaxPlayers})`;
+      if(count>=mathMaxPlayers && mathIsHost){
+        mathStateRef.once('value').then(s=>{
+          if(!s.val()||s.val().state==='lobby'){
+            mathStateRef.set({ state:'countdown', countdownStart: firebase.database.ServerValue.TIMESTAMP });
+          }
+        });
+      }
+    });
+
+    mathListener=mathStateRef.on('value', snap=>{
+      const st=snap.val();
+      if(!st) return;
+      if(st.state==='countdown') mathRunCountdown(st.countdownStart);
+      else if(st.state==='playing') mathEnterPlaying(st);
+      else if(st.state==='ended') mathShowStage(st);
+    });
+  }
+
+  function mathRunCountdown(startTs){
+    document.getElementById('mathLobbyStatus').textContent='كلهم جاهزين! هنبدأ خلال:';
+    mathCountdownStarted=true;
+    const numEl=document.getElementById('mathCountdownNum');
+    numEl.style.display='block';
+    if(mathCountdownIv) clearInterval(mathCountdownIv);
+    let lastShown=null;
+    mathCountdownIv=setInterval(()=>{
+      const now=Date.now();
+      const base=startTs||now;
+      const elapsed=Math.max(0, now-base);
+      const left=Math.max(0, 10-Math.floor(elapsed/1000));
+      if(left!==lastShown){ lastShown=left; numEl.textContent=left; playClick(); }
+      if(left<=0){
+        clearInterval(mathCountdownIv);
+        if(mathIsHost) mathStartRound();
+      }
+    },250);
+  }
+
+  function mathStartRound(){
+    const scores={};
+    scores[mpPlayerId]=0;
+    Object.keys(mpOtherPlayers).forEach(pid=>{ if(pid!==mpPlayerId) scores[pid]=0; });
+    mathStateRef.set({ state:'playing', gameStart:Date.now(), scores });
+  }
+
+  function mathEnterPlaying(st){
+    mathLive=st;
+    if(mathPlayingInited) return;
+    mathPlayingInited=true;
+    mathLobbyWaiting=false;
+    playBgMusic('boss',0.7);
+    document.getElementById('mathLobbyScreen').style.display='none';
+    document.getElementById('mathScoreHud').style.display='block';
+    document.getElementById('mathQuizBox').style.display='block';
+    mathUsedKeys=new Set();
+    mathNextQuestion();
+    mathRenderLoop();
+    if(mathIsHost){ mathHostIv=setInterval(mathHostTick,500); }
+  }
+
+  function mathRenderLoop(){
+    if(!mathLive||mathLive.state!=='playing'){ mathRenderFid=null; return; }
+    if(!mathSoloEndTriggered && Object.keys(mpOtherPlayers).filter(id=>id!==mpPlayerId).length===0){
+      mathSoloEndTriggered=true;
+      if(mathHostIv){ clearInterval(mathHostIv); mathHostIv=null; }
+      mathEndGame();
+    }
+    const elapsed=Date.now()-(mathLive.gameStart||Date.now());
+    const left=Math.max(0,120000-elapsed);
+    const mm=Math.floor(left/60000), ss=Math.floor((left%60000)/1000);
+    const tEl=document.getElementById('mathTimeLeft');
+    if(tEl) tEl.textContent=mm+':'+String(ss).padStart(2,'0');
+    const sEl=document.getElementById('mathMyScore');
+    if(sEl) sEl.textContent=(mathLive.scores&&mathLive.scores[mpPlayerId])||0;
+    mathRenderFid=requestAnimationFrame(mathRenderLoop);
+  }
+
+  function mathHostTick(){
+    if(!mathLive||mathLive.state!=='playing') return;
+    if(Date.now()-(mathLive.gameStart||Date.now())>=120000){
+      clearInterval(mathHostIv); mathHostIv=null;
+      mathEndGame();
+    }
+  }
+
+  function generateMathQuestion(usedSet){
+    const ops=['+','-','×'];
+    let a,b,op,answer,key,tries=0;
+    do{
+      op=ops[Math.floor(Math.random()*ops.length)];
+      if(op==='+'){ a=1+Math.floor(Math.random()*50); b=1+Math.floor(Math.random()*50); answer=a+b; }
+      else if(op==='-'){ a=10+Math.floor(Math.random()*50); b=1+Math.floor(Math.random()*a); answer=a-b; }
+      else { a=1+Math.floor(Math.random()*12); b=1+Math.floor(Math.random()*12); answer=a*b; }
+      key=a+op+b; tries++;
+    } while(usedSet.has(key)&&tries<40);
+    usedSet.add(key);
+    const wrongs=new Set();
+    let guard=0;
+    while(wrongs.size<2 && guard<30){
+      guard++;
+      const delta=1+Math.floor(Math.random()*10);
+      const sign=Math.random()<0.5?-1:1;
+      let w=answer+sign*delta;
+      if(w<0) w=answer+delta;
+      if(w===answer||wrongs.has(w)) continue;
+      wrongs.add(w);
+    }
+    const choices=[answer,...wrongs];
+    for(let i=choices.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [choices[i],choices[j]]=[choices[j],choices[i]]; }
+    return { text:`${a} ${op} ${b} = ?`, answer, choices, key };
+  }
+
+  function mathNextQuestion(){
+    mathCurrentQuestion=generateMathQuestion(mathUsedKeys);
+    const q=mathCurrentQuestion;
+    document.getElementById('mathQuestionText').textContent=q.text;
+    q.choices.forEach((c,i)=>{
+      const b=document.getElementById('mathChoiceBtn'+i);
+      if(b){ b.textContent=c; b.className='math-choice-btn'; b.disabled=false; }
+    });
+  }
+
+  function answerMathQuestion(idx){
+    if(!mathCurrentQuestion||!mathMode) return;
+    const btn=document.getElementById('mathChoiceBtn'+idx);
+    const chosen=mathCurrentQuestion.choices[idx];
+    document.querySelectorAll('.math-choice-btn').forEach(b=>b.disabled=true);
+    if(chosen===mathCurrentQuestion.answer){
+      if(btn) btn.classList.add('correct');
+      playSFX('friend');
+      spawnMathPointPop(px+19,py);
+      if(mathStateRef) mathStateRef.child('scores/'+mpPlayerId).transaction(v=>(v||0)+1);
+    } else {
+      if(btn) btn.classList.add('wrong');
+      const correctIdx=mathCurrentQuestion.choices.indexOf(mathCurrentQuestion.answer);
+      const cBtn=document.getElementById('mathChoiceBtn'+correctIdx);
+      if(cBtn) cBtn.classList.add('correct');
+    }
+    setTimeout(()=>{ if(mathMode && mathLive && mathLive.state==='playing') mathNextQuestion(); },700);
+  }
+
+  function spawnMathPointPop(x,y){
+    const ga=document.getElementById('gameArea');
+    if(!ga||x===undefined) return;
+    const el=document.createElement('div');
+    el.className='crown-point-pop';
+    el.textContent='+1';
+    el.style.left=x+'px';
+    el.style.top=(y-6)+'px';
+    ga.appendChild(el);
+    setTimeout(()=>el.remove(),700);
+  }
+
+  function mathEndGame(){
+    mathStateRef.once('value').then(snap=>{
+      const st=snap.val()||mathLive||{};
+      const scores=st.scores||{};
+      const stillHere=new Set([mpPlayerId, ...Object.keys(mpOtherPlayers).filter(id=>id!==mpPlayerId)]);
+      let allIds=Object.keys(scores).filter(id=>stillHere.has(id));
+      if(!allIds.includes(mpPlayerId)) allIds.push(mpPlayerId);
+      const ranked=allIds.map(id=>({
+        id,
+        name: id===mpPlayerId?(playerName||'لاعب'):((mpOtherPlayers[id]&&mpOtherPlayers[id].name)||'لاعب'),
+        score: scores[id]||0
+      })).sort((a,b)=>b.score-a.score);
+      const results={};
+      ranked.forEach((p,i)=>{
+        const rank=i+1;
+        let coins,gems;
+        if(rank===1){coins=200;gems=5;}
+        else if(rank===2){coins=150;gems=3;}
+        else if(rank===3){coins=100;gems=1;}
+        else{coins=30+Math.floor(Math.random()*91);gems=0;}
+        results[p.id]={rank,name:p.name,score:p.score,coins,gems};
+      });
+      mathStateRef.update({ state:'ended', results });
+    });
+  }
+
+  function mathShowStage(st){
+    mathLive=st;
+    if(mathEndedShown) return;
+    mathEndedShown=true;
+    if(mathRenderFid){ cancelAnimationFrame(mathRenderFid); mathRenderFid=null; }
+    if(mathHostIv){ clearInterval(mathHostIv); mathHostIv=null; }
+    document.getElementById('mathScoreHud').style.display='none';
+    document.getElementById('mathQuizBox').style.display='none';
+    playBgMusic('duel');
+
+    const results=st.results||{};
+    const ranked=Object.keys(results).map(id=>({id,...results[id]})).sort((a,b)=>a.rank-b.rank);
+    const board=document.getElementById('crownStageBoard');
+    const medals={1:'🥇',2:'🥈',3:'🥉'};
+    const iAmWinner=!!(ranked[0]&&ranked[0].id===mpPlayerId);
+    const top4=ranked.slice(0,4);
+    const podiumHtml=`<div class="crown-podium-row">`+top4.map(p=>{
+      const skin=crownSkinFor(p.id);
+      const boardSkin=crownBoardFor(p.id);
+      const medal=medals[p.rank]||('#'+p.rank);
+      const tier=Math.min(p.rank,4);
+      const rewardTxt=[
+        p.coins>0?('<span class="crown-chip">🪙 <span class="crown-count-up" data-target="'+p.coins+'">0</span></span>'):'',
+        p.gems>0?('<span class="crown-chip">💎 <span class="crown-count-up" data-target="'+p.gems+'">0</span></span>'):''
+      ].filter(Boolean).join('');
+      return `
+      <div class="crown-spot-card tier-${tier}" style="--reveal-delay:${tier*150}ms">
+          ${p.rank===1?'<div class="crown-winner-crown">👑</div>':''}
+          <div class="crown-spot-avatarwrap">
+            <img class="crown-podium-avatar" id="crownPodiumAvatar_${p.id}" src="${skinBaseFolder(skin.id)}/IDLE/P_0.png" style="--pglow:${skin.glow}">
+          </div>
+          <div class="crown-spot-rankbadge">${medal} المركز ${p.rank}</div>
+          <img class="crown-podium-vessel board-${boardSkin.id}" src="${boardSkin.img}">
+          <div class="crown-podium-info">
+            <div class="crown-podium-name">${p.name}</div>
+            <div class="crown-podium-score">🎯 <span class="crown-count-up" data-target="${p.score}">0</span></div>
+            <div class="crown-podium-reward">${rewardTxt}</div>
+          </div>
+        </div>`;
+    }).join('')+`</div>`;
+    board.innerHTML=podiumHtml;
+    const banner=document.getElementById('crownWinnerBanner');
+    if(banner) banner.style.display=iAmWinner?'block':'none';
+    document.getElementById('crownStageScreen').classList.add('open');
+    startCrownPodiumAnim(ranked);
+    animateCrownCountUps();
+    playSFX(iAmWinner?'win':'victory');
+    if(!lowGraphics) spawnCrownConfetti();
+    const myReward=results[mpPlayerId];
+    if(myReward&&!mathRewardApplied){
+      mathRewardApplied=true;
+      totalCoins+=myReward.coins;
+      gems+=myReward.gems;
+      persistAll();
+      refreshGemDisplay();
+      setTimeout(()=>{
+        showToast(myReward.rank===1
+          ? `🏆 فزت! +${myReward.coins} 🪙 +${myReward.gems} 💎`
+          : `🎖 المركز ${myReward.rank}! +${myReward.coins} 🪙 +${myReward.gems} 💎`);
+      },900);
+    }
+  }
+
+  function mathFullCleanup(){
+    const lobbyEl=document.getElementById('mathLobbyScreen'); if(lobbyEl) lobbyEl.style.display='none';
+    const hudEl=document.getElementById('mathScoreHud'); if(hudEl) hudEl.style.display='none';
+    const quizEl=document.getElementById('mathQuizBox'); if(quizEl) quizEl.style.display='none';
+    const numEl=document.getElementById('mathCountdownNum'); if(numEl) numEl.style.display='none';
+    if(mathRoomRef) mathRoomRef.child('playerCount').off();
+    if(mathStateRef) mathStateRef.off();
+    if(mathCountdownIv){ clearInterval(mathCountdownIv); mathCountdownIv=null; }
+    if(mathHostIv){ clearInterval(mathHostIv); mathHostIv=null; }
+    if(mathRenderFid){ cancelAnimationFrame(mathRenderFid); mathRenderFid=null; }
+    stopCrownPodiumAnim();
+    document.querySelectorAll('.crown-confetti').forEach(c=>c.remove());
+    mathRoomId=null; mathRoomRef=null; mathStateRef=null; mathIsHost=false;
+    mathLive=null; mathPlayingInited=false; mathLobbyWaiting=false; mathCountdownStarted=false;
+    mathEndedShown=false; mathRewardApplied=false; mathSoloEndTriggered=false; mathMode=false;
+    mathCurrentQuestion=null; mathUsedKeys=new Set();
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  //  SHIELD BOMB MINI-GAME (قنبلة الدروع)
+  // ══════════════════════════════════════════════════════════════
+  let shieldRoomId=null, shieldMaxPlayers=4, shieldRoomRef=null, shieldStateRef=null, shieldIsHost=false;
+  let shieldListener=null, shieldCountdownIv=null, shieldLobbyWaiting=false, shieldCountdownStarted=false;
+  let shieldLive=null, shieldPlayingInited=false, shieldRenderFid=null, shieldHostIv=null, shieldVictimIv=null;
+  let shieldRewardApplied=false, shieldEndedShown=false, shieldMode=false, shieldIsGhost=false;
+  let shieldGhostOpacity=1, shieldLastExplodedRound=0;
+
+  function startShieldGame(roomId,maxPlayers){
+    activeMiniGameType='shield';
+    shieldMode=true; shieldIsGhost=false; shieldGhostOpacity=1; shieldLastExplodedRound=0;
+    shieldRoomId=roomId; shieldMaxPlayers=maxPlayers;
+    shieldRoomRef=mpDb.ref('duelRooms/'+roomId);
+    shieldStateRef=mpDb.ref('rooms/'+roomId+'/shield');
+    shieldIsHost=isRoomOwner;
+
+    document.querySelectorAll('.enemy,.coin,.powerup,.dash-ghost,.particle,.float-text,.bullet,.ebullet,.bp,.wbot,.sk-particle,.shield-pickup,.shield-bomb-fx').forEach(el=>el.remove());
+    enemies=[];coins=[];pups=[];bullets=[];ebullets=[];wbots=[];
+    document.getElementById('boss').style.display='none';
+    document.getElementById('bossHpWrap').classList.remove('show');
+    wActive=false;bAlive=false;bReady=false;
+
+    document.getElementById('hud').style.display='none';
+    document.getElementById('gameArea').classList.remove('arena-waves','arena-duel');
+    document.getElementById('gameArea').classList.add('arena-shield');
+    hideAllGScreens();
+    cacheArena();
+    applyPlayerSkin();
+    px=AW/2-19; py=AH/2-19;
+    const p=PEL(); if(p){ p.style.left=px+'px'; p.style.top=py+'px'; p.style.opacity='1'; }
+    GR=true; paused=false;
+    lt=performance.now();
+    fid=requestAnimationFrame(ts=>{ lt=ts; loop(ts); });
+
+    document.getElementById('shieldLobbyScreen').style.display='block';
+    document.getElementById('shieldLobbyStatus').textContent='مستني لاعبين...';
+    shieldLobbyWaiting=true;
+    shieldCountdownStarted=false;
+    playBgMusic('duel');
+
+    shieldRoomRef.child('playerCount').on('value', snap=>{
+      if(!shieldLobbyWaiting||shieldCountdownStarted) return;
+      const count=snap.val()||1;
+      const st=document.getElementById('shieldLobbyStatus');
+      if(st) st.textContent=`مستني لاعبين... (${count}/${shieldMaxPlayers})`;
+      if(count>=shieldMaxPlayers && shieldIsHost){
+        shieldStateRef.once('value').then(s=>{
+          if(!s.val()||s.val().state==='lobby'){
+            shieldStateRef.set({ state:'countdown', countdownStart: firebase.database.ServerValue.TIMESTAMP });
+          }
+        });
+      }
+    });
+
+    shieldListener=shieldStateRef.on('value', snap=>{
+      const st=snap.val();
+      if(!st) return;
+      if(st.state==='countdown') shieldRunCountdown(st.countdownStart);
+      else if(st.state==='playing') shieldEnterPlaying(st);
+      else if(st.state==='ended') shieldShowStage(st);
+    });
+  }
+
+  function shieldRunCountdown(startTs){
+    document.getElementById('shieldLobbyStatus').textContent='كلهم جاهزين! هنبدأ خلال:';
+    shieldCountdownStarted=true;
+    const numEl=document.getElementById('shieldCountdownNum');
+    numEl.style.display='block';
+    if(shieldCountdownIv) clearInterval(shieldCountdownIv);
+    let lastShown=null;
+    shieldCountdownIv=setInterval(()=>{
+      const now=Date.now();
+      const base=startTs||now;
+      const elapsed=Math.max(0, now-base);
+      const left=Math.max(0, 10-Math.floor(elapsed/1000));
+      if(left!==lastShown){ lastShown=left; numEl.textContent=left; playClick(); }
+      if(left<=0){
+        clearInterval(shieldCountdownIv);
+        if(shieldIsHost) shieldStartMatch();
+      }
+    },250);
+  }
+
+  function shieldStartMatch(){
+    const alive={};
+    alive[mpPlayerId]=true;
+    Object.keys(mpOtherPlayers).forEach(pid=>{ if(pid!==mpPlayerId) alive[pid]=true; });
+    shieldStateRef.set({ state:'playing', round:0, alive, shields:{}, victimId:null, victimSince:null, explodedId:null, explodedRound:0, order:[] })
+      .then(()=> shieldHostStartRound(Object.keys(alive)));
+  }
+
+  function shieldRandomSpots(n){
+    const margin=60, minDist=170;
+    const pts=[];
+    for(let i=0;i<n;i++){
+      let nx,ny,tries=0,ok=false;
+      do{
+        nx=margin+Math.random()*(AW-margin*2-34);
+        ny=margin+Math.random()*(AH-margin*2-34);
+        tries++;
+        ok=pts.every(p=>Math.hypot(nx-p.x,ny-p.y)>=minDist);
+      } while(!ok&&tries<30);
+      pts.push({x:nx,y:ny});
+    }
+    return pts;
+  }
+
+  function shieldHostStartRound(aliveIds){
+    if(aliveIds.length<=1){ shieldEndGame(aliveIds); return; }
+    const n=aliveIds.length-1;
+    const spots=shieldRandomSpots(n);
+    const shields={};
+    spots.forEach((s,i)=>{ shields['s'+i]={x:s.x,y:s.y,takenBy:null}; });
+    shieldStateRef.once('value').then(snap=>{
+      const cur=snap.val()||{};
+      shieldStateRef.update({ round:(cur.round||0)+1, shields, victimId:null, victimSince:null });
+    });
+  }
+
+  function shieldEnterPlaying(st){
+    shieldLive=st;
+    if(!shieldPlayingInited){
+      shieldPlayingInited=true;
+      shieldLobbyWaiting=false;
+      playBgMusic('boss',0.7);
+      document.getElementById('gameArea').classList.add('shield-live');
+      document.getElementById('shieldLobbyScreen').style.display='none';
+      document.getElementById('shieldStatusHud').style.display='block';
+      shieldRenderLoop();
+      if(shieldIsHost){ shieldHostIv=setInterval(shieldHostTick,400); }
+    }
+    shieldRenderShields(st.shields||{});
+    shieldHandleVictim(st);
+    shieldHandleExplosion(st);
+    const aliveIds=Object.keys(st.alive||{});
+    const cEl=document.getElementById('shieldAliveCount');
+    if(cEl) cEl.textContent=aliveIds.length;
+    if(!shieldIsGhost && aliveIds.indexOf(mpPlayerId)===-1) shieldBecomeGhost();
+    Object.keys(mpOtherPlayers||{}).forEach(pid=>{
+      const el=document.getElementById('mp-'+pid);
+      if(el) el.style.opacity = aliveIds.indexOf(pid)===-1 ? '0.3' : '';
+    });
+  }
+
+  function shieldRenderLoop(){
+    if(!shieldLive||shieldLive.state!=='playing'){ shieldRenderFid=null; return; }
+    if(!shieldIsGhost){
+      const shields=shieldLive.shields||{};
+      Object.keys(shields).forEach(key=>{
+        const s=shields[key];
+        if(s.takenBy) return;
+        if(rectsOv(px,py,38,38,s.x,s.y,34,34)){
+          shieldStateRef.child('shields/'+key+'/takenBy').transaction(v=> v===null?mpPlayerId:v);
+        }
+      });
+    }
+    if(shieldIsGhost && shieldGhostOpacity>0.15){
+      shieldGhostOpacity=Math.max(0.15, shieldGhostOpacity-0.0025);
+      const p=PEL(); if(p) p.style.opacity=shieldGhostOpacity;
+    }
+    shieldRenderFid=requestAnimationFrame(shieldRenderLoop);
+  }
+
+  function shieldHandleVictim(st){
+    const bar=document.getElementById('shieldVictimBar');
+    if(!st.victimId){
+      if(bar) bar.style.display='none';
+      if(shieldVictimIv){ clearInterval(shieldVictimIv); shieldVictimIv=null; }
+      return;
+    }
+    if(!bar) return;
+    bar.style.display='block';
+    const nameEl=document.getElementById('shieldVictimName');
+    const name= st.victimId===mpPlayerId ? (playerName||'لاعب') : ((mpOtherPlayers[st.victimId]&&mpOtherPlayers[st.victimId].name)||'لاعب');
+    if(nameEl) nameEl.textContent=name;
+    if(shieldVictimIv) clearInterval(shieldVictimIv);
+    const numEl=document.getElementById('shieldVictimNum');
+    shieldVictimIv=setInterval(()=>{
+      const left=Math.max(0,10-Math.floor((Date.now()-(st.victimSince||Date.now()))/1000));
+      if(numEl) numEl.textContent=left;
+    },200);
+  }
+
+  function shieldHandleExplosion(st){
+    if(!st.explodedId||!st.explodedRound||st.explodedRound===shieldLastExplodedRound) return;
+    shieldLastExplodedRound=st.explodedRound;
+    const id=st.explodedId;
+    let x,y;
+    if(id===mpPlayerId){ x=px; y=py; }
+    else if(mpOtherPlayers[id]){ x=mpOtherPlayers[id].x; y=mpOtherPlayers[id].y; }
+    flashFX('rgba(255,255,255,.85)');
+    setTimeout(()=>flashFX('rgba(239,68,68,.35)'), 90);
+    playSFX('bomb');
+    if(x!==undefined){
+      const ga=document.getElementById('gameArea');
+      const img=document.createElement('img');
+      img.src='Player/E/BOMB.png';
+      img.className='shield-bomb-fx';
+      img.style.left=(x-15)+'px'; img.style.top=(y-15)+'px';
+      ga.appendChild(img);
+      setTimeout(()=>img.remove(),650);
+    }
+    if(id===mpPlayerId) shieldBecomeGhost();
+  }
+
+  function shieldBecomeGhost(){
+    if(shieldIsGhost) return;
+    shieldIsGhost=true;
+    shieldGhostOpacity=0.6;
+    showToast('👻 اتفرقعت! بقيت شبح، وهتفضل تتفرج لحد آخر الجولة');
+    const p=PEL(); if(p){ p.style.transition='opacity 1.5s'; p.style.opacity='0.6'; }
+  }
+
+  function shieldUpdateHolderHalos(shields){
+    const holders=new Set(Object.values(shields||{}).map(s=>s.takenBy).filter(Boolean));
+    const allIds=new Set([mpPlayerId, ...Object.keys(mpOtherPlayers||{})]);
+    allIds.forEach(id=>{
+      const el = id===mpPlayerId ? PEL() : document.getElementById('mp-'+id);
+      if(el) el.classList.toggle('shield-holder', holders.has(id));
+    });
+  }
+  function shieldRenderShields(shields){
+    const ga=document.getElementById('gameArea');
+    if(!ga) return;
+    shieldUpdateHolderHalos(shields);
+    const seen=new Set();
+    Object.keys(shields).forEach(key=>{
+      const s=shields[key];
+      if(s.takenBy){
+        const ex=document.getElementById('shield-'+key);
+        if(ex) ex.remove();
+        return;
+      }
+      seen.add(key);
+      let el=document.getElementById('shield-'+key);
+      if(!el){
+        el=document.createElement('div');
+        el.id='shield-'+key;
+        el.className='shield-pickup';
+        el.innerHTML='<img src="Player/E/CH.png" style="width:100%;height:100%;image-rendering:pixelated">';
+        ga.appendChild(el);
+      }
+      el.style.left=s.x+'px'; el.style.top=s.y+'px';
+    });
+    document.querySelectorAll('.shield-pickup').forEach(el=>{
+      const key=el.id.replace('shield-','');
+      if(!seen.has(key)) el.remove();
+    });
+  }
+
+  function shieldHostTick(){
+    if(!shieldLive||shieldLive.state!=='playing') return;
+    const st=shieldLive;
+    const aliveIds=Object.keys(st.alive||{});
+    const shields=st.shields||{};
+    const shieldKeys=Object.keys(shields);
+    if(!st.victimId){
+      if(shieldKeys.length>0 && shieldKeys.every(k=>shields[k].takenBy)){
+        const takenIds=new Set(shieldKeys.map(k=>shields[k].takenBy));
+        const victim=aliveIds.find(id=>!takenIds.has(id));
+        if(victim){
+          shieldStateRef.update({ victimId:victim, victimSince:Date.now() });
+        }
+      }
+    } else {
+      if(Date.now()-(st.victimSince||Date.now())>=10000){
+        const newAlive={...st.alive};
+        delete newAlive[st.victimId];
+        const newOrder=[...(st.order||[]), st.victimId];
+        const remaining=Object.keys(newAlive);
+        shieldStateRef.update({
+          alive:newAlive, order:newOrder,
+          explodedId:st.victimId, explodedRound:(st.round||1),
+          victimId:null, victimSince:null
+        }).then(()=>{
+          setTimeout(()=>{
+            if(remaining.length<=1){ shieldEndGame(remaining); }
+            else{ shieldHostStartRound(remaining); }
+          }, 1500);
+        });
+      }
+    }
+  }
+
+  function shieldEndGame(remainingAliveIds){
+    shieldStateRef.once('value').then(snap=>{
+      const st=snap.val()||shieldLive||{};
+      const order=st.order||[];
+      const winnerId=(remainingAliveIds&&remainingAliveIds[0]) || Object.keys(st.alive||{})[0];
+      const rankedIds=[winnerId, ...order.slice().reverse()].filter((id,i,arr)=>id && arr.indexOf(id)===i);
+      const total=rankedIds.length;
+      const results={};
+      rankedIds.forEach((id,i)=>{
+        const rank=i+1;
+        let coins,gems;
+        if(rank===1){coins=200;gems=5;}
+        else if(rank===2){coins=150;gems=3;}
+        else if(rank===3){coins=100;gems=1;}
+        else{coins=30+Math.floor(Math.random()*91);gems=0;}
+        const name= id===mpPlayerId?(playerName||'لاعب'):((mpOtherPlayers[id]&&mpOtherPlayers[id].name)||'لاعب');
+        results[id]={ rank, name, score: total-rank+1, coins, gems };
+      });
+      shieldStateRef.update({ state:'ended', results });
+    });
+  }
+
+  function shieldShowStage(st){
+    shieldLive=st;
+    if(shieldEndedShown) return;
+    shieldEndedShown=true;
+    if(shieldRenderFid){ cancelAnimationFrame(shieldRenderFid); shieldRenderFid=null; }
+    if(shieldHostIv){ clearInterval(shieldHostIv); shieldHostIv=null; }
+    if(shieldVictimIv){ clearInterval(shieldVictimIv); shieldVictimIv=null; }
+    document.getElementById('shieldStatusHud').style.display='none';
+    document.getElementById('shieldVictimBar').style.display='none';
+    document.querySelectorAll('.shield-pickup').forEach(el=>el.remove());
+    playBgMusic('duel');
+
+    const results=st.results||{};
+    const ranked=Object.keys(results).map(id=>({id,...results[id]})).sort((a,b)=>a.rank-b.rank);
+    const board=document.getElementById('crownStageBoard');
+    const medals={1:'🥇',2:'🥈',3:'🥉'};
+    const iAmWinner=!!(ranked[0]&&ranked[0].id===mpPlayerId);
+    const top4=ranked.slice(0,4);
+    const podiumHtml=`<div class="crown-podium-row">`+top4.map(p=>{
+      const skin=crownSkinFor(p.id);
+      const boardSkin=crownBoardFor(p.id);
+      const medal=medals[p.rank]||('#'+p.rank);
+      const tier=Math.min(p.rank,4);
+      const rewardTxt=[
+        p.coins>0?('<span class="crown-chip">🪙 <span class="crown-count-up" data-target="'+p.coins+'">0</span></span>'):'',
+        p.gems>0?('<span class="crown-chip">💎 <span class="crown-count-up" data-target="'+p.gems+'">0</span></span>'):''
+      ].filter(Boolean).join('');
+      return `
+      <div class="crown-spot-card tier-${tier}" style="--reveal-delay:${tier*150}ms">
+          ${p.rank===1?'<div class="crown-winner-crown">👑</div>':''}
+          <div class="crown-spot-avatarwrap">
+            <img class="crown-podium-avatar" id="crownPodiumAvatar_${p.id}" src="${skinBaseFolder(skin.id)}/IDLE/P_0.png" style="--pglow:${skin.glow}">
+          </div>
+          <div class="crown-spot-rankbadge">${medal} المركز ${p.rank}</div>
+          <img class="crown-podium-vessel board-${boardSkin.id}" src="${boardSkin.img}">
+          <div class="crown-podium-info">
+            <div class="crown-podium-name">${p.name}</div>
+            <div class="crown-podium-reward">${rewardTxt}</div>
+          </div>
+        </div>`;
+    }).join('')+`</div>`;
+    board.innerHTML=podiumHtml;
+    const banner=document.getElementById('crownWinnerBanner');
+    if(banner) banner.style.display=iAmWinner?'block':'none';
+    document.getElementById('crownStageScreen').classList.add('open');
+    startCrownPodiumAnim(ranked);
+    animateCrownCountUps();
+    playSFX(iAmWinner?'win':'victory');
+    if(!lowGraphics) spawnCrownConfetti();
+    const myReward=results[mpPlayerId];
+    if(myReward&&!shieldRewardApplied){
+      shieldRewardApplied=true;
+      totalCoins+=myReward.coins;
+      gems+=myReward.gems;
+      persistAll();
+      refreshGemDisplay();
+      setTimeout(()=>{
+        showToast(myReward.rank===1
+          ? `🏆 فزت! +${myReward.coins} 🪙 +${myReward.gems} 💎`
+          : `🎖 المركز ${myReward.rank}! +${myReward.coins} 🪙 +${myReward.gems} 💎`);
+      },900);
+    }
+  }
+
+  function shieldFullCleanup(){
+    const lobbyEl=document.getElementById('shieldLobbyScreen'); if(lobbyEl) lobbyEl.style.display='none';
+    const hudEl=document.getElementById('shieldStatusHud'); if(hudEl) hudEl.style.display='none';
+    const vbEl=document.getElementById('shieldVictimBar'); if(vbEl) vbEl.style.display='none';
+    const numEl=document.getElementById('shieldCountdownNum'); if(numEl) numEl.style.display='none';
+    document.querySelectorAll('.shield-pickup,.shield-bomb-fx').forEach(el=>el.remove());
+    if(shieldVictimIv){ clearInterval(shieldVictimIv); shieldVictimIv=null; }
+    if(shieldRoomRef) shieldRoomRef.child('playerCount').off();
+    if(shieldStateRef) shieldStateRef.off();
+    if(shieldCountdownIv){ clearInterval(shieldCountdownIv); shieldCountdownIv=null; }
+    if(shieldHostIv){ clearInterval(shieldHostIv); shieldHostIv=null; }
+    if(shieldRenderFid){ cancelAnimationFrame(shieldRenderFid); shieldRenderFid=null; }
+    stopCrownPodiumAnim();
+    document.querySelectorAll('.crown-confetti').forEach(c=>c.remove());
+    const p=PEL(); if(p){ p.style.opacity=''; p.style.transition=''; }
+    document.getElementById('gameArea').classList.remove('shield-live');
+    document.querySelectorAll('.shield-holder').forEach(el=>el.classList.remove('shield-holder'));
+    shieldRoomId=null; shieldRoomRef=null; shieldStateRef=null; shieldIsHost=false;
+    shieldLive=null; shieldPlayingInited=false; shieldLobbyWaiting=false; shieldCountdownStarted=false;
+    shieldEndedShown=false; shieldRewardApplied=false; shieldMode=false; shieldIsGhost=false;
+    shieldGhostOpacity=1; shieldLastExplodedRound=0;
   }
 
   // ══════════════════════════════════════════════════════════════
@@ -2817,7 +3663,7 @@ function ownerDeleteRoom(roomId){
             <img class="crown-podium-avatar" id="crownPodiumAvatar_${p.id}" src="${skinBaseFolder(skin.id)}/IDLE/P_0.png" style="--pglow:${skin.glow}">
           </div>
           <div class="crown-spot-rankbadge">${medal} المركز ${p.rank}</div>
-          <img class="crown-podium-vessel" src="${boardSkin.img}">
+          <img class="crown-podium-vessel board-${boardSkin.id}" src="${boardSkin.img}">
           <div class="crown-podium-info">
             <div class="crown-podium-name">${p.name}</div>
             <div class="crown-podium-score">🪙 <span class="crown-count-up" data-target="${p.score}">0</span></div>
@@ -2879,7 +3725,10 @@ function ownerDeleteRoom(roomId){
 
   function closeCrownStage(){
     document.getElementById('crownStageScreen').classList.remove('open');
-    if(activeMiniGameType === 'coins'){ coinsFullCleanup(); } else { crownFullCleanup(); }
+    if(activeMiniGameType === 'coins'){ coinsFullCleanup(); }
+    else if(activeMiniGameType === 'math'){ mathFullCleanup(); }
+    else if(activeMiniGameType === 'shield'){ shieldFullCleanup(); }
+    else { crownFullCleanup(); }
     activeMiniGameType = null;
     finalizeLeave(true);
   }
@@ -2909,6 +3758,8 @@ function ownerDeleteRoom(roomId){
       openGameplay();
       if(data.game === 'crown'){ startCrownGame(roomId, data.maxPlayers || 4); }
       else if(data.game === 'coins'){ startCoinsGame(roomId, data.maxPlayers || 4); }
+      else if(data.game === 'math'){ startMathGame(roomId, data.maxPlayers || 4); }
+      else if(data.game === 'shield'){ startShieldGame(roomId, data.maxPlayers || 4); }
       else{ startDuelGame(); }
 
       if(!isCreator){
@@ -4073,6 +4924,12 @@ mpUpdateBots(id, data.skin || 'purple');
       mpApplyVisual(id, data.skin || 'purple');
       mpApplyFacing(id, data.facing === -1 ? -1 : 1);
       mpApplyDash(id, !!data.dashing);
+      if(shieldMode && shieldLive && shieldLive.alive && !shieldLive.alive[id]){
+        el.style.transition = 'opacity 1s';
+        el.style.opacity = '0.35';
+      } else if(shieldMode){
+        el.style.opacity = '';
+      }
     });
     if(!mpRenderLoopStarted){ mpRenderLoopStarted = true; requestAnimationFrame(mpInterpLoop); }
     document.querySelectorAll('[id^="mp-"]').forEach(el => {
@@ -4297,6 +5154,13 @@ try{
   const _vLG = localStorage.getItem('404_lowGraphics');
   lowGraphics = _vLG===null ? false : JSON.parse(_vLG);
 }catch{ lowGraphics = false; }
+
+let mirrorControls = false;
+try{
+  const _vMC = localStorage.getItem('404_mirrorControls');
+  mirrorControls = _vMC===null ? false : JSON.parse(_vMC);
+}catch{ mirrorControls = false; }
+if(mirrorControls) document.body.classList.add('mirror-controls');
 
 function persistAll(){
   writeSave({ hs:HS, totalCoins, xp:totalXP, skillPoints, skills, gems, ownedSkins, equippedSkin, ownedPowers, equippedPower, ownedBoards, equippedBoard, playerName, avatar: avatarData, redeemedCodes, v:1 });
@@ -4627,7 +5491,7 @@ document.addEventListener('touchstart', unlockAudio, {once:true});
 
 const MENU_MUSIC_BOOST = { classic:4.5, mbui:3, bsss:3, bmp:3, tuna:3 };
 function playBgMusic(key, boost){
-  const b = (typeof boost === 'number') ? boost : (key === 'menu' ? (MENU_MUSIC_BOOST[menuMusicChoice]||3) : key === 'duel' ? 3.5 : 1);
+  const b = (typeof boost === 'number') ? boost : (key === 'menu' ? (MENU_MUSIC_BOOST[menuMusicChoice]||3) : key === 'duel' ? 1.5 : 1);
   if(currentBgKey === key && currentBgBoost === b) return;
   stopBgMusic();
   currentBgKey = key;
@@ -4714,6 +5578,21 @@ function renderLowGraphicsToggle(){
   b.style.background = lowGraphics ? 'rgba(34,197,94,.1)' : 'rgba(255,51,68,.1)';
   b.style.borderColor = lowGraphics ? '#22c55e' : '#ff3344';
   b.style.color = lowGraphics ? '#22c55e' : '#ff3344';
+}
+function toggleMirrorControls(){
+  playClick();
+  mirrorControls = !mirrorControls;
+  try{ localStorage.setItem('404_mirrorControls', JSON.stringify(mirrorControls)); }catch{}
+  document.body.classList.toggle('mirror-controls', mirrorControls);
+  renderMirrorControlsToggle();
+}
+function renderMirrorControlsToggle(){
+  const b=document.getElementById('mirrorControlsToggle');
+  if(!b) return;
+  b.textContent = mirrorControls ? 'ON ✅' : 'OFF ❌';
+  b.style.background = mirrorControls ? 'rgba(34,197,94,.1)' : 'rgba(255,51,68,.1)';
+  b.style.borderColor = mirrorControls ? '#22c55e' : '#ff3344';
+  b.style.color = mirrorControls ? '#22c55e' : '#ff3344';
 }
 function setMenuMusic(choice){
   playClick();
@@ -5589,7 +6468,7 @@ function startSkinParticles(sk){
 function applyActivePower(){
   const sk=getSkin();
   const elementalIds=['water','wind','fire','light','shadow'];
-  activePower=elementalIds.includes(sk.abilityDesc)?sk.abilityDesc:null;
+  activePower=(elementalIds.includes(sk.abilityDesc) && !duelMode)?sk.abilityDesc:null;
   burnEnemies=[]; shadowBots.forEach(b=>{try{b.el.remove();}catch{}}); shadowBots=[];
   enemyTimeScale=1; shadowUltCD=0; shadowUltActive=false; elemCD=0;
   const gaEl=document.getElementById('gameArea'); if(gaEl) gaEl.classList.remove('time-invert');
@@ -5757,7 +6636,7 @@ document.getElementById('gameplay').addEventListener('touchcancel',e=>{
 document.getElementById('shootBtnM').addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();if(GR&&!paused)shoot();},{passive:false});
 document.getElementById('dashBtnM').addEventListener('touchstart',e=>{
   e.preventDefault(); e.stopPropagation();
-  if(!GR||paused) return;
+  if(!GR||paused||mathMode) return;
   if(getSkin().id==='shadow'){
     if(dashCD>0) return;
     shadowTeleportArmed=true;
@@ -5768,6 +6647,7 @@ document.getElementById('dashBtnM').addEventListener('touchstart',e=>{
 },{passive:false});
 document.getElementById('eBtnM').addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();if(GR&&!paused)castAbilityKey();},{passive:false});
 function castAbilityKey(){
+  if(shieldIsGhost) return;
   if(activePower==='shadow') shadowUltimate();
   else if(activePower==='water'||activePower==='wind'||activePower==='fire'||activePower==='light') castElemAbility();
 }
@@ -5828,7 +6708,7 @@ function movePlayer(dt){
 }
 
 function tryDash(){
-  if(crownLobbyWaiting || coinsLobbyWaiting) return;
+  if(crownLobbyWaiting || coinsLobbyWaiting || mathMode) return;
   if(dashCD>0) return;
   if(getSkin().id==='shadow'){ shadowDuelTeleport(); return; }
   let vx=0,vy=0;
@@ -5900,8 +6780,10 @@ function shoot(){
   const cr=document.getElementById('crosshair'); cr.classList.add('shooting'); setTimeout(()=>cr.classList.remove('shooting'),110);
   const cx=px+19,cy=py+19; let tx=mx,ty=my;
   if(!mouseEverMoved||(tx===0&&ty===0)){
-    if(enemies.length>0){let best=Infinity;enemies.forEach(e=>{const d=(e.x-cx)**2+(e.y-cy)**2;if(d<best){best=d;tx=e.x+e.t.w/2;ty=e.y+e.t.h/2;}});}
-    else{tx=cx+lastDir.x*100;ty=cy+lastDir.y*100;}
+    let best=Infinity, found=false;
+    enemies.forEach(e=>{const ex=e.x+e.t.w/2,ey=e.y+e.t.h/2;const d=(ex-cx)**2+(ey-cy)**2;if(d<best){best=d;tx=ex;ty=ey;found=true;}});
+    if(bAlive){const bxC=bx+bSZ/2,byC=by+bSZ/2;const d=(bxC-cx)**2+(byC-cy)**2;if(d<best){best=d;tx=bxC;ty=byC;found=true;}}
+    if(!found){tx=cx+lastDir.x*100;ty=cy+lastDir.y*100;}
   }
   const dx=tx-cx,dy=ty-cy,len=Math.sqrt(dx*dx+dy*dy)||1;
   const vx=dx/len*8.5,vy=dy/len*8.5;
