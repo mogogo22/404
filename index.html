@@ -949,6 +949,14 @@ body.mirror-controls #actionBtns { left:auto; right:14px; }
   transition:transform .15s;
 }
 #playerListToggleBtn:hover { transform:scale(1.06); }
+#mobileEscBtn{
+  display:none; position:fixed; top:8px; right:8px; z-index:250;
+  width:38px;height:38px;border-radius:10px;
+  background:rgba(194,0,251,.15); border:1px solid var(--purple);
+  color:var(--purple); font-size:16px; font-family:var(--font-px);
+  align-items:center; justify-content:center; cursor:pointer;
+}
+@media(pointer:coarse){ #mobileEscBtn{ display:flex; } }
 #playerListToggleBtn .pl-badge {
   position:absolute; top:-4px; left:-4px; background:var(--sky); color:#001018;
   font-family:var(--font-px); font-size:8px; border-radius:50%; width:18px; height:18px;
@@ -1721,6 +1729,12 @@ body.mirror-controls #actionBtns { left:auto; right:14px; }
   <div id="crownCountdownNum" style="font-family:var(--font-px);font-size:26px;color:#facc15;display:none;margin-top:2px">10</div>
 </div>
 
+<div id="coWaveLobbyScreen" style="position:fixed;top:96px;left:50%;transform:translateX(-50%);z-index:600;background:rgba(0,13,8,.88);border:1px solid #0ea5e9;border-radius:10px;padding:8px 20px;text-align:center;pointer-events:none;display:none">
+  <div style="font-family:var(--font-px);font-size:9px;color:#0ea5e9;letter-spacing:1px;margin-bottom:4px">🌊 ويف</div>
+  <div id="coWaveLobbyStatus" style="font-family:var(--font-ar);color:#fff;font-size:12px">مستني لاعبين...</div>
+  <div id="coWaveCountdownNum" style="font-family:var(--font-px);font-size:26px;color:#0ea5e9;display:none;margin-top:2px">10</div>
+</div>
+
 <div id="crownScoreHud" style="position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:600;background:rgba(0,13,8,.85);border:1px solid #facc15;border-radius:12px;padding:9px 20px;font-family:var(--font-ar);color:#fff;font-size:clamp(13px,3vw,17px);line-height:1.6;text-align:center;max-width:80vw;box-shadow:0 0 14px rgba(250,204,21,.25);display:none">
   <div>⏱ <span id="crownTimeLeft">2:00</span></div>
   <div>👑 <span id="crownMyScore">0</span> نقطة</div>
@@ -1869,6 +1883,7 @@ body.mirror-controls #actionBtns { left:auto; right:14px; }
 
   <!-- player list (بديل Tab للموبايل) -->
   <button id="playerListToggleBtn" onclick="togglePlayerListOverlay()" title="اللاعبين">👥<span class="pl-badge" id="playerListBadge">1</span></button>
+  <button id="mobileEscBtn" onclick="doEscapeAction()" title="ESC">⎋</button>
   <!-- duel chat -->
   <button id="chatToggleBtn" onclick="toggleChatPanel()">💬<span class="chat-badge" id="chatBadge">0</span></button>
   <!-- invite a friend while inside a duel room -->
@@ -2058,8 +2073,9 @@ let mpOwnerCmdRef = null;
     { id:'duel',  name:'أوضة الدردشة', icon:'🎤', players:[4,6,8,10], color:'#c200fb', glow:'rgba(194,0,251,.35)' },
     { id:'math',  name:'اختبار الحساب', icon:'🧮', players:[2,3,4,5,6,7,8,9,10], color:'#22c55e', glow:'rgba(34,197,94,.35)' },
     { id:'shield', name:'قنبلة الدروع', img:'Player/E/BOMB.png', players:[2,3,4,5,6,7,8,9,10], color:'#ef4444', glow:'rgba(239,68,68,.4)' },
+    { id:'wave',  name:'ويف',          icon:'🌊', players:[2,3,4], color:'#0ea5e9', glow:'rgba(14,165,233,.4)' },
   ];
-  const MG_ICON = { crown:'👑', coins:'🪙', duel:'🎤', math:'🧮', shield:'💣' };
+  const MG_ICON = { crown:'👑', coins:'🪙', duel:'🎤', math:'🧮', shield:'💣', wave:'🌊' };
   let selectedMiniGame = null;
   let roomsListenerRef = null;
   let mpChatRef = null;
@@ -2998,6 +3014,323 @@ function ownerDeleteRoom(roomId){
   }
 
   // ══════════════════════════════════════════════════════════════
+  //  WAVE CO-OP MINI-GAME (ويف) — المرحلة 1: اللوبي بس، المحرك جاي في المرحلة 2
+  // ══════════════════════════════════════════════════════════════
+  let coWaveRoomId=null, coWaveMaxPlayers=4, coWaveRoomRef=null, coWaveStateRef=null, coWaveIsHost=false;
+  let coWaveListener=null, coWaveCountdownIv=null, coWaveLobbyWaiting=false, coWaveCountdownStarted=false;
+  let coWaveLive=null, coWavePlayingInited=false;
+
+  function startWaveGame(roomId, maxPlayers){
+    activeMiniGameType='wave';
+    coWaveRoomId=roomId; coWaveMaxPlayers=maxPlayers;
+    coWaveRoomRef=mpDb.ref('duelRooms/'+roomId);
+    coWaveStateRef=mpDb.ref('rooms/'+roomId+'/wave');
+    coWaveIsHost=isRoomOwner;
+
+    document.querySelectorAll('.enemy,.coin,.powerup,.dash-ghost,.particle,.float-text,.bullet,.ebullet,.bp,.wbot,.sk-particle').forEach(el=>el.remove());
+    enemies=[];coins=[];pups=[];bullets=[];ebullets=[];wbots=[];
+    document.getElementById('boss').style.display='none';
+    document.getElementById('bossHpWrap').classList.remove('show');
+    wActive=false;bAlive=false;bReady=false;
+
+    document.getElementById('hud').style.display='';
+    document.getElementById('gameArea').classList.remove('arena-duel');
+    document.getElementById('gameArea').classList.add('arena-waves');
+    hideAllGScreens();
+    cacheArena();
+    applyPlayerSkin();
+    px=AW/2-19; py=AH/2-19;
+    const p=PEL(); if(p){ p.style.left=px+'px'; p.style.top=py+'px'; }
+    GR=true; paused=false;
+    lt=performance.now();
+    fid=requestAnimationFrame(ts=>{ lt=ts; loop(ts); });
+
+    document.getElementById('coWaveLobbyScreen').style.display='block';
+    document.getElementById('coWaveLobbyStatus').textContent='مستني لاعبين...';
+    coWaveLobbyWaiting=true;
+    coWaveCountdownStarted=false;
+    playBgMusic('duel');
+
+    coWaveRoomRef.child('playerCount').on('value', snap=>{
+      if(!coWaveLobbyWaiting || coWaveCountdownStarted) return;
+      const count=snap.val()||1;
+      const st=document.getElementById('coWaveLobbyStatus');
+      if(st) st.textContent=`مستني لاعبين... (${count}/${coWaveMaxPlayers})`;
+      if(count>=coWaveMaxPlayers && coWaveIsHost){
+        coWaveStateRef.once('value').then(s=>{
+          if(!s.val() || s.val().state==='lobby'){
+            coWaveStateRef.set({ state:'countdown', countdownStart: firebase.database.ServerValue.TIMESTAMP, playerCount: count });
+          }
+        });
+      }
+    });
+
+    coWaveListener=coWaveStateRef.on('value', snap=>{
+      const st=snap.val();
+      if(!st) return;
+      if(st.state==='countdown') coWaveRunCountdown(st.countdownStart);
+      else if(st.state==='playing') coWaveEnterPlaying(st);
+      else if(st.state==='ended') coWaveShowResults(st);
+    });
+  }
+
+  function coWaveRunCountdown(startTs){
+    document.getElementById('coWaveLobbyStatus').textContent='كلهم جاهزين! هنبدأ خلال:';
+    coWaveCountdownStarted=true;
+    const numEl=document.getElementById('coWaveCountdownNum');
+    numEl.style.display='block';
+    if(coWaveCountdownIv) clearInterval(coWaveCountdownIv);
+    let lastShown=null;
+    coWaveCountdownIv=setInterval(()=>{
+      const now=Date.now();
+      const base=startTs||now;
+      const elapsed=Math.max(0, now-base);
+      const left=Math.max(0, 10-Math.floor(elapsed/1000));
+      if(left!==lastShown){ lastShown=left; numEl.textContent=left; playClick(); }
+      if(left<=0){
+        clearInterval(coWaveCountdownIv);
+        if(coWaveIsHost){
+          coWaveStateRef.set({ state:'playing', gameStart:Date.now(), maxPlayers:coWaveMaxPlayers });
+        }
+      }
+    },250);
+  }
+
+  let coWaveMode=false, coWaveHostBroadcastIv=null, coWaveBossAttackIv=null, coWaveEndedShown=false, coWaveRewardApplied=false;
+  let coWaveLastKnownWave=undefined; let enemyIdSeq=0;
+
+  function coWaveEnterPlaying(st){
+    coWaveLive=st;
+    if(!coWavePlayingInited){
+      coWavePlayingInited=true;
+      coWaveLobbyWaiting=false;
+      coWaveMode=true;
+      document.getElementById('coWaveLobbyScreen').style.display='none';
+      applyActivePower();
+      playBgMusic('menu');
+      if(coWaveIsHost){
+        wave=1;score=0;kills=0;combo=1;wSpawned=0;wTarget=0;wActive=false;bAlive=false;bReady=false;bossCount=0;
+        document.getElementById('waveEl').textContent=wave;
+        beginWave();
+        coWaveHostBroadcastIv=setInterval(coWaveHostBroadcast,150);
+        coWaveBossAttackIv=setInterval(coWaveBossAttackTick,2200);
+        coWaveListenHits();
+      } else {
+        coWaveListenBossAttacks();
+        if(!coWaveGuestInterpStarted){ coWaveGuestInterpStarted=true; requestAnimationFrame(coWaveGuestInterp); }
+      }
+    }
+    if(!coWaveIsHost) coWaveApplyRemoteState(st);
+  }
+
+  function coWaveBossAttackTick(){
+    if(!coWaveIsHost||!coWaveMode||!bAlive) return;
+    const guestIds=Object.keys(mpOtherPlayers);
+    if(guestIds.length===0) return;
+    if(Math.random()<0.5) return;
+    const target=guestIds[Math.floor(Math.random()*guestIds.length)];
+    coWaveStateRef.child('bossAttacks').push({target, at:Date.now()});
+  }
+
+  function coWaveListenBossAttacks(){
+    coWaveStateRef.child('bossAttacks').on('child_added', snap=>{
+      const atk=snap.val(); const key=snap.key;
+      coWaveStateRef.child('bossAttacks/'+key).remove();
+      if(!atk||atk.target!==mpPlayerId) return;
+      flashFX('rgba(239,68,68,.3)');
+      takeHit(null);
+    });
+  }
+
+  function coWaveHostBroadcast(){
+    if(!coWaveIsHost||!coWaveMode) return;
+    const enemiesSnap={};
+    enemies.forEach(e=>{ if(e._id) enemiesSnap[e._id]={type:e.t.type,x:Math.round(e.x),y:Math.round(e.y),hp:e.hp}; });
+    const bossSnap = bAlive ? {active:true,x:Math.round(bx),y:Math.round(by),hp:bHP,maxHp:bMaxHP,sz:bSZ,bossCount} : {active:false};
+    coWaveStateRef.update({ enemies:enemiesSnap, boss:bossSnap, wave, score, kills });
+  }
+
+  function coWaveListenHits(){
+    coWaveStateRef.child('hits').on('child_added', snap=>{
+      const hit=snap.val(); const key=snap.key;
+      coWaveStateRef.child('hits/'+key).remove();
+      if(!hit||!coWaveIsHost) return;
+      if(hit.type==='boss'){ if(bAlive) hitBoss(); }
+      else if(hit.type==='enemy'){
+        const idx=enemies.findIndex(x=>x._id===hit.enemyKey);
+        if(idx>-1){
+          const e=enemies[idx];
+          e.hp -= (hit.dmg||1);
+          if(e.hp<=0){
+            kills++;score+=e.t.pts*combo;spawnFloat(e.x,e.y,'+'+(e.t.pts*combo),'#C200FB');mkBoom(e.x+e.t.w/2,e.y+e.t.h/2,'#ef4444',6);
+            if(e.t.type==='s') splitEnemy(e);
+            if(e.el._animIv) clearInterval(e.el._animIv);
+            if(e.el) e.el.remove();
+            enemies.splice(idx,1); checkWaveDone();
+          }
+        }
+      }
+    });
+  }
+
+  function enemyIconSrc(t){
+    if(t.anim) return 'Player/Enemy/DIV/Untitled-0_0.png';
+    if(t.anim2) return 'Player/Enemy/LIG/Untitled-0_0.png';
+    if(t.anim3) return 'Player/Enemy/BIG/Untitled-0_0.png';
+    if(t.anim4) return 'Player/Enemy/GOAL/Untitled-0.png';
+    if(t.anim5) return 'Player/Enemy/AG/Untitled-0_0.png';
+    if(t.anim6) return 'Player/Enemy/BOM/Untitled-0_0.png';
+    if(t.anim7) return 'Player/Enemy/SHOT/Untitled-0_0.png';
+    return '';
+  }
+
+  function coWaveApplyRemoteState(st){
+    if(coWaveIsHost) return;
+    if(typeof st.score==='number') score=st.score;
+    if(typeof st.kills==='number') kills=st.kills;
+    if(typeof st.wave==='number' && st.wave!==coWaveLastKnownWave){
+      const first = coWaveLastKnownWave===undefined;
+      coWaveLastKnownWave=st.wave; wave=st.wave;
+      document.getElementById('waveEl').textContent=wave;
+      if(!first){
+        const wb=document.getElementById('waveBanner');
+        wb.textContent=`🌊 Wave ${wave}${wave%5===0?' — البوص قادم! 😈':'!'}`;
+        wb.classList.add('show'); setTimeout(()=>wb.classList.remove('show'),2400);
+      }
+    }
+    const b=st.boss;
+    if(b&&b.active){
+      const firstAppear=!bAlive;
+      if(firstAppear){
+        bAlive=true;bReady=true;
+        bossCount=b.bossCount||1;
+        document.getElementById('gameArea').classList.add('boss-mode');
+        const BOSS0=document.getElementById('boss');
+        BOSS0.style.display='flex';
+        bx=b.x; by=b.y;
+        const _bIdx=Math.min(bossCount,4);
+        BOSS0.innerHTML=`<img src="Bosses/${_bIdx}/boss3_0.png" style="width:100%;height:100%;image-rendering:pixelated">`;
+        let _bf=0;
+        if(window._coWaveBossIv) clearInterval(window._coWaveBossIv);
+        window._coWaveBossIv=setInterval(()=>{
+          if(!bAlive){ clearInterval(window._coWaveBossIv); window._coWaveBossIv=null; return; }
+          _bf=(_bf+1)%6;
+          const img=BOSS0.querySelector('img');
+          if(img) img.src=`Bosses/${_bIdx}/boss3_${_bf}.png`;
+        },100);
+      }
+      bSZ=b.sz||bSZ||160; bHP=b.hp; bMaxHP=b.maxHp||bMaxHP||1;
+      coWaveBossTarget={x:b.x,y:b.y};
+      const BOSS=document.getElementById('boss');
+      if(firstAppear){ BOSS.style.left=bx+'px'; BOSS.style.top=by+'px'; }
+      BOSS.style.width=bSZ+'px';BOSS.style.height=bSZ+'px';BOSS.style.fontSize=Math.min(55,36+bossCount*4)+'px';
+      document.getElementById('bossHpFill').style.width=(Math.max(0,bHP/bMaxHP)*100)+'%';
+      document.getElementById('bossHpWrap').classList.add('show');
+    } else if(bAlive){
+      bAlive=false;bReady=false;
+      coWaveBossTarget=null;
+      if(window._coWaveBossIv){ clearInterval(window._coWaveBossIv); window._coWaveBossIv=null; }
+      document.getElementById('boss').style.display='none';
+      document.getElementById('bossHpWrap').classList.remove('show');
+      document.getElementById('gameArea').classList.remove('boss-mode');
+    }
+    const remote=st.enemies||{};
+    const seenIds=new Set();
+    Object.keys(remote).forEach(key=>{
+      const r=remote[key];
+      seenIds.add(key);
+      let e=enemies.find(x=>x._id===key);
+      if(!e){
+        const t=ET.find(x=>x.type===r.type)||ET[0];
+        const src=enemyIconSrc(t);
+        const el=document.createElement('div'); el.className=`enemy ${t.cls}`;
+        el.style.cssText=`width:${t.w}px;height:${t.h}px;left:${r.x}px;top:${r.y}px`;
+        el.innerHTML = src ? `<img src="${src}" style="width:100%;height:100%;image-rendering:pixelated">` : (t.e||'');
+        document.getElementById('gameArea').appendChild(el);
+        e={el,x:r.x,y:r.y,tx:r.x,ty:r.y,t,hp:r.hp,_id:key,vx:0,vy:0,spd:0,sT:0};
+        enemies.push(e);
+      } else {
+        e.tx=r.x; e.ty=r.y; e.hp=r.hp;
+      }
+    });
+    for(let i=enemies.length-1;i>=0;i--){
+      if(!seenIds.has(enemies[i]._id)){
+        if(enemies[i].el) enemies[i].el.remove();
+        enemies.splice(i,1);
+      }
+    }
+  }
+
+  let coWaveBossTarget=null, coWaveGuestInterpStarted=false;
+  function coWaveGuestInterp(){
+    if(!coWaveMode||coWaveIsHost){ coWaveGuestInterpStarted=false; return; }
+    enemies.forEach(e=>{
+      if(e.tx===undefined||!e.el) return;
+      e.x += (e.tx-e.x)*0.25; e.y += (e.ty-e.y)*0.25;
+      e.el.style.left=e.x+'px'; e.el.style.top=e.y+'px';
+    });
+    if(bAlive && coWaveBossTarget){
+      bx += (coWaveBossTarget.x-bx)*0.25; by += (coWaveBossTarget.y-by)*0.25;
+      const BOSS=document.getElementById('boss');
+      if(BOSS){ BOSS.style.left=bx+'px'; BOSS.style.top=by+'px'; }
+    }
+    requestAnimationFrame(coWaveGuestInterp);
+  }
+
+  function coWaveReportDeath(){
+    if(!coWaveMode||coWaveEndedShown) return;
+    GR=false;
+    coWaveStateRef.update({ state:'ended', downedBy:{id:mpPlayerId,name:playerName||'لاعب'}, finalWave:wave, finalKills:kills, won:false });
+  }
+
+  function coWaveWinGame(){
+    if(!coWaveMode||!coWaveIsHost) return;
+    coWaveStateRef.update({ state:'ended', downedBy:null, finalWave:wave, finalKills:kills, won:true });
+  }
+
+  function coWaveShowResults(st){
+    if(coWaveEndedShown) return;
+    coWaveEndedShown=true;
+    GR=false;
+    if(coWaveHostBroadcastIv){ clearInterval(coWaveHostBroadcastIv); coWaveHostBroadcastIv=null; }
+    document.getElementById('coWaveLobbyScreen').style.display='none';
+    playBgMusic('menu');
+    const finalWave=st.finalWave||wave;
+    const won=!!st.won;
+    const downedName=(st.downedBy&&st.downedBy.name)||'حد فيكم';
+    const coinsGain=40+finalWave*15;
+    const gemsGain=Math.max(1,Math.floor(finalWave/3));
+    if(!coWaveRewardApplied){
+      coWaveRewardApplied=true;
+      totalCoins+=coinsGain; gems+=gemsGain; persistAll(); refreshGemDisplay();
+    }
+    document.getElementById('goEmoji').textContent = won?'🏆':'🕯️';
+    document.getElementById('goTitle').innerHTML = won?'خلّصتوا المغارة <span>!</span>':'المغارة انطفت <span>!</span>';
+    document.getElementById('goSub').textContent = won?'كل الـ4 بوصات ماتوا! 🔥':`${downedName} وقع في الويف ${finalWave}`;
+    document.getElementById('goScore').textContent=score;
+    document.getElementById('goWave').textContent=finalWave;
+    document.getElementById('goKills').textContent=kills;
+    document.getElementById('hsEnd').textContent=HS;
+    document.getElementById('totalCoinsEnd').textContent=totalCoins.toLocaleString();
+    showGScreen('gameOverScreen');
+    setTimeout(()=>showToast(`🪙 +${coinsGain} 💎 +${gemsGain} (مكافأة تعاون)`),500);
+  }
+
+  function coWaveFullCleanup(){
+    const lobbyEl=document.getElementById('coWaveLobbyScreen'); if(lobbyEl) lobbyEl.style.display='none';
+    const numEl=document.getElementById('coWaveCountdownNum'); if(numEl) numEl.style.display='none';
+    if(coWaveRoomRef) coWaveRoomRef.child('playerCount').off();
+    if(coWaveStateRef){ coWaveStateRef.off(); coWaveStateRef.child('hits').off(); }
+    if(coWaveCountdownIv){ clearInterval(coWaveCountdownIv); coWaveCountdownIv=null; }
+    if(coWaveHostBroadcastIv){ clearInterval(coWaveHostBroadcastIv); coWaveHostBroadcastIv=null; }
+    if(coWaveBossAttackIv){ clearInterval(coWaveBossAttackIv); coWaveBossAttackIv=null; }
+    if(coWaveStateRef) coWaveStateRef.child('bossAttacks').off();
+    coWaveRoomId=null; coWaveRoomRef=null; coWaveStateRef=null; coWaveIsHost=false;
+    coWaveLive=null; coWavePlayingInited=false; coWaveLobbyWaiting=false; coWaveCountdownStarted=false;
+    coWaveMode=false; coWaveEndedShown=false; coWaveRewardApplied=false; coWaveLastKnownWave=undefined;
+  }
+
+  // ══════════════════════════════════════════════════════════════
   //  SHIELD BOMB MINI-GAME (قنبلة الدروع)
   // ══════════════════════════════════════════════════════════════
   let shieldRoomId=null, shieldMaxPlayers=4, shieldRoomRef=null, shieldStateRef=null, shieldIsHost=false;
@@ -3514,13 +3847,29 @@ function ownerDeleteRoom(roomId){
     }
   }
 
+  let coinsKnownOtherIds = null;
   function coinsRenderLoop(){
     if(!coinsLive || coinsLive.state !== 'playing'){ coinsRenderFid = null; return; }
-    if(!coinsSoloEndTriggered && Object.keys(mpOtherPlayers).filter(id=>id!==mpPlayerId).length === 0){
-      coinsSoloEndTriggered = true;
-      if(coinsHostIv){ clearInterval(coinsHostIv); coinsHostIv = null; }
-      coinsEndGame();
+    const curOtherIds = Object.keys(mpOtherPlayers).filter(id=>id!==mpPlayerId);
+    if(coinsKnownOtherIds===null) coinsKnownOtherIds = new Set(curOtherIds);
+    if(!coinsSoloEndTriggered){
+      if(curOtherIds.length === 0){
+        coinsSoloEndTriggered = true;
+        if(coinsHostIv){ clearInterval(coinsHostIv); coinsHostIv = null; }
+        coinsEndGame();
+      } else {
+        const leftId = [...coinsKnownOtherIds].find(id=>!curOtherIds.includes(id));
+        if(leftId){
+          coinsSoloEndTriggered = true;
+          if(coinsHostIv){ clearInterval(coinsHostIv); coinsHostIv = null; }
+          const teams = coinsLive.teams || {};
+          const leaverTeam = teams[leftId];
+          const winningTeam = leaverTeam === 'red' ? 'blue' : leaverTeam === 'blue' ? 'red' : null;
+          coinsEndGame(winningTeam);
+        }
+      }
     }
+    coinsKnownOtherIds = new Set(curOtherIds);
     const rc = coinsLive.redCoin, bc = coinsLive.blueCoin;
     const redEl = document.getElementById('coinsRedEl');
     const blueEl = document.getElementById('coinsBlueEl');
@@ -3599,7 +3948,7 @@ function ownerDeleteRoom(roomId){
     });
   }
 
-  function coinsEndGame(){
+  function coinsEndGame(forcedWinner){
     coinsStateRef.once('value').then(snap=>{
       const st = snap.val() || coinsLive || {};
       const scores = st.scores || {};
@@ -3622,7 +3971,7 @@ function ownerDeleteRoom(roomId){
         else { coins = 30 + Math.floor(Math.random()*91); gems = 0; }
         results[p.id] = { rank, name: p.name, score: p.score, coins, gems };
       });
-      const winningTeam = teamScores.red === teamScores.blue ? 'draw' : (teamScores.red > teamScores.blue ? 'red' : 'blue');
+      const winningTeam = forcedWinner || (teamScores.red === teamScores.blue ? 'draw' : (teamScores.red > teamScores.blue ? 'red' : 'blue'));
       coinsStateRef.update({ state:'ended', results, finalTeamScores: teamScores, winningTeam, teams: st.teams || {} });
     });
   }
@@ -3760,6 +4109,7 @@ function ownerDeleteRoom(roomId){
       else if(data.game === 'coins'){ startCoinsGame(roomId, data.maxPlayers || 4); }
       else if(data.game === 'math'){ startMathGame(roomId, data.maxPlayers || 4); }
       else if(data.game === 'shield'){ startShieldGame(roomId, data.maxPlayers || 4); }
+      else if(data.game === 'wave'){ startWaveGame(roomId, data.maxPlayers || 4); }
       else{ startDuelGame(); }
 
       if(!isCreator){
@@ -4019,6 +4369,7 @@ function appendChatMessage(msg){
   function finalizeLeave(wasKicked){
     if(!currentRoomId) return;
     if(crownRoomId) crownFullCleanup();
+    if(coWaveRoomId) coWaveFullCleanup();
     const roomId = currentRoomId;
     if(mpPlayersListenerRef){ mpPlayersListenerRef.off(); mpPlayersListenerRef = null; }
     if(mpMyPlayerListenerRef){ mpMyPlayerListenerRef.off(); mpMyPlayerListenerRef = null; }
@@ -4749,6 +5100,7 @@ function micAllowed(){
   }
 }
 function mpApplyShadowUlt(id, castAt){
+  if(coWaveMode) return;
   const st = mpOtherStates[id]; if(!st || !castAt) return;
   if(st.lastUltCast === castAt) return;
   st.lastUltCast = castAt;
@@ -5025,6 +5377,7 @@ let redeemedCodes= saveData.redeemedCodes || [];
 let totalXP      = saveData.xp || 0;
 let skillPoints  = saveData.skillPoints || 0;
 let skills       = saveData.skills || { dashcd:0, shoot:0, magnet:0, speed:0 };
+let wavesKingTitle = saveData.wavesKingTitle || false;
 
 const MAX_LEVEL = 100;
 const LEVEL_TITLES = [
@@ -5163,9 +5516,9 @@ try{
 if(mirrorControls) document.body.classList.add('mirror-controls');
 
 function persistAll(){
-  writeSave({ hs:HS, totalCoins, xp:totalXP, skillPoints, skills, gems, ownedSkins, equippedSkin, ownedPowers, equippedPower, ownedBoards, equippedBoard, playerName, avatar: avatarData, redeemedCodes, v:1 });
+  writeSave({ hs:HS, totalCoins, xp:totalXP, skillPoints, skills, gems, ownedSkins, equippedSkin, ownedPowers, equippedPower, ownedBoards, equippedBoard, playerName, avatar: avatarData, redeemedCodes, wavesKingTitle, v:1 });
   if(currentAccount){
-    accRef(currentAccount).child('data').update({ hs:HS, totalCoins, xp:totalXP, skillPoints, skills, gems, ownedSkins, equippedSkin, ownedPowers, equippedPower, ownedBoards, equippedBoard, avatar: avatarData, redeemedCodes }).catch(()=>{});
+    accRef(currentAccount).child('data').update({ hs:HS, totalCoins, xp:totalXP, skillPoints, skills, gems, ownedSkins, equippedSkin, ownedPowers, equippedPower, ownedBoards, equippedBoard, avatar: avatarData, redeemedCodes, wavesKingTitle }).catch(()=>{});
   }
 }
 
@@ -5458,9 +5811,12 @@ const SFX = {
   friend:   new Audio('m/friend.mp3'),
   owner:    new Audio('m/owner.mp3'),
   shadow:   new Audio('m/shadow.mp3'),
-  spin:     new Audio('m/spin.mp3'),
+  spin:     new Audio('m/Spin.mp3'),
   victory:  new Audio('m/victory.mp3'),
   win:      new Audio('m/win.mp3'),
+  boss1:    new Audio('m/boss1.wav'),
+  boss2:    new Audio('m/boss2.wav'),
+  boss3:    new Audio('m/boss3.wav'),
 };
 const shopMusic = new Audio('m/SHOP.mp3');
 shopMusic.loop = true;
@@ -6468,13 +6824,13 @@ function startSkinParticles(sk){
 function applyActivePower(){
   const sk=getSkin();
   const elementalIds=['water','wind','fire','light','shadow'];
-  activePower=(elementalIds.includes(sk.abilityDesc) && !duelMode)?sk.abilityDesc:null;
+  activePower=(elementalIds.includes(sk.abilityDesc) && (!duelMode||coWaveMode))?sk.abilityDesc:null;
   burnEnemies=[]; shadowBots.forEach(b=>{try{b.el.remove();}catch{}}); shadowBots=[];
   enemyTimeScale=1; shadowUltCD=0; shadowUltActive=false; elemCD=0;
   const gaEl=document.getElementById('gameArea'); if(gaEl) gaEl.classList.remove('time-invert');
   const ebtn=document.getElementById('eBtnM');
   const ub=document.getElementById('ultBar');
-  const showElemUI=(activePower==='wind'||activePower==='shadow')||((activePower==='water'||activePower==='fire'||activePower==='light')&&!duelMode);
+  const showElemUI=(activePower==='wind'||activePower==='shadow')||coWaveMode||((activePower==='water'||activePower==='fire'||activePower==='light')&&!duelMode);
   if(showElemUI && ELEM_META[activePower]){
     const m=ELEM_META[activePower];
     if(ebtn){ ebtn.style.display='flex'; ebtn.textContent=m.icon; ebtn.style.background=m.grad; ebtn.style.boxShadow=`0 0 16px ${m.glow}`; }
@@ -6495,6 +6851,7 @@ function applyActivePower(){
 // ══════════════════════════════════════════════════════════════
 let GR=false,paused=false;
 let score=0,lives=3,maxLives=3,combo=1,wave=1,coins_=0,kills=0;
+let _netEnemySeq=1;
 let activePower=null,burnEnemies=[],shadowBots=[];
 let enemyTimeScale=1,shadowUltCD=0,shadowUltActive=false,duelSlowUntil=0;
 const SHADOW_ULT_CD=1800;
@@ -6571,15 +6928,18 @@ document.addEventListener('keydown',e=>{
   if((e.code==='Space'||e.code==='ShiftLeft'||e.code==='ShiftRight')&&GR&&!paused) tryDash();
   if((e.code==='KeyF'||e.code==='Enter')&&GR&&!paused) shoot();
   if((e.code==='KeyE')&&GR&&!paused) castAbilityKey();
-  if(e.key==='Escape'||e.key.toLowerCase()==='p'){
-    const fcp = document.getElementById('friendChatPanel');
-    if(e.key==='Escape' && fcp && fcp.style.display==='flex'){ closeFriendChat(); return; }
-    const cp = document.getElementById('chatPanel');
-    if(e.key==='Escape' && cp && cp.classList.contains('open')){ toggleChatPanel(); return; }
-    const open=document.querySelector('.overlay-panel.open'); if(open){ const n=open.id.replace('panel-',''); closePanel(n); } else if(GR){ togglePause(); }
-  }
+  if(e.key==='Escape') doEscapeAction();
   if([' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault();
 });
+function doEscapeAction(){
+  const fcp = document.getElementById('friendChatPanel');
+  if(fcp && fcp.style.display==='flex'){ closeFriendChat(); return; }
+  const cp = document.getElementById('chatPanel');
+  if(cp && cp.classList.contains('open')){ toggleChatPanel(); return; }
+  const open=document.querySelector('.overlay-panel.open');
+  if(open){ const n=open.id.replace('panel-',''); closePanel(n); }
+  else if(GR){ togglePause(); }
+}
 document.addEventListener('keyup',e=>{ K[e.code]=false; });
 window.addEventListener('blur',()=>{ Object.keys(K).forEach(k=>K[k]=false); joyActive=false; joyVx=0; joyVy=0; });
 document.addEventListener('visibilitychange',()=>{ if(document.hidden){ Object.keys(K).forEach(k=>K[k]=false); joyActive=false; joyVx=0; joyVy=0; } });
@@ -6658,9 +7018,11 @@ function castAbilityKey(){
 function loop(ts){
   if(!GR||paused) return;
   const dt=Math.min((ts-lt)/16.667,2.5); lt=ts;
-  movePlayer(dt); moveBullets(dt); moveEnemies(dt); moveEBullets(dt);
+  movePlayer(dt); moveBullets(dt);
+  if(!coWaveMode||coWaveIsHost) moveEnemies(dt);
+  moveEBullets(dt);
   moveCoins(dt); movePups(dt); tickTimers(dt);
-  if(bAlive&&bReady) tickBoss(dt);
+  if(bAlive&&bReady&&(!coWaveMode||coWaveIsHost)) tickBoss(dt);
   if(activePower==='shadow') tickShadowBots(dt);
   checkHits(); refreshHUD();
   mpUpdatePosition();
@@ -6776,7 +7138,7 @@ function shadowDuelTeleport(){
 // ══════════════════════════════════════════════════════════════
 function shoot(){
   if(crownLobbyWaiting) return;
-  if(!GR||paused||shootCD>0||duelMode) return; shootCD=Math.max(5,12-(skills.shoot*0.5));
+  if(!GR||paused||shootCD>0||(duelMode&&!coWaveMode)) return; shootCD=Math.max(5,12-(skills.shoot*0.5));
   const cr=document.getElementById('crosshair'); cr.classList.add('shooting'); setTimeout(()=>cr.classList.remove('shooting'),110);
   const cx=px+19,cy=py+19; let tx=mx,ty=my;
   if(!mouseEverMoved||(tx===0&&ty===0)){
@@ -6822,14 +7184,24 @@ function moveBullets(dt){
     b.x+=b.vx*dt*1.6; b.y+=b.vy*dt*1.6;
     b.el.style.left=b.x+'px'; b.el.style.top=b.y+'px';
     if(b.x<-20||b.x>AW+20||b.y<-20||b.y>AH+20){b.el.remove();bullets.splice(i,1);continue;}
-    if(bAlive&&rectsOv(b.x,b.y,11,11,bx+6,by+6,bSZ-12,bSZ-12)){b.el.remove();bullets.splice(i,1);hitBoss();continue;}
+    if(bAlive&&rectsOv(b.x,b.y,11,11,bx+6,by+6,bSZ-12,bSZ-12)){
+      b.el.remove();bullets.splice(i,1);
+      if(coWaveMode&&!coWaveIsHost){ coWaveStateRef.child('hits').push({type:'boss',dmg:1,by:mpPlayerId}); }
+      else hitBoss();
+      continue;
+    }
     for(let j=enemies.length-1;j>=0;j--){
       const e=enemies[j]; if(!e.el.parentNode) continue;
       if(rectsOv(b.x,b.y,11,11,e.x,e.y,e.t.w,e.t.h)){
-        e.hp--;
-        if(e.hp<=0){kills++;score+=e.t.pts*combo;spawnFloat(e.x,e.y,'+'+(e.t.pts*combo),'#C200FB');mkBoom(e.x+e.t.w/2,e.y+e.t.h/2,'#ef4444',6);if(e.t.type==='s')splitEnemy(e);if(e.el._animIv) clearInterval(e.el._animIv);
-        e.el.remove();e.el.remove();enemies.splice(j,1);checkWaveDone();}
-        else{if(b.pw?.burnDmg&&!burnEnemies.find(x=>x.e===e))burnEnemies.push({e,t:0});if(b.pw?.windBullet){const edx=(e.x+e.t.w/2)-(px+19),edy=(e.y+e.t.h/2)-(py+19),ed=Math.sqrt(edx*edx+edy*edy)||1;e.x+=edx/ed*55;e.y+=edy/ed*55;}e.el.style.filter='brightness(3)';setTimeout(()=>{if(e.el)e.el.style.filter='';},70);}
+        if(coWaveMode&&!coWaveIsHost){
+          coWaveStateRef.child('hits').push({type:'enemy',enemyKey:e._id,dmg:1,by:mpPlayerId});
+          e.el.style.filter='brightness(3)';setTimeout(()=>{if(e.el)e.el.style.filter='';},70);
+        } else {
+          e.hp--;
+          if(e.hp<=0){kills++;score+=e.t.pts*combo;spawnFloat(e.x,e.y,'+'+(e.t.pts*combo),'#C200FB');mkBoom(e.x+e.t.w/2,e.y+e.t.h/2,'#ef4444',6);if(e.t.type==='s')splitEnemy(e);if(e.el._animIv) clearInterval(e.el._animIv);
+          e.el.remove();e.el.remove();enemies.splice(j,1);checkWaveDone();}
+          else{if(b.pw?.burnDmg&&!burnEnemies.find(x=>x.e===e))burnEnemies.push({e,t:0});if(b.pw?.windBullet){const edx=(e.x+e.t.w/2)-(px+19),edy=(e.y+e.t.h/2)-(py+19),ed=Math.sqrt(edx*edx+edy*edy)||1;e.x+=edx/ed*55;e.y+=edy/ed*55;}e.el.style.filter='brightness(3)';setTimeout(()=>{if(e.el)e.el.style.filter='';},70);}
+        }
         b.el.remove(); bullets.splice(i,1); break;
       }
     }
@@ -6886,7 +7258,7 @@ el.innerHTML=`<img src="${firstName}" style="width:100%;height:100%;image-render
     el.textContent=t.e;
   }
   document.getElementById('gameArea').appendChild(el);
-  enemies.push({el,x:ex,y:ey,vx:Math.cos(ang),vy:Math.sin(ang),spd:t.spd*(1+(wave-1)*0.13),t,hp:t.hp,sT:0});
+  enemies.push({el,x:ex,y:ey,vx:Math.cos(ang),vy:Math.sin(ang),spd:t.spd*(1+(wave-1)*0.13),t,hp:t.hp,sT:0,_id:'e'+(++enemyIdSeq)});
 }
 function splitEnemy(e){
   for(let i=0;i<2;i++){
@@ -6894,7 +7266,7 @@ function splitEnemy(e){
     const sx=e.x+(i?14:-14),sy=e.y+6;
     el.style.cssText=`width:${t.w}px;height:${t.h}px;left:${sx}px;top:${sy}px`;
     el.textContent=t.e; document.getElementById('gameArea').appendChild(el);
-    enemies.push({el,x:sx,y:sy,vx:(i?1.3:-1.3),vy:-0.5,spd:2.8,t,hp:1,sT:0}); wSpawned--;
+    enemies.push({el,x:sx,y:sy,vx:(i?1.3:-1.3),vy:-0.5,spd:2.8,t,hp:1,sT:0,_id:'e'+(++enemyIdSeq)}); wSpawned--;
   }
 }
 
@@ -6965,19 +7337,22 @@ function triggerBoss(){
   const BOSS=document.getElementById('boss');
   BOSS.style.width=bSZ+'px';BOSS.style.height=bSZ+'px';BOSS.style.fontSize=Math.min(55,36+bossCount*4)+'px';
   bx=AW/2-bSZ/2;by=-bSZ-10;BOSS.style.left=bx+'px';BOSS.style.top=by+'px';BOSS.style.display='flex';
-  if(bossCount===1){
-  BOSS.innerHTML=`<img src="Player/Bosses/1/boss1_0.png" style="width:100%;height:100%;image-rendering:pixelated">`;
+  const _bossVoices=['boss1','boss2','boss3'];
+  if(window._bossVoiceIv) clearInterval(window._bossVoiceIv);
+  window._bossVoiceIv=setInterval(()=>{
+    if(!bAlive){ clearInterval(window._bossVoiceIv); return; }
+    playSFX(_bossVoices[Math.floor(Math.random()*_bossVoices.length)]);
+  },5000);
+  const _bIdx=Math.min(bossCount,4);
+  BOSS.innerHTML=`<img src="Bosses/${_bIdx}/boss3_0.png" style="width:100%;height:100%;image-rendering:pixelated">`;
   let _bf=0;
   if(window._bossIv) clearInterval(window._bossIv);
   window._bossIv=setInterval(()=>{
     if(!document.getElementById('boss').style.display||document.getElementById('boss').style.display==='none'){clearInterval(window._bossIv);return;}
     _bf=(_bf+1)%6;
     const img=document.getElementById('boss').querySelector('img');
-    if(img) img.src=`Player/Bosses/1/boss1_${_bf}.png`;
-  },120);
-} else {
-  BOSS.innerHTML='😈';
-}
+    if(img) img.src=`Bosses/${_bIdx}/boss3_${_bf}.png`;
+  },100);
   const spd=1.8+bossCount*.5+wave*.04;bvx=spd*(Math.random()<.5?1:-1);bvy=spd*.7;
   bHP=55+bossCount*25+wave*5;bMaxHP=bHP;bMT=0;bST=0;
   document.getElementById('bossHpLabel').textContent=`😈 البوص #${bossCount} — ${bHP} HP`;
@@ -7034,7 +7409,7 @@ const _iv=setInterval(()=>{
   if(img) img.src=`Player/Enemy/AG/Untitled-0_${_f}.png`;
 },100);
 el._animIv=_iv;document.getElementById('gameArea').appendChild(el);
-  enemies.push({el,x:mx2,y:my2,vx:(Math.random()-.5)*.8,vy:1,spd:2.9+bossCount*.25,t,hp:1,sT:0});
+enemies.push({el,x:mx2,y:my2,vx:(Math.random()-.5)*.8,vy:1,spd:2.9+bossCount*.25,t,hp:1,sT:0,_id:'e'+(++enemyIdSeq)});
 }
 function bossFire(){
   const bcx=bx+bSZ/2,bcy=by+bSZ/2;const shots=Math.min(1+Math.floor(bossCount/2),5);
@@ -7056,16 +7431,52 @@ function hitBoss(){
 function bossDefeated(){
   bAlive=false;bReady=false;document.getElementById('boss').style.display='none';
   if(window._bossIv){ clearInterval(window._bossIv); window._bossIv=null; }
+  if(window._bossVoiceIv){ clearInterval(window._bossVoiceIv); window._bossVoiceIv=null; }
   document.getElementById('bossHpWrap').classList.remove('show');
   document.querySelectorAll('.bp').forEach(p=>p.remove());
   document.getElementById('gameArea').classList.remove('boss-mode');
   enemies.forEach(e=>e.el.remove());enemies=[];ebullets.forEach(b=>b.el.remove());ebullets=[];
   playBgMusic('menu');
-  const bonus=700+bossCount*250;score+=bonus;kills++;gems+=5;persistAll();
+  const bonus=700+bossCount*250;score+=bonus;kills++;
+  const gemMap={1:5,2:20,3:50,4:100};
+  const gemGain=gemMap[Math.min(bossCount,4)]||5;
+  gems+=gemGain;persistAll();
   mkBoom(bx+bSZ/2,by+bSZ/2,'#C200FB',12);mkBoom(bx+bSZ/2,by+bSZ/2,'#fbbf24',8);
-  spawnFloat(bx+bSZ/2,by+bSZ/2,'💎 +1 جوهرة!','#c084fc');
-  flashFX('rgba(194,0,251,.5)');shakeScreen(16,450);showToast(`💀 البوص مات! +${bonus} 💎 +1`);refreshGemDisplay();grantXP(40);
-  setTimeout(beginWave,1800);
+  spawnFloat(bx+bSZ/2,by+bSZ/2,`💎 +${gemGain} جوهرة!`,'#c084fc');
+  flashFX('rgba(194,0,251,.5)');shakeScreen(16,450);showToast(`💀 البوص مات! +${bonus} 💎 +${gemGain}`);refreshGemDisplay();grantXP(40);
+  if(bossCount>=4){
+    if(!wavesKingTitle){ wavesKingTitle=true; }
+    persistAll();
+    if(coWaveMode&&coWaveIsHost){ setTimeout(coWaveWinGame,1800); }
+    else if(!coWaveMode){ setTimeout(winWavesGame,1800); }
+  } else {
+    setTimeout(beginWave,1800);
+  }
+}
+function winWavesGame(){
+  GR=false;cancelAnimationFrame(fid);stopBgMusic();stopSkinParticles();
+  document.getElementById('gameArea').classList.remove('boss-mode');
+  document.querySelectorAll('.bp,.wbot,.sk-particle').forEach(p=>p.remove());
+  wbots=[];shadowBots=[];
+  document.getElementById('boss').style.display='none';
+  document.getElementById('bossHpWrap').classList.remove('show');
+  document.getElementById('bossChat').classList.remove('show');
+  if(score>HS)HS=score;persistAll();refreshTopDisplays();
+  document.getElementById('goEmoji').textContent='👑';
+  document.getElementById('goTitle').innerHTML='ملك الـWaves <span>!</span>';
+  document.getElementById('goSub').textContent='خلّصت كل الـ4 بوصات! 🔥';
+  document.getElementById('goScore').textContent=score;
+  document.getElementById('goWave').textContent=wave;
+  document.getElementById('goKills').textContent=kills;
+  document.getElementById('hsEnd').textContent=HS;
+  document.getElementById('totalCoinsEnd').textContent=totalCoins.toLocaleString();
+  const lp=xpProgress(totalXP);
+  document.getElementById('goLevel').textContent='Lv.'+lp.level;
+  document.getElementById('goTitleLvl').textContent=titleForLevel(lp.level);
+  document.getElementById('goXPGain').textContent='+'+runXPGained+' XP';
+  document.getElementById('goXPBarFill').style.width=Math.round((lp.into/lp.need)*100)+'%';
+  document.getElementById('goSkillHint').style.display=skillPoints>0?'block':'none';
+  showGScreen('gameOverScreen');
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -7108,7 +7519,7 @@ const PW=PUT.reduce((s,p)=>s+p.w,0);
 function randPU(){let r=Math.random()*PW;for(const p of PUT){r-=p.w;if(r<=0)return p;}return PUT[0];}
 
 function movePups(dt){
-  if(typeof duelMode !== 'undefined' && duelMode) return;
+  if(typeof duelMode !== 'undefined' && duelMode && !coWaveMode) return;
   pTimer+=dt;if(pTimer>=430){pTimer=0;spawnPU(randPU());}
   healTimer+=dt;if(healTimer>=4500){healTimer=0;spawnPU(PUT[5]);}
   for(let i=pups.length-1;i>=0;i--){
@@ -7243,7 +7654,7 @@ function castElemAbility(){
   if(crownLobbyWaiting) return;
   if(!GR||paused) return;
   if(!['water','wind','fire','light'].includes(activePower)) return;
-  if((activePower==='water'||activePower==='fire'||activePower==='light') && duelMode) return;
+  if((activePower==='water'||activePower==='fire'||activePower==='light') && duelMode && !coWaveMode) return;
   if(elemCD>0) return;
   elemCD = ELEM_CD[activePower] || 900;
   if(activePower==='water') waterAbility();
@@ -7333,7 +7744,7 @@ function takeHit(e){
   if(e){mkBoom(e.x+e.t.w/2,e.y+e.t.h/2,'#ef4444',8);e.el.remove();enemies=enemies.filter(x=>x!==e);}
   else mkBoom(px+19,py+19,'#ef4444',6);
   updateHearts();showToast(['💔 آوتش!','😱 ضربة!','🔥 اتحرك!','💀 خطر!'][Math.floor(Math.random()*4)]);
-  if(lives<=0)endGame();
+  if(lives<=0){ if(coWaveMode){ coWaveReportDeath(); } else { endGame(); } }
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -7350,7 +7761,7 @@ function refreshHUD(){
     document.getElementById('killsEl').textContent=kills;
     const delta=kills-_kl;
     if(_kl>=0){
-      if(!duelMode) grantXP(delta*3);
+      if(!duelMode||coWaveMode) grantXP(delta*3);
       const now=Date.now();
       killStreak = (now-lastKillAt<1500) ? killStreak+delta : delta;
       lastKillAt = now;
