@@ -526,6 +526,7 @@ body::before {
 .rc-شائع      { color:#94a3b8; } .rc-غير-شائع { color:#22d3ee; }
 .rc-نادر      { color:#f97316; } .rc-ملحمي     { color:#fde68a; }
 .rc-أسطوري    { color:#c084fc; }
+.rc-خرافي     { color:#b90000; }
 
 /* ══ ARCHIVIST ══ */
 .archivist {
@@ -724,6 +725,8 @@ header {
 #player.invincible { animation:invBlink .15s infinite; }
 @keyframes invBlink { 0%,100%{opacity:1} 50%{opacity:.2} }
 .dash-ghost { position:absolute; width:38px; height:38px; border-radius:10px; pointer-events:none; z-index:9; animation:gf .3s ease forwards; }
+.god-dash-halo { position:absolute; width:38px; height:38px; border-radius:50%; border:3px solid rgba(59,130,246,.85); box-shadow:0 0 18px rgba(59,130,246,.6); pointer-events:none; z-index:9; transform:translate(-50%,-50%); animation:godHaloPulse .5s ease-out forwards; }
+@keyframes godHaloPulse { from{ transform:translate(-50%,-50%) scale(.4); opacity:1; } to{ transform:translate(-50%,-50%) scale(2.6); opacity:0; } }
 @keyframes gf { to{opacity:0;transform:scale(.35)} }
 
 /* elemental skin classes */
@@ -820,6 +823,9 @@ header {
 .pu-multi  { background:rgba(245,158,11,.1); border:2px solid #f59e0b; box-shadow:0 0 22px rgba(245,158,11,.9); animation:rarePulse .7s ease-in-out infinite .2s; }
 @keyframes rarePulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.2)} }
 #shieldRing { position:absolute; width:60px; height:60px; border-radius:50%; border:3px solid rgba(0,191,255,.85); box-shadow:0 0 18px rgba(0,191,255,.5); pointer-events:none; z-index:9; display:none; transform:translate(-50%,-50%); }
+.god-timewave{ position:absolute; left:0; top:0; width:40px; height:40px; margin-left:-20px; margin-top:-20px; border-radius:50%; border:4px solid rgba(59,130,246,.9); box-shadow:0 0 30px rgba(59,130,246,.7), inset 0 0 20px rgba(59,130,246,.4); pointer-events:none; z-index:15; animation:godTimeWaveExpand .9s ease-out forwards; }
+@keyframes godTimeWaveExpand{ from{ transform:scale(.3); opacity:1; } to{ transform:scale(14); opacity:0; } }
+.time-freeze-ring{ position:absolute; inset:-10px; border-radius:50%; border:3px dashed rgba(59,130,246,.9); box-shadow:0 0 14px rgba(59,130,246,.6); pointer-events:none; z-index:12; animation:haloSpin 2s linear infinite; }
 .particle   { position:absolute; border-radius:50%; pointer-events:none; z-index:20; animation:pEx .55s ease forwards; }
 @keyframes pEx { to{opacity:0;transform:var(--tx)} }
 .float-text { position:absolute; z-index:30; pointer-events:none; font-size:14px; font-weight:900; animation:ftUp .85s ease forwards; text-shadow:0 2px 5px rgba(0,0,0,.9); }
@@ -898,6 +904,15 @@ header {
 #joyKnob  { position:absolute; width:44px; height:44px; border-radius:50%; background:radial-gradient(circle at 35% 35%,rgba(194,0,251,.9),rgba(99,102,241,.7)); border:2px solid rgba(194,0,251,.8); box-shadow:0 0 14px rgba(194,0,251,.5); top:50%; left:50%; transform:translate(-50%,-50%); transition:transform .05s; }
 #actionBtns { position:absolute; bottom:10px; left:14px; display:flex; flex-direction:column; gap:10px; pointer-events:all; }
 body.mirror-controls #actionBtns { left:auto; right:14px; }
+#dpadZone { position:absolute; bottom:14px; right:14px; width:150px; height:150px; display:none; pointer-events:all; }
+#dpadZone.show { display:block; }
+body.mirror-controls #dpadZone { right:auto; left:14px; }
+.dpad-btn { position:absolute; width:46px; height:46px; border-radius:10px; border:2px solid rgba(194,0,251,.5); background:rgba(194,0,251,.15); color:#fff; font-size:18px; display:flex; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent; }
+.dpad-btn:active { background:rgba(194,0,251,.45); }
+#dpadUp { top:0; left:52px; }
+#dpadDown { bottom:0; left:52px; }
+#dpadLeft { top:52px; left:0; }
+#dpadRight { top:52px; right:0; }
 .act-btn { width:56px; height:56px; border-radius:50%; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:900; transition:all .1s; -webkit-tap-highlight-color:transparent; }
 .act-btn:active { transform:scale(.88); }
 #shootBtnM { background:linear-gradient(135deg,var(--purple),var(--purple-dim)); box-shadow:0 0 16px rgba(194,0,251,.5); color:#fff; }
@@ -1428,6 +1443,16 @@ body.mirror-controls #actionBtns { left:auto; right:14px; }
         style="font-family:var(--font-px);font-size:7px;letter-spacing:1px;padding:7px 14px;background:rgba(255,51,68,.1);border:2px solid #ff3344;color:#ff3344;cursor:pointer;transition:all .15s">OFF ❌</button>
     </div>
     <hr class="setting-divider">
+    <div class="setting-row">
+      <div class="setting-label">🎮 أسلوب الحركة</div>
+      <div style="display:flex;gap:6px">
+        <button id="joystickStyleBtn" onclick="setMovementStyle('joystick')"
+          style="font-family:var(--font-px);font-size:6px;letter-spacing:1px;padding:7px 10px;background:rgba(34,197,94,.15);border:2px solid #22c55e;color:#22c55e;cursor:pointer;transition:all .15s">🕹️ جويستيك</button>
+        <button id="keyboardStyleBtn" onclick="setMovementStyle('keyboard')"
+          style="font-family:var(--font-px);font-size:6px;letter-spacing:1px;padding:7px 10px;background:rgba(255,255,255,.04);border:2px solid rgba(255,255,255,.08);color:#888;cursor:pointer;transition:all .15s">⌨️ كيبورد</button>
+      </div>
+    </div>
+    <hr class="setting-divider">
     <div style="margin-top:8px;padding:10px;background:rgba(255,51,68,.06);border:1px solid rgba(255,51,68,.3);">
       <div style="font-family:var(--font-px);font-size:8px;color:#f87171;margin-bottom:8px">⚠ منطقة الخطر</div>
       <button onclick="if(confirm('مسح كل البيانات؟ لا رجعة!'))resetAll()" style="width:100%;padding:9px;font-family:var(--font-px);font-size:6px;cursor:pointer;background:rgba(255,51,68,.15);border:2px solid #ff3344;color:#ff3344;letter-spacing:1px">RESET ALL DATA ⚠</button>
@@ -1836,6 +1861,10 @@ body.mirror-controls #actionBtns { left:auto; right:14px; }
       <span class="heart" id="h5s" style="display:none">🖤</span>
       <span class="heart" id="h1r" style="display:none">❤️</span><span class="heart" id="h2r" style="display:none">❤️</span>
       <span class="heart" id="h3r" style="display:none">❤️</span><span class="heart" id="h4r" style="display:none">❤️</span>
+      <span class="heart" id="h1g" style="display:none">💙</span><span class="heart" id="h2g" style="display:none">💙</span>
+      <span class="heart" id="h3g" style="display:none">💙</span><span class="heart" id="h4g" style="display:none">💙</span>
+      <span class="heart" id="h5g" style="display:none">💙</span><span class="heart" id="h6g" style="display:none">💙</span>
+      <span class="heart" id="h7g" style="display:none">💙</span>
     </div>
     <div class="hud-item"><span class="hud-val" id="comboEl" style="color:var(--orange)">x1</span><span class="hud-label">COMBO</span></div>
     <div class="hud-item"><span class="hud-val" id="waveEl" style="color:var(--orange)">1</span><span class="hud-label">WAVE</span></div>
@@ -1913,6 +1942,12 @@ body.mirror-controls #actionBtns { left:auto; right:14px; }
     <div id="joyZone">
       <div id="joyBase"></div>
       <div id="joyKnob"></div>
+    </div>
+    <div id="dpadZone">
+      <button class="dpad-btn" id="dpadUp">▲</button>
+      <button class="dpad-btn" id="dpadDown">▼</button>
+      <button class="dpad-btn" id="dpadLeft">◀</button>
+      <button class="dpad-btn" id="dpadRight">▶</button>
     </div>
   </div>
 
@@ -2073,9 +2108,8 @@ let mpOwnerCmdRef = null;
     { id:'duel',  name:'أوضة الدردشة', icon:'🎤', players:[4,6,8,10], color:'#c200fb', glow:'rgba(194,0,251,.35)' },
     { id:'math',  name:'اختبار الحساب', icon:'🧮', players:[2,3,4,5,6,7,8,9,10], color:'#22c55e', glow:'rgba(34,197,94,.35)' },
     { id:'shield', name:'قنبلة الدروع', img:'Player/E/BOMB.png', players:[2,3,4,5,6,7,8,9,10], color:'#ef4444', glow:'rgba(239,68,68,.4)' },
-    { id:'wave',  name:'ويف',          icon:'🌊', players:[2,3,4], color:'#0ea5e9', glow:'rgba(14,165,233,.4)' },
   ];
-  const MG_ICON = { crown:'👑', coins:'🪙', duel:'🎤', math:'🧮', shield:'💣', wave:'🌊' };
+  const MG_ICON = { crown:'👑', coins:'🪙', duel:'🎤', math:'🧮', shield:'💣' };
   let selectedMiniGame = null;
   let roomsListenerRef = null;
   let mpChatRef = null;
@@ -2574,7 +2608,7 @@ function ownerDeleteRoom(roomId){
     return BOARDS_DEF.find(b=>b.id===boardId) || BOARDS_DEF[0];
   }
   function skinBaseFolder(id){
-    return id==='fire'?'Player/Flame':id==='green'?'Player/G':id==='orange'?'Player/O':id==='red'?'Player/R':id==='yellow'?'Player/Y':id==='white'?'Player/W':id==='water'?'Player/WATER':id==='wind'?'Player/WIND':id==='light'?'Player/Light':id==='shadow'?'Player/SHADOW':'Player/P';
+    return id==='fire'?'Player/Flame':id==='green'?'Player/G':id==='orange'?'Player/O':id==='red'?'Player/R':id==='yellow'?'Player/Y':id==='white'?'Player/W':id==='water'?'Player/WATER':id==='wind'?'Player/WIND':id==='light'?'Player/Light':id==='shadow'?'Player/SHADOW':id==='god'?'VIPS':'Player/P';
   }
 
   let crownPodiumAnimIv = null;
@@ -3209,7 +3243,7 @@ function ownerDeleteRoom(roomId){
         BOSS0.style.display='flex';
         bx=b.x; by=b.y;
         const _bIdx=Math.min(bossCount,4);
-        BOSS0.innerHTML=`<img src="Bosses/${_bIdx}/boss3_0.png" style="width:100%;height:100%;image-rendering:pixelated">`;
+        BOSS0.innerHTML=`<img src="Bosses/${_bIdx}/boss3_0.png" style="width:100%;height:100%;object-fit:contain;image-rendering:pixelated">`;
         let _bf=0;
         if(window._coWaveBossIv) clearInterval(window._coWaveBossIv);
         window._coWaveBossIv=setInterval(()=>{
@@ -4145,6 +4179,7 @@ function ownerDeleteRoom(roomId){
         if(snapC.key === mpPlayerId) return;
         const val = snapC.val();
         if(val && val.shadowUltCastAt) mpApplyShadowUlt(snapC.key, val.shadowUltCastAt);
+        if(val && val.godUltCastAt) mpApplyGodUlt(snapC.key, val.godUltCastAt);
       });
 
       mpMyPlayerListenerRef = mpDb.ref(`rooms/${roomId}/players/${mpPlayerId}`);
@@ -5077,6 +5112,7 @@ function micAllowed(){
   st.dashing = isDashing;
   const img = body.querySelector('img');
   if(!img || !st.base) return;
+  if(st.base==='VIPS'){ if(isDashing) mpSpawnGhost(id); return; }
   if(isDashing){
     if(st.animInterval){ clearInterval(st.animInterval); st.animInterval=null; }
     if(st.dashInterval) clearInterval(st.dashInterval);
@@ -5108,6 +5144,16 @@ function mpApplyShadowUlt(id, castAt){
   if(gaEl){ gaEl.classList.add('time-invert'); setTimeout(()=>gaEl.classList.remove('time-invert'),8000); }
   showToast('🌑 خصمك فعّل الظل المطلق! السرعة اتبطأت');
   duelSlowUntil = Date.now()+8000;
+}
+function mpApplyGodUlt(id, castAt){
+  if(coWaveMode) return;
+  const st = mpOtherStates[id]; if(!st || !castAt) return;
+  if(st.lastGodUltCast === castAt) return;
+  st.lastGodUltCast = castAt;
+  const el=document.getElementById('mp-'+id);
+  if(el){ const r=document.createElement('div'); r.className='time-freeze-ring'; el.appendChild(r); setTimeout(()=>{ if(r&&r.parentNode) r.remove(); },10000); }
+  showToast('⏳ خصمك فعّل الدائرة الزمنية! انت متجمد تماماً 10ث');
+  duelFreezeUntil = Date.now()+10000;
 }
 const mpParticleColors={water:'#22d3ee',wind:'#bae6fd',fire:'#f97316',light:'#fef08a',shadow:'#818cf8'};
 // بيحرك اللاعبين التانيين بسلاسة بين كل تحديث ييجي من فايربيس وبين اللي بعده
@@ -5218,16 +5264,17 @@ function mpApplyVisual(id, skinId){
     st.skinId = skinId; st.frame = 0;
     const sk = SKINS_DEF.find(s => s.id === skinId) || SKINS_DEF[0];
     const nameTag = el.querySelector('.mp-nametag');
-    if(['purple','fire','green','orange','red','yellow','white','water','wind','light','shadow'].includes(sk.id)){
+    if(['purple','fire','green','orange','red','yellow','white','water','wind','light','shadow','god'].includes(sk.id)){
   if(nameTag) nameTag.style.top = '-52px';
-  const base = sk.id==='fire'?'Player/Flame':sk.id==='green'?'Player/G':sk.id==='orange'?'Player/O':sk.id==='red'?'Player/R':sk.id==='yellow'?'Player/Y':sk.id==='white'?'Player/W':sk.id==='water'?'Player/WATER':sk.id==='wind'?'Player/WIND':sk.id==='light'?'Player/Light':sk.id==='shadow'?'Player/SHADOW':'Player/P';
+  const isGodSkin = sk.id==='god';
+  const base = sk.id==='fire'?'Player/Flame':sk.id==='green'?'Player/G':sk.id==='orange'?'Player/O':sk.id==='red'?'Player/R':sk.id==='yellow'?'Player/Y':sk.id==='white'?'Player/W':sk.id==='water'?'Player/WATER':sk.id==='wind'?'Player/WIND':sk.id==='light'?'Player/Light':sk.id==='shadow'?'Player/SHADOW':isGodSkin?'VIPS':'Player/P';
       st.base = base;
       body.style.cssText = 'position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:54px;height:90px;';
       body.innerHTML = `<img style="position:absolute;left:50%;top:50%;width:100%;height:100%;transform:translate(-50%,-50%);image-rendering:pixelated" src="${base}/IDLE/P_0.png">`;
       st.animInterval = setInterval(() => {
-        const frames = st.moving ? 8 : 6;
+        const frames = st.moving ? (isGodSkin?4:8) : 6;
         st.frame = (st.frame + 1) % frames;
-        const folder = st.moving ? `${st.base}/RUN/P_1_` : `${st.base}/IDLE/P_`;
+        const folder = st.moving ? (isGodSkin ? `${st.base}/RUN/Untitled-8_` : `${st.base}/RUN/P_1_`) : `${st.base}/IDLE/P_`;
         const img = body.querySelector('img');
         if(img) img.src = `${folder}${st.frame}.png`;
       }, 100);
@@ -5515,6 +5562,12 @@ try{
 }catch{ mirrorControls = false; }
 if(mirrorControls) document.body.classList.add('mirror-controls');
 
+let movementStyle = 'joystick';
+try{
+  const _vMS = localStorage.getItem('404_movementStyle');
+  movementStyle = (_vMS==='keyboard') ? 'keyboard' : 'joystick';
+}catch{ movementStyle = 'joystick'; }
+
 function persistAll(){
   writeSave({ hs:HS, totalCoins, xp:totalXP, skillPoints, skills, gems, ownedSkins, equippedSkin, ownedPowers, equippedPower, ownedBoards, equippedBoard, playerName, avatar: avatarData, redeemedCodes, wavesKingTitle, v:1 });
   if(currentAccount){
@@ -5558,6 +5611,9 @@ function applyAccountData(username, acc){
   equippedBoard = d.equippedBoard || 'default';
   redeemedCodes = d.redeemedCodes || [];
   ownerMode = acc.isOwner === true;
+  if(ownerMode){
+    SKINS_DEF.forEach(sk=>{ if(!ownedSkins.includes(sk.id)) ownedSkins.push(sk.id); });
+  }
   localStorage.setItem('404_owner_mode', ownerMode ? '1' : '0');
   localStorage.setItem(ACC_KEY, username);
   writeSave({ hs:HS, totalCoins, gems, ownedSkins, equippedSkin, ownedPowers, equippedPower, ownedBoards, equippedBoard, playerName, redeemedCodes, v:1 });
@@ -5950,6 +6006,28 @@ function renderMirrorControlsToggle(){
   b.style.borderColor = mirrorControls ? '#22c55e' : '#ff3344';
   b.style.color = mirrorControls ? '#22c55e' : '#ff3344';
 }
+function setMovementStyle(v){
+  playClick();
+  movementStyle = (v==='keyboard') ? 'keyboard' : 'joystick';
+  try{ localStorage.setItem('404_movementStyle', movementStyle); }catch{}
+  if(movementStyle!=='joystick'){ joyActive=false; joyVx=0; joyVy=0; const jz=document.getElementById('joyZone'); if(jz) jz.classList.remove('active'); }
+  renderMovementStyleUI();
+}
+function renderMovementStyleUI(){
+  const j=document.getElementById('joystickStyleBtn'), k=document.getElementById('keyboardStyleBtn');
+  if(j){
+    j.style.background = movementStyle==='joystick' ? 'rgba(34,197,94,.15)' : 'rgba(255,255,255,.04)';
+    j.style.borderColor = movementStyle==='joystick' ? '#22c55e' : 'rgba(255,255,255,.08)';
+    j.style.color = movementStyle==='joystick' ? '#22c55e' : '#888';
+  }
+  if(k){
+    k.style.background = movementStyle==='keyboard' ? 'rgba(34,197,94,.15)' : 'rgba(255,255,255,.04)';
+    k.style.borderColor = movementStyle==='keyboard' ? '#22c55e' : 'rgba(255,255,255,.08)';
+    k.style.color = movementStyle==='keyboard' ? '#22c55e' : '#888';
+  }
+  const dp=document.getElementById('dpadZone');
+  if(dp) dp.classList.toggle('show', movementStyle==='keyboard');
+}
 function setMenuMusic(choice){
   playClick();
   if(!MENU_MUSIC_OPTIONS[choice]) return;
@@ -6009,7 +6087,10 @@ applyMenuBg();
 // load saved vol
 try{
   const sv = JSON.parse(localStorage.getItem('404_vol'));
-  if(sv){ vol.music=sv.music||7; vol.sfx=sv.sfx||7; }
+  if(sv){
+    vol.music = (typeof sv.music==='number') ? sv.music : 7;
+    vol.sfx   = (typeof sv.sfx==='number')   ? sv.sfx   : 7;
+  }
 }catch{}
 
 // ══════════════════════════════════════════════════════════════
@@ -6072,6 +6153,8 @@ function openPanel(name){
     initVolBars();
     renderIntroToggle();
     renderLowGraphicsToggle();
+    renderMirrorControlsToggle();
+    renderMovementStyleUI();
     renderMenuMusicButtons();
     renderMenuBgButtons();
     const ad=document.getElementById('accountUsernameDisplay');
@@ -6351,6 +6434,13 @@ function openGameplay(){
 }
 function backToMenu(){
   if(GR){ GR=false; cancelAnimationFrame(fid); stopBgMusic(); stopSkinParticles(); }
+  if(window._bossVoiceIv){ clearInterval(window._bossVoiceIv); window._bossVoiceIv=null; }
+  if(window._bossIv){ clearInterval(window._bossIv); window._bossIv=null; }
+  bAlive=false; bReady=false;
+  document.getElementById('boss').style.display='none';
+  document.getElementById('bossHpWrap').classList.remove('show');
+  document.getElementById('bossChat').classList.remove('show');
+  document.getElementById('gameArea').classList.remove('boss-mode');
   hideAllGScreens();
   document.getElementById('gameplay').classList.remove('active');
   document.getElementById('menu').classList.add('active');
@@ -6415,6 +6505,7 @@ const SKINS_DEF = [
   { id:'fire',   name:'النار',    icon:'🔥', skinImg:'Player/SKINS/Flame.png', color:'#f97316', color2:'#991b1b', glow:'rgba(249,115,22,.9)', dashColor:'rgba(249,115,22,.6)', dashColor2:'rgba(153,27,27,.5)', price:0, gemPrice:5, rarity:'نادر', ability:'🔥 2 طلقات نارية + حرق • الداش يشعل', abilityFull:'2 طلقات تشعل الأعداء 5 ثوانٍ.', abilityDesc:'fire', particleCSS:'fire', bulletCount:2, burnDmg:true },
   { id:'light',  name:'الضوء',    icon:'✨', skinImg:'Player/SKINS/Light.png', color:'#fef08a', color2:'#eab308', glow:'rgba(254,240,138,1)', dashColor:'rgba(254,240,138,.6)', dashColor2:'rgba(234,179,8,.4)', price:0, gemPrice:5, rarity:'ملحمي', ability:'☀️ 2 طلقات ضوئية • سرعة أعلى • بوشن ×2', abilityFull:'2 طلقات. سرعة +40%. بوشن ×2.', abilityDesc:'light', particleCSS:'light', bulletCount:2, speedBoost:1.4, puMult:2 },
   { id:'shadow', name:'الظل',     icon:'👤', skinImg:'Player/SKINS/SHADOW.png', color:'#818cf8', color2:'#1e1b4b', glow:'rgba(129,140,248,1)', dashColor:'rgba(99,102,241,.6)', dashColor2:'rgba(30,27,75,.6)', price:0, gemPrice:5, rarity:'أسطوري', ability:'🌑 5 قلوب • الداش يجمد الزمن • E: الظل المطلق', abilityFull:'الأقوى. 5 قلوب. الداش يوقف الزمن 3ث.', abilityDesc:'shadow', particleCSS:'shadow', bulletCount:3, puMult:6 },
+  { id:'god', name:'إله القوة', icon:'⚡', skinImg:'VIPS/GOD.png', color:'#3b82f6', color2:'#1e3a8a', glow:'rgba(59,130,246,1)', dashColor:'rgba(59,130,246,.6)', dashColor2:'rgba(30,58,138,.6)', price:0, gemPrice:5, rarity:'خرافي', ability:'⚡ 7 قلوب زرقاء • بوشن 5 دقايق • 3 بوتات كهربائية', abilityFull:'7 قلوب. البوشن بيفضل 5 دقايق. 3 بوتات تتبعك وتقتل الأعداء.', abilityDesc:'god', particleCSS:'god', bulletCount:1, puMult:60 },
 ];
 
 const POWERS = [
@@ -6423,6 +6514,7 @@ const POWERS = [
   { id:'fire',   name:'النار',  rarity:'نادر',     rarityEn:'RARE',      icon:'<img src="Player/SKINS/Flame.png" style="width:64px;height:64px;image-rendering:pixelated">', skinImg:'Flame.png',  cost:5, color:'#f97316', color2:'#dc2626', desc:'2 طلقات نارية + حرق 5ث • الداش يحرق',           bullets:2, bulletColor:'#f97316', bulletGlow:'rgba(249,115,22,.9)', burnDmg:true, dashBurn:true },
   { id:'light',  name:'الضوء',  rarity:'ملحمي',    rarityEn:'EPIC',      icon:'<img src="Player/SKINS/Light.png" style="width:64px;height:64px;image-rendering:pixelated">', skinImg:'Light.png',  cost:5, color:'#fde68a', color2:'#f59e0b', desc:'2 طلقات ضوء سريعة • سرعة أعلى • بوشن 2× أطول',  bullets:2, bulletColor:'#fde68a', bulletGlow:'rgba(253,230,138,1)',  speedBoost:1.4, puMult:2 },
   { id:'shadow', name:'الظل',   rarity:'أسطوري',   rarityEn:'LEGENDARY', icon:'<img src="Player/SKINS/SHADOW.png" style="width:64px;height:64px;image-rendering:pixelated">', skinImg:'SHADOW.png', cost:5, color:'#818cf8', color2:'#1e1b4b', desc:'الداش يوقف الزمن 3ث • طلقتين • بوشن 6× أطول',   bullets:3, bulletColor:'#818cf8', bulletGlow:'rgba(129,140,248,.9)', timeStop:true, puMult:6, shadowBot:true },
+  { id:'god', name:'إله القوة', rarity:'خرافي', rarityEn:'MYTHICAL', icon:'<img src="VIPS/GOD.png" style="width:64px;height:64px;image-rendering:pixelated">', skinImg:'GOD.png', imgPath:'VIPS/GOD.png', cost:5, color:'#b90000', color2:'#1e3a8a', desc:'7 قلوب زرقاء • بوشن 5 دقايق • 3 بوتات كهربائية', bullets:1, bulletColor:'#b90000', bulletGlow:'rgba(59,130,246,.9)', puMult:60, godBot:true },
 ];
 
 const BOARDS_DEF = [
@@ -6475,7 +6567,7 @@ function buildPowersGrid(gridId){
   const grid=document.getElementById(gridId);
   if(!grid) return;
   grid.innerHTML='';
-  const rcC={'شائع':'#94a3b8','غير شائع':'#22d3ee','نادر':'#f97316','ملحمي':'#fde68a','أسطوري':'#c084fc'};
+  const rcC={'شائع':'#94a3b8','غير شائع':'#22d3ee','نادر':'#f97316','ملحمي':'#fde68a','أسطوري':'#c084fc','خرافي':'#b90000'};
   POWERS.forEach(pw=>{
     const owned=ownedPowers.includes(pw.id), eqd=equippedPower===pw.id;
     const col=rcC[pw.rarity]||'#c084fc';
@@ -6484,7 +6576,7 @@ function buildPowersGrid(gridId){
     card.className='power-card'+(owned?' owned':'')+(eqd?' equipped-pw':'');
     card.innerHTML=`
       <div class="pw-icon" style="background:linear-gradient(135deg,${pw.color}33,${pw.color2}22);border:2px solid ${pw.color}66">
-        <img src="Player/SKINS/${pw.skinImg}" style="width:48px;height:48px;image-rendering:pixelated">
+        <img src="${pw.imgPath || ('Player/SKINS/'+pw.skinImg)}" style="width:48px;height:48px;image-rendering:pixelated">
       </div>
       <div class="pw-info">
         <span class="pw-name" style="color:${pw.color}">${pw.name}</span>
@@ -6621,13 +6713,13 @@ function runSpin(iconId, nameId, rarityId, btnId, cb){
   playSFX('spin');
   if(el(btnId)) el(btnId).disabled=true;
 
-  const weights=[60,25,10,4,1];
-  let r=Math.random()*100, pw=POWERS[0], cumul=0;
+  const weights=[599,250,100,40,10,1];
+  let r=Math.random()*1000, pw=POWERS[0], cumul=0;
   for(let i=0;i<POWERS.length;i++){ cumul+=weights[i]; if(r<cumul){ pw=POWERS[i]; break; } }
   if(!ownedPowers.includes(pw.id)) ownedPowers.push(pw.id);
   persistAll();
 
-  const rcC={'شائع':'#94a3b8','غير شائع':'#22d3ee','نادر':'#f97316','ملحمي':'#fde68a','أسطوري':'#c084fc'};
+  const rcC={'شائع':'#94a3b8','غير شائع':'#22d3ee','نادر':'#f97316','ملحمي':'#fde68a','أسطوري':'#c084fc','خرافي':'#b90000'};
   let elapsed=0, interval=40;
   const totalDur=1800;
 
@@ -6742,12 +6834,13 @@ function setPlayerAnim(mode){
   if(playerAnimMode===mode) return;
   playerAnimMode=mode; playerAnimFrame=0;
   if(playerAnimIv) clearInterval(playerAnimIv);
-  const frames = mode==='run' ? 8 : 6;
   const skin=getSkin().id;
-  const base = skin==='fire' ? 'Player/Flame' : skin==='green' ? 'Player/G' : skin==='orange' ? 'Player/O' : skin==='red' ? 'Player/R' : skin==='yellow' ? 'Player/Y' : skin==='white' ? 'Player/W' : skin==='water' ? 'Player/WATER' : skin==='wind' ? 'Player/WIND' : skin==='light' ? 'Player/Light' : skin==='shadow' ? 'Player/SHADOW' : 'Player/P';
-  const folder = mode==='run' ? `${base}/RUN/P_1_` : `${base}/IDLE/P_`;
+  const isGodSkin = skin==='god';
+  const frames = mode==='run' ? (isGodSkin?4:8) : 6;
+  const base = skin==='fire' ? 'Player/Flame' : skin==='green' ? 'Player/G' : skin==='orange' ? 'Player/O' : skin==='red' ? 'Player/R' : skin==='yellow' ? 'Player/Y' : skin==='white' ? 'Player/W' : skin==='water' ? 'Player/WATER' : skin==='wind' ? 'Player/WIND' : skin==='light' ? 'Player/Light' : skin==='shadow' ? 'Player/SHADOW' : isGodSkin ? 'VIPS' : 'Player/P';
+  const folder = mode==='run' ? (isGodSkin ? `${base}/RUN/Untitled-8_` : `${base}/RUN/P_1_`) : `${base}/IDLE/P_`;
   playerAnimIv=setInterval(()=>{
-    const sid=getSkin().id; if(sid!=='purple'&&sid!=='fire'&&sid!=='green'&&sid!=='orange'&&sid!=='red'&&sid!=='yellow'&&sid!=='white'&&sid!=='water'&&sid!=='wind'&&sid!=='light'&&sid!=='shadow') return;
+    const sid=getSkin().id; if(sid!=='purple'&&sid!=='fire'&&sid!=='green'&&sid!=='orange'&&sid!=='red'&&sid!=='yellow'&&sid!=='white'&&sid!=='water'&&sid!=='wind'&&sid!=='light'&&sid!=='shadow'&&sid!=='god') return;
     playerAnimFrame=(playerAnimFrame+1)%frames;
     const img=document.getElementById('playerIdleImg');
     if(img) img.src=`${folder}${playerAnimFrame}.png`;
@@ -6786,6 +6879,8 @@ function applyPlayerSkin(){
     p.innerHTML=`<img id="playerIdleImg" src="Player/R/IDLE/P_0.png" style="width:100%;height:100%;image-rendering:pixelated">`;
   } else if(sk.id==='yellow'){
     p.innerHTML=`<img id="playerIdleImg" src="Player/Y/IDLE/P_0.png" style="width:100%;height:100%;image-rendering:pixelated">`;
+  } else if(sk.id==='god'){
+    p.innerHTML=`<img id="playerIdleImg" src="VIPS/IDLE/P_0.png" style="width:100%;height:100%;image-rendering:pixelated">`;
   } else {
     p.textContent=sk.icon;
   }
@@ -6823,14 +6918,14 @@ function startSkinParticles(sk){
 
 function applyActivePower(){
   const sk=getSkin();
-  const elementalIds=['water','wind','fire','light','shadow'];
+  const elementalIds=['water','wind','fire','light','shadow','god'];
   activePower=(elementalIds.includes(sk.abilityDesc) && (!duelMode||coWaveMode))?sk.abilityDesc:null;
   burnEnemies=[]; shadowBots.forEach(b=>{try{b.el.remove();}catch{}}); shadowBots=[];
-  enemyTimeScale=1; shadowUltCD=0; shadowUltActive=false; elemCD=0;
+  enemyTimeScale=1; shadowUltCD=0; shadowUltActive=false; elemCD=0; godUltCD=0; godUltActive=false;
   const gaEl=document.getElementById('gameArea'); if(gaEl) gaEl.classList.remove('time-invert');
   const ebtn=document.getElementById('eBtnM');
   const ub=document.getElementById('ultBar');
-  const showElemUI=(activePower==='wind'||activePower==='shadow')||coWaveMode||((activePower==='water'||activePower==='fire'||activePower==='light')&&!duelMode);
+  const showElemUI=(activePower==='wind'||activePower==='shadow'||activePower==='god')||coWaveMode||((activePower==='water'||activePower==='fire'||activePower==='light')&&!duelMode);
   if(showElemUI && ELEM_META[activePower]){
     const m=ELEM_META[activePower];
     if(ebtn){ ebtn.style.display='flex'; ebtn.textContent=m.icon; ebtn.style.background=m.grad; ebtn.style.boxShadow=`0 0 16px ${m.glow}`; }
@@ -6853,21 +6948,25 @@ let GR=false,paused=false;
 let score=0,lives=3,maxLives=3,combo=1,wave=1,coins_=0,kills=0;
 let _netEnemySeq=1;
 let activePower=null,burnEnemies=[],shadowBots=[];
-let enemyTimeScale=1,shadowUltCD=0,shadowUltActive=false,duelSlowUntil=0;
+let enemyTimeScale=1,shadowUltCD=0,shadowUltActive=false,duelSlowUntil=0,duelFreezeUntil=0;
 const SHADOW_ULT_CD=1800;
-let elemCD=0;
+let elemCD=0,godUltCD=0,godUltActive=false;
+const GOD_ULT_CD=1800;
 const ELEM_CD={water:900,wind:900,fire:1200,light:1500};
 const ELEM_META={
   water:{icon:'💧',grad:'linear-gradient(135deg,#083344,#0891b2)',glow:'rgba(34,211,238,.6)',label:'💧 E — موجة الماء',bar:'linear-gradient(90deg,#083344,#22d3ee)',txt:'#22d3ee'},
   wind:{icon:'🌬️',grad:'linear-gradient(135deg,#334155,#64748b)',glow:'rgba(186,230,253,.6)',label:'🌬️ E — عاصفة الريح',bar:'linear-gradient(90deg,#334155,#bae6fd)',txt:'#bae6fd'},
   fire:{icon:'🔥',grad:'linear-gradient(135deg,#7c2d12,#f97316)',glow:'rgba(249,115,22,.6)',label:'🔥 E — انفجار ناري',bar:'linear-gradient(90deg,#7c2d12,#f97316)',txt:'#f97316'},
   light:{icon:'☀️',grad:'linear-gradient(135deg,#854d0e,#fde047)',glow:'rgba(254,240,138,.7)',label:'☀️ E — ضوء مقدس',bar:'linear-gradient(90deg,#854d0e,#fde047)',txt:'#fde047'},
-  shadow:{icon:'🌑',grad:'linear-gradient(135deg,#1e1b4b,#312e81)',glow:'rgba(99,102,241,.6)',label:'🌑 E — الظل المطلق',bar:'linear-gradient(90deg,#312e81,#818cf8)',txt:'#818cf8'}
+  shadow:{icon:'🌑',grad:'linear-gradient(135deg,#1e1b4b,#312e81)',glow:'rgba(99,102,241,.6)',label:'🌑 E — الظل المطلق',bar:'linear-gradient(90deg,#312e81,#818cf8)',txt:'#818cf8'},
+  god:{icon:'⏳',grad:'linear-gradient(135deg,#1e3a8a,#3b82f6)',glow:'rgba(59,130,246,.6)',label:'⏳ E — الدائرة الزمنية',bar:'linear-gradient(90deg,#1e3a8a,#3b82f6)',txt:'#3b82f6'}
 };
 const DUEL_ULT_SLOW_SCALE=0.06;
 let fid=null,lt=0;
 let px=0,py=0;
 let dashCD=0,DASH_MAX=85,dashing=false,dashVx=0,dashVy=0,dashLeft=0,DASH_DUR=10,dashCDMax=DASH_MAX;
+let godDashCharges=3,godDashRegenQueue=[];
+const GOD_DASH_MAX_CHARGES=3,GOD_DASH_REGEN_MS=60000;
 let runXPGained=0;
 const DUEL_DASH_CD={purple:1200,orange:1200,green:1200,red:1200,yellow:900,white:900,water:900,wind:720,fire:900,light:600,shadow:600};
 let inv=false,invT=0,shootCD=0;
@@ -6979,6 +7078,7 @@ document.getElementById('gameplay').addEventListener('touchstart',e=>{
     tryDash();
     return;
   }
+  if(movementStyle==='keyboard') return;
   e.preventDefault(); joyStart(e);
 },{passive:false});
 document.getElementById('gameplay').addEventListener('touchmove',e=>{
@@ -7006,9 +7106,20 @@ document.getElementById('dashBtnM').addEventListener('touchstart',e=>{
   tryDash();
 },{passive:false});
 document.getElementById('eBtnM').addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();if(GR&&!paused)castAbilityKey();},{passive:false});
+function bindDpadBtn(id,code){
+  const el=document.getElementById(id);
+  el.addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();K[code]=true;},{passive:false});
+  el.addEventListener('touchend',e=>{e.preventDefault();e.stopPropagation();K[code]=false;},{passive:false});
+  el.addEventListener('touchcancel',e=>{e.preventDefault();e.stopPropagation();K[code]=false;},{passive:false});
+}
+bindDpadBtn('dpadUp','ArrowUp');
+bindDpadBtn('dpadDown','ArrowDown');
+bindDpadBtn('dpadLeft','ArrowLeft');
+bindDpadBtn('dpadRight','ArrowRight');
 function castAbilityKey(){
   if(shieldIsGhost) return;
   if(activePower==='shadow') shadowUltimate();
+  else if(activePower==='god') godUltimate();
   else if(activePower==='water'||activePower==='wind'||activePower==='fire'||activePower==='light') castElemAbility();
 }
 
@@ -7024,6 +7135,7 @@ function loop(ts){
   moveCoins(dt); movePups(dt); tickTimers(dt);
   if(bAlive&&bReady&&(!coWaveMode||coWaveIsHost)) tickBoss(dt);
   if(activePower==='shadow') tickShadowBots(dt);
+  if(equippedSkin==='god') tickGodBots(dt);
   checkHits(); refreshHUD();
   mpUpdatePosition();
   fid=requestAnimationFrame(loop);
@@ -7033,6 +7145,7 @@ function loop(ts){
 //  PLAYER MOVEMENT
 // ══════════════════════════════════════════════════════════════
 function movePlayer(dt){
+  if(duelMode && Date.now()<duelFreezeUntil) return;
   let kx=0,ky=0;
   if(K['ArrowUp']||K['KeyW']) ky=-1;
   if(K['ArrowDown']||K['KeyS']) ky=1;
@@ -7041,22 +7154,23 @@ function movePlayer(dt){
   let vx=joyActive?joyVx:kx,vy=joyActive?joyVy:ky;
   if(!joyActive&&vx!==0&&vy!==0){vx*=0.707;vy*=0.707;}
   const isYellow=getSkin().abilityDesc==='speedster';
+  const isGodSpd=getSkin().id==='god';
   const lightBoost=(activePower==='light')?1.4:1;
   const duelSlow=(duelMode && Date.now()<duelSlowUntil)?DUEL_ULT_SLOW_SCALE:1;
   const speedSkillMult=1+((skills.speed||0)*0.02);
-  const spd=(isYellow?6.8:4.8)*(spOn?1.7:1)*lightBoost*duelSlow*speedSkillMult;
+  const spd=(isYellow?6.8:isGodSpd?7.2:4.8)*(spOn?1.7:1)*lightBoost*duelSlow*speedSkillMult;
   const p=PEL();
   if(dashing&&dashLeft>0){
     dashLeft-=dt;
     if(dashVx===0&&dashVy===0) dashing=false;
     else{px+=dashVx*20*dt;py+=dashVy*20*dt;}
     if(Math.random()<0.35) mkGhost();
-    if(dashLeft<=0){dashing=false;if(p)p.style.filter='';if(window._dashAnimIv){clearInterval(window._dashAnimIv);window._dashAnimIv=null;}playerAnimMode='';if(getSkin().id==='purple'||getSkin().id==='fire'||getSkin().id==='green'||getSkin().id==='orange'||getSkin().id==='red'||getSkin().id==='yellow'||getSkin().id==='white'||getSkin().id==='water'||getSkin().id==='wind'||getSkin().id==='light'||getSkin().id==='shadow')setPlayerAnim((vx!==0||vy!==0)?'run':'idle');}
+    if(dashLeft<=0){dashing=false;if(p)p.style.filter='';if(window._dashAnimIv){clearInterval(window._dashAnimIv);window._dashAnimIv=null;}playerAnimMode='';if(getSkin().id==='purple'||getSkin().id==='fire'||getSkin().id==='green'||getSkin().id==='orange'||getSkin().id==='red'||getSkin().id==='yellow'||getSkin().id==='white'||getSkin().id==='water'||getSkin().id==='wind'||getSkin().id==='light'||getSkin().id==='shadow'||getSkin().id==='god')setPlayerAnim((vx!==0||vy!==0)?'run':'idle');}
   } else {
     px+=vx*spd*dt; py+=vy*spd*dt;
     if(vx!==0||vy!==0) lastDir={x:vx,y:vy};
   }
-  if(getSkin().id==='purple'||getSkin().id==='fire'||getSkin().id==='green'||getSkin().id==='orange'||getSkin().id==='red'||getSkin().id==='yellow'||getSkin().id==='white'||getSkin().id==='water'||getSkin().id==='wind'||getSkin().id==='light'||getSkin().id==='shadow'){
+  if(getSkin().id==='purple'||getSkin().id==='fire'||getSkin().id==='green'||getSkin().id==='orange'||getSkin().id==='red'||getSkin().id==='yellow'||getSkin().id==='white'||getSkin().id==='water'||getSkin().id==='wind'||getSkin().id==='light'||getSkin().id==='shadow'||getSkin().id==='god'){
     const img=document.getElementById('playerIdleImg');
     if(img&&vx!==0) img.style.transform=`translate(-50%,-50%) scaleX(${vx<0?-1:1})`;
     if(!dashing) setPlayerAnim((vx!==0||vy!==0)?'run':'idle');
@@ -7071,8 +7185,9 @@ function movePlayer(dt){
 
 function tryDash(){
   if(crownLobbyWaiting || coinsLobbyWaiting || mathMode) return;
+  if(getSkin().id==='god' && duelMode && !coWaveMode){ tryGodDash(); return; }
   if(dashCD>0) return;
-  if(getSkin().id==='shadow'){ shadowDuelTeleport(); return; }
+  if(getSkin().id==='shadow' && duelMode && !coWaveMode){ shadowDuelTeleport(); return; }
   let vx=0,vy=0;
   if(joyActive){vx=joyVx;vy=joyVy;}
   else{
@@ -7131,6 +7246,40 @@ function shadowDuelTeleport(){
   flashFX('rgba(129,140,248,.35)');
   inv=true; invT=15;
   dashCDMax=Math.max(180,DUEL_DASH_CD['shadow']-(skills.dashcd*6)); dashCD=dashCDMax;
+}
+function tryGodDash(){
+  if(godDashCharges<=0) return;
+  godDashCharges--;
+  godDashRegenQueue.push(Date.now()+GOD_DASH_REGEN_MS);
+  playSFX('dash');
+  const fromX=px, fromY=py;
+  for(let i=0;i<5;i++) setTimeout(()=>{
+    const h=document.createElement('div'); h.className='god-dash-halo';
+    h.style.left=(fromX+19)+'px'; h.style.top=(fromY+19)+'px';
+    document.getElementById('gameArea').appendChild(h); setTimeout(()=>h.remove(),500);
+  },i*40);
+  px=Math.max(0,Math.min(AW-38,mx-19));
+  py=Math.max(0,Math.min(AH-38,my-19));
+  const p=PEL();
+  if(p){ p.style.left=px+'px'; p.style.top=py+'px'; p.style.zIndex=Math.floor(py)+10; p.style.filter='brightness(2.5) saturate(2)'; setTimeout(()=>{ if(p) p.style.filter=''; },200); }
+  flashFX('rgba(59,130,246,.35)');
+  inv=true; invT=15;
+  updateGodDashUI();
+}
+function updateGodDashUI(){
+  const now=Date.now();
+  while(godDashRegenQueue.length && godDashRegenQueue[0]<=now){ godDashRegenQueue.shift(); godDashCharges=Math.min(GOD_DASH_MAX_CHARGES,godDashCharges+1); }
+  const lbl=document.querySelector('#dashBar .dash-label');
+  if(lbl) lbl.textContent=`⚡ DASH ${godDashCharges}/${GOD_DASH_MAX_CHARGES}`;
+  const df=document.getElementById('dashFill');
+  if(df){
+    if(godDashCharges>=GOD_DASH_MAX_CHARGES) df.style.width='100%';
+    else{
+      const next=godDashRegenQueue[0];
+      const progress=next?Math.max(0,Math.min(1,1-((next-now)/GOD_DASH_REGEN_MS))):1;
+      df.style.width=(progress*100)+'%';
+    }
+  }
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -7344,7 +7493,7 @@ function triggerBoss(){
     playSFX(_bossVoices[Math.floor(Math.random()*_bossVoices.length)]);
   },5000);
   const _bIdx=Math.min(bossCount,4);
-  BOSS.innerHTML=`<img src="Bosses/${_bIdx}/boss3_0.png" style="width:100%;height:100%;image-rendering:pixelated">`;
+  BOSS.innerHTML=`<img src="Bosses/${_bIdx}/boss3_0.png" style="width:100%;height:100%;object-fit:contain;image-rendering:pixelated">`;
   let _bf=0;
   if(window._bossIv) clearInterval(window._bossIv);
   window._bossIv=setInterval(()=>{
@@ -7457,7 +7606,7 @@ function winWavesGame(){
   GR=false;cancelAnimationFrame(fid);stopBgMusic();stopSkinParticles();
   document.getElementById('gameArea').classList.remove('boss-mode');
   document.querySelectorAll('.bp,.wbot,.sk-particle').forEach(p=>p.remove());
-  wbots=[];shadowBots=[];
+  wbots=[];shadowBots=[];godBots.forEach(b=>{try{clearInterval(b._iv);b.el.remove();}catch{}});godBots=[];
   document.getElementById('boss').style.display='none';
   document.getElementById('bossHpWrap').classList.remove('show');
   document.getElementById('bossChat').classList.remove('show');
@@ -7540,7 +7689,7 @@ function pickupPU(pu){
   showToast(`${emText}${pu.lbl}!`);
   const isGreen=getSkin().abilityDesc==='doublePowerup';
   const pw2=activePower?POWERS.find(p=>p.id===activePower):null;
-  const durMult=(isGreen?2:1)*(pw2?.puMult||1);
+  const durMult=(isGreen?2:1)*(pw2?.puMult||1)*(equippedSkin==='god'?60:1);
   if(pu.type==='shield'){shOn=true;shT=pu.dur*durMult;document.getElementById('shieldRing').style.display='block';}
   if(pu.type==='slow'){slOn=true;slT=pu.dur*durMult;}
   if(pu.type==='magnet'){mgOn=true;mgT=pu.dur*durMult;}
@@ -7562,7 +7711,12 @@ function pickupPU(pu){
 //  TIMERS
 // ══════════════════════════════════════════════════════════════
 function tickTimers(dt){
-  if(dashCD>0){dashCD=Math.max(0,dashCD-dt);document.getElementById('dashFill').style.width=((1-dashCD/dashCDMax)*100)+'%';}
+  if(getSkin().id==='god'){
+    updateGodDashUI();
+  } else {
+    const lbl=document.querySelector('#dashBar .dash-label'); if(lbl && lbl.textContent!=='⚡ DASH') lbl.textContent='⚡ DASH';
+    if(dashCD>0){dashCD=Math.max(0,dashCD-dt);document.getElementById('dashFill').style.width=((1-dashCD/dashCDMax)*100)+'%';}
+  }
   if(shootCD>0)shootCD=Math.max(0,shootCD-dt);
   if(invT>0){invT-=dt;if(invT<=0){inv=false;const p=PEL();if(p)p.classList.remove('invincible');}}
   if(shT>0){shT-=dt;if(shT<=0){shOn=false;document.getElementById('shieldRing').style.display='none';refreshPuBar();}}
@@ -7580,6 +7734,8 @@ function tickTimers(dt){
   }
   // shadow ult
   if(shadowUltCD>0){shadowUltCD=Math.max(0,shadowUltCD-dt);const pct=(1-shadowUltCD/SHADOW_ULT_CD)*100;const uf=document.getElementById('ultFill');if(uf)uf.style.width=pct+'%';const ul=document.getElementById('ultLabel');if(ul)ul.textContent=shadowUltCD>0?Math.ceil(shadowUltCD/60)+'ث...':'جاهز!';}
+  // god ult
+  if(godUltCD>0){godUltCD=Math.max(0,godUltCD-dt);const pct=(1-godUltCD/GOD_ULT_CD)*100;const uf=document.getElementById('ultFill');if(uf)uf.style.width=pct+'%';const ul=document.getElementById('ultLabel');if(ul)ul.textContent=godUltCD>0?Math.ceil(godUltCD/60)+'ث...':'جاهز!';}
   // elemental E abilities
   if(elemCD>0){
     elemCD=Math.max(0,elemCD-dt);
@@ -7639,6 +7795,54 @@ function tickShadowBots(dt){
       if(d<20){if(target.boss){hitBoss();hitBoss();hitBoss();}else if(target.e&&target.e.el.parentNode){kills++;score+=target.e.t.pts*combo;mkBoom(target.e.x+target.e.t.w/2,target.e.y+target.e.t.h/2,'#818cf8',5);target.e.el.remove();enemies=enemies.filter(x=>x!==target.e);checkWaveDone();}b.hp--;if(b.hp<=0){b.el.remove();shadowBots.splice(i,1);}}
     } else { const ang=performance.now()/900+i*2.09,orbitR=55;b.x+=(px+19+Math.cos(ang)*orbitR-b.x)*0.08*dt;b.y+=(py+19+Math.sin(ang)*orbitR-b.y)*0.08*dt; }
     b.el.style.left=b.x+'px';b.el.style.top=b.y+'px';
+  }
+}
+
+// god bots
+let godBots=[];
+function spawnGodBots(){
+  const need=3-godBots.length;
+  for(let i=0;i<need;i++){
+    const el=document.createElement('div');
+    el.style.cssText=`position:absolute;width:34px;height:34px;left:${px+8}px;top:${py+8}px;z-index:9;filter:drop-shadow(0 0 6px rgba(59,130,246,.9))`;
+    el.innerHTML=`<img src="Player/Enemy/LIG/Untitled-0_0.png" style="width:100%;height:100%;image-rendering:pixelated">`;
+    document.getElementById('gameArea').appendChild(el);
+    let _f=0;
+    const _iv=setInterval(()=>{
+      if(!el.parentNode){clearInterval(_iv);return;}
+      _f=(_f+1)%4;
+      const img=el.querySelector('img'); if(img) img.src=`Player/Enemy/LIG/Untitled-0_${_f}.png`;
+    },100);
+    godBots.push({el,x:px+8,y:py+8,kills:0,_iv,orbitOff:(godBots.length+i)*2.09});
+  }
+  showToast('⚡ بوتات إله القوة ظهروا!');
+}
+function killGodBot(b){
+  clearInterval(b._iv); if(b.el.parentNode) b.el.remove();
+  godBots=godBots.filter(x=>x!==b);
+  setTimeout(()=>{ if(equippedSkin==='god'&&GR) spawnGodBots(); },20000);
+}
+function tickGodBots(dt){
+  for(let i=godBots.length-1;i>=0;i--){
+    const b=godBots[i]; if(!b.el.parentNode){godBots.splice(i,1);continue;}
+    let target=null,bestD=Infinity;
+    enemies.forEach(e=>{const d=(e.x+e.t.w/2-b.x)**2+(e.y+e.t.h/2-b.y)**2; if(d<130*130&&d<bestD){bestD=d;target={x:e.x+e.t.w/2,y:e.y+e.t.h/2,e};}});
+    if(bAlive&&bReady){const d=(bx+bSZ/2-b.x)**2+(by+bSZ/2-b.y)**2; if(d<150*150&&d<bestD){bestD=d;target={x:bx+bSZ/2,y:by+bSZ/2,boss:true};}}
+    if(target){
+      const dx=target.x-b.x,dy=target.y-b.y,d=Math.sqrt(dx*dx+dy*dy)||1;
+      b.x+=dx/d*4.5*dt; b.y+=dy/d*4.5*dt;
+      if(d<20){
+        if(target.boss){hitBoss();}
+        else if(target.e&&target.e.el.parentNode){kills++;score+=target.e.t.pts*combo;mkBoom(target.e.x+target.e.t.w/2,target.e.y+target.e.t.h/2,'#3b82f6',5);target.e.el.remove();enemies=enemies.filter(x=>x!==target.e);checkWaveDone();}
+        b.kills++;
+        if(b.kills>=3){killGodBot(b);continue;}
+      }
+    } else {
+      const ang=performance.now()/900+b.orbitOff, orbitR=55;
+      b.x+=(px+19+Math.cos(ang)*orbitR-b.x)*0.08*dt;
+      b.y+=(py+19+Math.sin(ang)*orbitR-b.y)*0.08*dt;
+    }
+    b.el.style.left=b.x+'px'; b.el.style.top=b.y+'px';
   }
 }
 
@@ -7710,6 +7914,41 @@ function shadowUltimate(){
   }
   setTimeout(()=>{enemyTimeScale=1;shadowUltActive=false;if(gaEl) gaEl.classList.remove('time-invert');showToast('🌑 عاد الزمن...');},8000);
 }
+function godUltimate(){
+  if(crownLobbyWaiting) return;
+  if(activePower!=='god'||godUltCD>0) return;
+  godUltCD=GOD_ULT_CD;godUltActive=true;
+  shakeScreen(14,500);
+  playSFX('dom');
+  showToast('⏳ الدائرة الزمنية! الكل متجمد... 10ث');
+  spawnGodTimeWave();
+  enemyTimeScale=0;
+  enemies.forEach(e=>{ if(e.el) spawnFreezeRing(e.el); });
+  if(duelMode && mpPlayerRef){
+    mpPlayerRef.update({ godUltCastAt: Date.now() });
+  }
+  for(let i=0;i<3;i++) setTimeout(()=>{ shootCD=0; shoot(); }, i*120);
+  setTimeout(()=>{
+    enemyTimeScale=1; godUltActive=false;
+    document.querySelectorAll('.time-freeze-ring').forEach(r=>r.remove());
+    showToast('⏳ عاد الزمن...');
+  },10000);
+}
+function spawnGodTimeWave(){
+  const GA=document.getElementById('gameArea'); if(!GA) return;
+  const cx=px+19, cy=py+19;
+  for(let i=0;i<3;i++) setTimeout(()=>{
+    const w=document.createElement('div'); w.className='god-timewave';
+    w.style.left=cx+'px'; w.style.top=cy+'px';
+    GA.appendChild(w); setTimeout(()=>w.remove(),900);
+  },i*120);
+}
+function spawnFreezeRing(hostEl){
+  if(!hostEl) return;
+  const r=document.createElement('div'); r.className='time-freeze-ring';
+  hostEl.appendChild(r);
+  setTimeout(()=>{ if(r&&r.parentNode) r.remove(); },10000);
+}
 
 // ══════════════════════════════════════════════════════════════
 //  COLLISIONS
@@ -7776,10 +8015,12 @@ function refreshHUD(){
 }
 function updateHearts(){
   const sk=getSkin();
+  const isGod=equippedSkin==='god';
   const isShadow=(sk.abilityDesc==='shadow')||(activePower==='shadow');
   const isRed=(sk.abilityDesc==='extraHeart')||(equippedSkin==='red');
   for(let i=1;i<=5;i++){const el=document.getElementById('h'+i+'s');if(el){el.style.display=isShadow?'inline':'none';el.classList.toggle('lost',i>lives);}}
-  for(let i=1;i<=4;i++){const el=document.getElementById('h'+i+'r');if(el){el.style.display=(!isShadow&&(i<=3||isRed))?'inline':'none';el.classList.toggle('lost',i>lives);}}
+  for(let i=1;i<=4;i++){const el=document.getElementById('h'+i+'r');if(el){el.style.display=(!isShadow&&!isGod&&(i<=3||isRed))?'inline':'none';el.classList.toggle('lost',i>lives);}}
+  for(let i=1;i<=7;i++){const el=document.getElementById('h'+i+'g');if(el){el.style.display=isGod?'inline':'none';el.classList.toggle('lost',i>lives);}}
 }
 function refreshPuBar(){puCD=0;_buildPB();}
 function _buildPB(){
@@ -7803,10 +8044,10 @@ function addPill(em,lbl,col,pct){
 function startGame(){
   applyActivePower();
   const sk=getSkin();
-  maxLives=activePower==='shadow'?5:(sk.abilityDesc==='extraHeart'||equippedSkin==='red')?4:3;
+  maxLives=equippedSkin==='god'?7:activePower==='shadow'?5:(sk.abilityDesc==='extraHeart'||equippedSkin==='red')?4:3;
   lives=maxLives;score=0;combo=1;wave=1;coins_=0;kills=0;bossCount=0;runXPGained=0;
   _sc=_co=_wv=_cn=_kl=-1;
-  dashCD=0;dashing=false;dashLeft=0;inv=false;invT=0;shootCD=0;
+  dashCD=0;dashing=false;dashLeft=0;godDashCharges=GOD_DASH_MAX_CHARGES;godDashRegenQueue=[];inv=false;invT=0;shootCD=0;
   shOn=false;shT=0;slOn=false;slT=0;mgOn=false;mgT=0;spOn=false;spT=0;muOn=false;muT=0;x2On=false;x2T=0;
   shadowUltCD=0;shadowUltActive=false;enemyTimeScale=1;
   { const gaEl=document.getElementById('gameArea'); if(gaEl) gaEl.classList.remove('time-invert'); }
@@ -7814,6 +8055,7 @@ function startGame(){
   wSpawned=0;wTarget=8;wActive=false;storyPaused=false;
   bAlive=false;bReady=false;bMT=0;bST=0;bSZ=88;
   burnEnemies=[];shadowBots.forEach(b=>{try{b.el.remove();}catch{}});shadowBots=[];
+  godBots.forEach(b=>{try{clearInterval(b._iv);b.el.remove();}catch{}});godBots=[];
   document.querySelectorAll('.enemy,.coin,.powerup,.dash-ghost,.particle,.float-text,.bullet,.ebullet,.bp,.wbot,.sk-particle').forEach(el=>el.remove());
   enemies=[];coins=[];pups=[];bullets=[];ebullets=[];wbots=[];
   document.getElementById('boss').style.display='none';
@@ -7828,6 +8070,7 @@ function startGame(){
   document.getElementById('shootBtnM').style.display='';
   const p=PEL();if(p){p.style.filter='';p.className='';}
   applyPlayerSkin();updateHearts();cacheArena();
+  if(equippedSkin==='god') spawnGodBots();
   px=AW/2-19;py=AH/2-19;if(p){p.style.left=px+'px';p.style.top=py+'px';}
   document.getElementById('hud').style.display='';
   document.getElementById('waveBanner').style.display='';
@@ -7838,7 +8081,7 @@ function startGame(){
 
 function startDuelGame(){
   score=0;combo=1;wave=1;coins_=0;kills=0;bossCount=0;
-  dashCD=0;dashing=false;dashLeft=0;inv=false;invT=0;shootCD=0;
+  dashCD=0;dashing=false;dashLeft=0;godDashCharges=GOD_DASH_MAX_CHARGES;godDashRegenQueue=[];inv=false;invT=0;shootCD=0;
   shOn=false;shT=0;slOn=false;slT=0;mgOn=false;mgT=0;spOn=false;spT=0;muOn=false;muT=0;
   wActive=false;bAlive=false;bReady=false;
   document.querySelectorAll('.enemy,.coin,.powerup,.dash-ghost,.particle,.float-text,.bullet,.ebullet,.bp,.wbot,.sk-particle').forEach(el=>el.remove());
@@ -7874,7 +8117,7 @@ function endGame(){
   GR=false;cancelAnimationFrame(fid);stopBgMusic();stopSkinParticles();
   document.getElementById('gameArea').classList.remove('boss-mode');
   document.querySelectorAll('.bp,.wbot,.sk-particle').forEach(p=>p.remove());
-  wbots=[];shadowBots=[];
+  wbots=[];shadowBots=[];godBots.forEach(b=>{try{clearInterval(b._iv);b.el.remove();}catch{}});godBots=[];
   document.getElementById('boss').style.display='none';
   document.getElementById('bossHpWrap').classList.remove('show');
   document.getElementById('bossChat').classList.remove('show');
