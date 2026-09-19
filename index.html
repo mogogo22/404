@@ -476,7 +476,7 @@ body::before {
 .skin-card.owned { border-color:rgba(34,197,94,.5); }
 .skin-card.equipped { border-color:#C200FB; background:rgba(194,0,251,.07); box-shadow:0 0 14px rgba(194,0,251,.2); }
 .skin-card:hover:not(.equipped) { border-color:rgba(194,0,251,.5); }
-.skin-preview { width:44px; height:44px; margin:0 auto 7px; display:flex; align-items:center; justify-content:center; font-size:20px; }
+.skin-preview { width:68px; height:68px; margin:0 auto 7px; display:flex; align-items:center; justify-content:center; font-size:20px; }
 .skin-name { font-family:var(--font-px); font-size:7px; margin-bottom:4px; }
 .skin-ability { font-size:9px; color:#7888a8; line-height:1.4; margin-bottom:6px; }
 .skin-badge { position:absolute; top:5px; left:5px; font-size:7px; font-weight:900; padding:2px 5px; }
@@ -502,12 +502,15 @@ body::before {
 }
 .spin-btn:hover { box-shadow:0 0 30px rgba(168,85,247,.7); }
 .spin-btn:disabled { opacity:.4; cursor:default; }
+.spin-odds{ display:flex; flex-wrap:wrap; justify-content:center; gap:6px; margin-top:10px; margin-bottom:4px; }
+.spin-odds span{ font-size:8px; font-family:var(--font-ar); background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); padding:4px 8px; border-radius:20px; white-space:nowrap; }
 #spinDisplay {
-  height:90px; background:#000; border:2px solid rgba(194,0,251,.4);
+  height:130px; background:#000; border:2px solid rgba(194,0,251,.4);
   margin-bottom:10px; display:flex; align-items:center; justify-content:center;
   flex-direction:column; position:relative; overflow:hidden;
 }
 #spinIcon  { font-size:32px; line-height:1; }
+#spinIcon img { width:88px!important; height:88px!important; object-fit:contain; image-rendering:pixelated; }
 #spinName  { font-family:var(--font-px); font-size:9px; color:#fff; margin-top:5px; letter-spacing:1px; }
 #spinRarity{ font-size:6px; font-family:var(--font-px); color:#7888a8; margin-top:3px; letter-spacing:2px; }
 .power-card {
@@ -608,6 +611,11 @@ header {
   overflow:hidden; cursor:none; background:var(--night2);
 }
 #gameArea.time-invert { filter:invert(1) hue-rotate(180deg); transition:filter .3s; }
+.infected-glow .mp-body, #player.infected-glow img { animation:infectedPulse .6s ease-in-out infinite; }
+@keyframes infectedPulse {
+  0%,100%{ filter:drop-shadow(0 0 8px #ef4444) drop-shadow(0 0 14px #b91c1c) saturate(1.6); }
+  50%{ filter:drop-shadow(0 0 14px #dc2626) drop-shadow(0 0 26px #7f1d1d) saturate(2.2); }
+}
 #gameBg {
   position:absolute; inset:0; pointer-events:none; z-index:0;
   background-image:linear-gradient(rgba(194,0,251,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(194,0,251,.04) 1px,transparent 1px);
@@ -1217,6 +1225,7 @@ body.mirror-controls #dpadZone { right:auto; left:14px; }
 }
 @keyframes chatSlideUpMobile{ from{opacity:0;transform:translateY(24px);} to{opacity:1;transform:translateY(0);} }
 @media(pointer:coarse) and (orientation:landscape){
+  header{ flex-direction:row-reverse; }
   #chatToggleBtn{ top:8px; right:6px; }
   #inviteFriendBtn{ top:8px; right:60px; }
   #micToggleBtn{ top:8px; right:114px; }
@@ -1657,9 +1666,6 @@ body.mirror-controls #dpadZone { right:auto; left:14px; }
     <div id="tabBoards" style="display:none"><div class="skins-grid" id="boardsGrid"></div></div>
     <div id="tabPowers" style="display:none">
       <div class="spin-area">
-        <div style="font-size:9px;font-family:var(--font-ar);color:#94a3b8;margin-bottom:8px;line-height:1.9;text-align:center">
-          💧 الماء 60% &nbsp;•&nbsp; 🌪️ الريح 25% &nbsp;•&nbsp; 🔥 النار 10% &nbsp;•&nbsp; ✨ الضوء 4% &nbsp;•&nbsp; 👤 الظل 1%
-        </div>
         <button class="spin-btn" id="spinBtn" onclick="doSpin()">
           🎰 ELEMENTAL SPIN
           <span style="display:block;font-size:6px;color:#c084fc;margin-top:3px;font-family:var(--font-ar)">التكلفة: 5 جواهر 💎 — لديك: <span id="spinGemsCount">0</span></span>
@@ -1668,6 +1674,14 @@ body.mirror-controls #dpadZone { right:auto; left:14px; }
           <div id="spinIcon">🎲</div>
           <div id="spinName">???</div>
           <div id="spinRarity"></div>
+        </div>
+        <div class="spin-odds">
+          <span style="color:#22d3ee">💧 الماء 59.9%</span>
+          <span style="color:#bae6fd">🌪️ الريح 25%</span>
+          <span style="color:#f97316">🔥 النار 10%</span>
+          <span style="color:#fde68a">✨ الضوء 4%</span>
+          <span style="color:#818cf8">👤 الظل 1%</span>
+          <span style="color:#3b82f6">⚡ إله القوة 0.1%</span>
         </div>
       </div>
       <div id="powersGrid"></div>
@@ -1734,6 +1748,16 @@ body.mirror-controls #dpadZone { right:auto; left:14px; }
     </div>
     <input type="hidden" id="roomMaxSelect" value="4">
 
+    <div class="setting-label" id="roomDurationLabel" style="margin:18px 0 10px;display:none">⏱️ مدة المباراة</div>
+    <div class="room-max-grid" id="roomDurationGrid" style="display:none">
+      <button type="button" class="room-max-pill" data-val="1" onclick="selectMatchDuration(1)">1️⃣<span>دقيقة</span></button>
+      <button type="button" class="room-max-pill selected" data-val="2" onclick="selectMatchDuration(2)">2️⃣<span>دقيقتين</span></button>
+      <button type="button" class="room-max-pill" data-val="3" onclick="selectMatchDuration(3)">3️⃣<span>3 دقايق</span></button>
+      <button type="button" class="room-max-pill" data-val="4" onclick="selectMatchDuration(4)">4️⃣<span>4 دقايق</span></button>
+      <button type="button" class="room-max-pill" data-val="5" onclick="selectMatchDuration(5)">5️⃣<span>5 دقايق</span></button>
+    </div>
+    <input type="hidden" id="roomDurationSelect" value="2">
+
     <button class="play-btn room-create-submit" id="roomCreateSubmitBtn" onclick="submitCreateRoom()" style="display:none">🚀 إنشاء الغرفة</button>
   </div>
 </div>
@@ -1763,6 +1787,19 @@ body.mirror-controls #dpadZone { right:auto; left:14px; }
 <div id="crownScoreHud" style="position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:600;background:rgba(0,13,8,.85);border:1px solid #facc15;border-radius:12px;padding:9px 20px;font-family:var(--font-ar);color:#fff;font-size:clamp(13px,3vw,17px);line-height:1.6;text-align:center;max-width:80vw;box-shadow:0 0 14px rgba(250,204,21,.25);display:none">
   <div>⏱ <span id="crownTimeLeft">2:00</span></div>
   <div>👑 <span id="crownMyScore">0</span> نقطة</div>
+</div>
+
+<!-- ══ INFECTED GAME UI ══ -->
+<div id="infectedLobbyScreen" style="position:fixed;top:96px;left:50%;transform:translateX(-50%);z-index:600;background:rgba(0,13,8,.88);border:1px solid #ef4444;border-radius:10px;padding:8px 20px;text-align:center;pointer-events:none;display:none">
+  <div style="font-family:var(--font-px);font-size:9px;color:#ef4444;letter-spacing:1px;margin-bottom:4px">🦠 العدوى</div>
+  <div id="infectedLobbyStatus" style="font-family:var(--font-ar);color:#fff;font-size:12px">مستني لاعبين...</div>
+  <div id="infectedCountdownNum" style="font-family:var(--font-px);font-size:26px;color:#ef4444;display:none;margin-top:2px">10</div>
+</div>
+
+<div id="infectedStatusHud" style="position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:600;background:rgba(0,13,8,.85);border:1px solid #ef4444;border-radius:12px;padding:9px 20px;font-family:var(--font-ar);color:#fff;font-size:clamp(13px,3vw,17px);line-height:1.6;text-align:center;max-width:80vw;box-shadow:0 0 14px rgba(239,68,68,.3);display:none">
+  <div>⏱ <span id="infectedTimeLeft">2:00</span></div>
+  <div id="infectedMyStatus" style="color:#4ade80">🟢 سليم — اهرب!</div>
+  <div>🧟 مصابين: <span id="infectedCount">0</span> / <span id="infectedTotalCount">0</span></div>
 </div>
 
 <!-- ══ COINS GAME UI ══ -->
@@ -1795,6 +1832,31 @@ body.mirror-controls #dpadZone { right:auto; left:14px; }
     <button class="math-choice-btn" id="mathChoiceBtn1" onclick="answerMathQuestion(1)"></button>
     <button class="math-choice-btn" id="mathChoiceBtn2" onclick="answerMathQuestion(2)"></button>
   </div>
+</div>
+
+<!-- ══ HIDE THE FILE GAME UI ══ -->
+<div id="hidefileLobbyScreen" style="position:fixed;top:96px;left:50%;transform:translateX(-50%);z-index:600;background:rgba(0,13,8,.88);border:1px solid #38bdf8;border-radius:10px;padding:8px 20px;text-align:center;pointer-events:none;display:none">
+  <div style="font-family:var(--font-px);font-size:9px;color:#38bdf8;letter-spacing:1px;margin-bottom:4px">🗂️ اخفاء الملف</div>
+  <div id="hidefileLobbyStatus" style="font-family:var(--font-ar);color:#fff;font-size:12px">مستني لاعبين...</div>
+  <div id="hidefileCountdownNum" style="font-family:var(--font-px);font-size:26px;color:#38bdf8;display:none;margin-top:2px">10</div>
+</div>
+
+<div id="hidefileStatusHud" style="position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:600;background:rgba(0,13,8,.85);border:1px solid #38bdf8;border-radius:12px;padding:9px 20px;font-family:var(--font-ar);color:#fff;font-size:clamp(12px,2.8vw,16px);line-height:1.6;text-align:center;max-width:85vw;box-shadow:0 0 14px rgba(56,189,248,.25);display:none">
+  <div id="hidefileMyRole" style="color:#38bdf8">🔎 انت باحث</div>
+  <div id="hidefileTimerRow" style="display:none">⏱ <span id="hidefileTimeLeft">2:00</span></div>
+  <div id="hidefileHeatText" style="display:none;margin-top:2px">🧊 بعيد</div>
+</div>
+
+<div id="hidefileBlindOverlay" style="position:fixed;inset:0;z-index:590;background:rgba(0,4,2,.94);display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;pointer-events:none">
+  <div style="font-size:40px;margin-bottom:10px">🙈</div>
+  <div style="font-family:var(--font-ar);color:#fff;font-size:15px">حد بيخبي الملف دلوقتي... متبصش!</div>
+  <div id="hidefileHideCountdown" style="font-family:var(--font-px);font-size:22px;color:#38bdf8;margin-top:8px">8</div>
+</div>
+
+<div id="hidefileHiderBox" style="position:fixed;bottom:150px;left:50%;transform:translateX(-50%);z-index:600;background:rgba(0,13,8,.93);border:2px solid #38bdf8;border-radius:16px;padding:12px 16px;text-align:center;min-width:230px;box-shadow:0 0 20px rgba(56,189,248,.3);display:none">
+  <div style="font-family:var(--font-ar);color:#fff;font-size:13px;margin-bottom:8px">🗂️ روح لمكان واستخبى فيه، وبعدين دوس على الزرار</div>
+  <button class="math-choice-btn" style="width:100%;border-color:#38bdf8;background:rgba(56,189,248,.12)" onclick="hidefileConfirmHideSpot()">📌 اخبي الملف هنا</button>
+  <div style="font-family:var(--font-ar);color:#7888a8;font-size:10px;margin-top:6px">هيتخبي تلقائي خلال <span id="hidefileHideCountdown2">8</span>ث</div>
 </div>
 
 <!-- ══ SHIELD BOMB GAME UI ══ -->
@@ -1968,9 +2030,6 @@ body.mirror-controls #dpadZone { right:auto; left:14px; }
       <div id="tabSkins2"><div class="skins-grid" id="skinsGrid2"></div></div>
       <div id="tabBoards2" style="display:none"><div class="skins-grid" id="boardsGrid2"></div></div>
       <div id="tabPowers2" style="display:none">
-        <div style="font-size:9px;font-family:var(--font-ar);color:#94a3b8;margin-bottom:8px;line-height:1.9;text-align:center">
-          💧 الماء 60% &nbsp;•&nbsp; 🌪️ الريح 25% &nbsp;•&nbsp; 🔥 النار 10% &nbsp;•&nbsp; ✨ الضوء 4% &nbsp;•&nbsp; 👤 الظل 1%
-        </div>
         <button class="spin-btn" id="spinBtn2" onclick="doSpin2()">
           🎰 ELEMENTAL SPIN
           <span style="display:block;font-size:6px;color:#c084fc;margin-top:3px;font-family:var(--font-ar)">التكلفة: 5 جواهر 💎 — لديك: <span id="spinGemsCount2">0</span></span>
@@ -1978,6 +2037,14 @@ body.mirror-controls #dpadZone { right:auto; left:14px; }
         <div id="spinDisplay2" style="height:80px;background:#000;border:2px solid rgba(194,0,251,.4);margin-bottom:10px;display:flex;align-items:center;justify-content:center;flex-direction:column;position:relative;overflow:hidden">
           <div id="spinIcon2">🎲</div>
           <div id="spinName2" style="font-family:var(--font-px);font-size:9px;color:#fff;margin-top:5px">???</div>
+        </div>
+        <div class="spin-odds">
+          <span style="color:#22d3ee">💧 الماء 59.9%</span>
+          <span style="color:#bae6fd">🌪️ الريح 25%</span>
+          <span style="color:#f97316">🔥 النار 10%</span>
+          <span style="color:#fde68a">✨ الضوء 4%</span>
+          <span style="color:#818cf8">👤 الظل 1%</span>
+          <span style="color:#3b82f6">⚡ إله القوة 0.1%</span>
         </div>
         <div id="powersGrid2"></div>
       </div>
@@ -2103,13 +2170,15 @@ let mpOwnerCmdRef = null;
   let mpPlayersListenerRef = null;
   let mpMyPlayerListenerRef = null;
   const MINI_GAMES = [
-    { id:'crown', name:'تاج الملك',  img:'MiniGames/crown.png', players:[2,3,4,5,6,7,8,9,10], color:'#facc15', glow:'rgba(250,204,21,.35)' },
+  { id:'crown', name:'تاج الملك',  img:'MiniGames/crown.png', players:[2,3,4,5,6,7,8,9,10], color:'#facc15', glow:'rgba(250,204,21,.35)' },
+    { id:'infected', name:'العدوى', icon:'🦠', players:[2,3,4,5,6,7,8,9,10], color:'#ef4444', glow:'rgba(239,68,68,.4)' },
     { id:'coins', name:'العملات',    img:'MiniGames/red.png', players:[4,6,8,10], color:'#f59e0b', glow:'rgba(245,158,11,.35)' },
     { id:'duel',  name:'أوضة الدردشة', icon:'🎤', players:[4,6,8,10], color:'#c200fb', glow:'rgba(194,0,251,.35)' },
     { id:'math',  name:'اختبار الحساب', icon:'🧮', players:[2,3,4,5,6,7,8,9,10], color:'#22c55e', glow:'rgba(34,197,94,.35)' },
     { id:'shield', name:'قنبلة الدروع', img:'Player/E/BOMB.png', players:[2,3,4,5,6,7,8,9,10], color:'#ef4444', glow:'rgba(239,68,68,.4)' },
+    { id:'hidefile', name:'اخفاء الملف', icon:'🗂️', players:[2,3,4,5,6,7,8,9,10], color:'#38bdf8', glow:'rgba(56,189,248,.4)' },
   ];
-  const MG_ICON = { crown:'👑', coins:'🪙', duel:'🎤', math:'🧮', shield:'💣' };
+  const MG_ICON = { crown:'👑', coins:'🪙', duel:'🎤', math:'🧮', shield:'💣', infected:'🦠', hidefile:'🗂️' };
   let selectedMiniGame = null;
   let roomsListenerRef = null;
   let mpChatRef = null;
@@ -2220,6 +2289,8 @@ let mpOwnerCmdRef = null;
     document.getElementById('roomMaxLockNote').classList.add('show');
     document.getElementById('roomMaxGrid').classList.add('locked');
     document.getElementById('roomMaxGrid').innerHTML = '';
+    document.getElementById('roomDurationLabel').style.display = 'none';
+    document.getElementById('roomDurationGrid').style.display = 'none';
     document.getElementById('roomCreateSubmitBtn').style.display = 'none';
     resetRoomSteps();
   }
@@ -2277,6 +2348,10 @@ let mpOwnerCmdRef = null;
       `).join('');
       document.getElementById('roomMaxSelect').value = selectedMiniGame.players[0];
     }
+    const timedGames = ['crown','coins','math','infected','hidefile'];
+    document.getElementById('roomDurationLabel').style.display = timedGames.includes(id) ? 'block' : 'none';
+    document.getElementById('roomDurationGrid').style.display = timedGames.includes(id) ? 'grid' : 'none';
+    selectMatchDuration(2);
     maxGrid.classList.remove('locked');
     document.getElementById('roomMaxLockNote').classList.remove('show');
     document.getElementById('roomCreateSubmitBtn').style.display = 'block';
@@ -2291,7 +2366,13 @@ let mpOwnerCmdRef = null;
   }
   function selectMaxPlayers(n){
     document.getElementById('roomMaxSelect').value = n;
-    document.querySelectorAll('.room-max-pill').forEach(btn=>{
+    document.querySelectorAll('#roomMaxGrid .room-max-pill').forEach(btn=>{
+      btn.classList.toggle('selected', parseInt(btn.dataset.val,10) === n);
+    });
+  }
+  function selectMatchDuration(n){
+    document.getElementById('roomDurationSelect').value = n;
+    document.querySelectorAll('#roomDurationGrid .room-max-pill').forEach(btn=>{
       btn.classList.toggle('selected', parseInt(btn.dataset.val,10) === n);
     });
   }
@@ -2302,9 +2383,10 @@ let mpOwnerCmdRef = null;
     const maxSel = document.getElementById('roomMaxSelect');
     const name = (nameInp.value || '').trim() || 'غرفة بدون اسم';
     const maxP = parseInt(maxSel.value, 10) || selectedMiniGame.players[0];
+    const durMin = Math.max(1, Math.min(5, parseInt(document.getElementById('roomDurationSelect').value, 10) || 2));
     const roomRef = mpDb.ref('duelRooms').push();
     const roomId = roomRef.key;
-    roomRef.set({ name, maxPlayers: maxP, game: selectedMiniGame.id, ownerId: mpPlayerId, ownerName: playerName || 'لاعب', playerCount: 1, createdAt: Date.now() })
+    roomRef.set({ name, maxPlayers: maxP, matchDuration: durMin*60000, game: selectedMiniGame.id, ownerId: mpPlayerId, ownerName: playerName || 'لاعب', playerCount: 1, createdAt: Date.now() })
       .then(()=>{ closeCreateRoom(); closeDuelsList(); nameInp.value=''; joinDuelRoom(roomId, true); });
   }
   function showGenericConfirm(text, onYes){
@@ -2342,14 +2424,15 @@ function ownerDeleteRoom(roomId){
 }
   // ------------ الانضمام لغرفة ------------
   // ══ CROWN GAME STATE ══
-  let crownRoomId = null, crownMaxPlayers = 4, crownRoomRef = null, crownStateRef = null, crownIsHost = false;
+  let crownRoomId = null, crownMaxPlayers = 4, crownMatchDuration = 120000, crownRoomRef = null, crownStateRef = null, crownIsHost = false;
   let crownListener = null, crownCountdownIv = null, crownLobbyWaiting = false, crownCountdownStarted = false;
   let activeMiniGameType = null;
 
-  function startCrownGame(roomId, maxPlayers){
+  function startCrownGame(roomId, maxPlayers, matchDuration){
     activeMiniGameType = 'crown';
     crownRoomId = roomId;
     crownMaxPlayers = maxPlayers;
+    crownMatchDuration = matchDuration || 120000;
     crownRoomRef = mpDb.ref('duelRooms/' + roomId);
     crownStateRef = mpDb.ref('rooms/' + roomId + '/crown');
     crownIsHost = isRoomOwner;
@@ -2507,7 +2590,7 @@ function ownerDeleteRoom(roomId){
     if(el && cx !== undefined){ el.style.left = (cx+3)+'px'; el.style.top = (cy-26)+'px'; }
 
     const elapsed = Date.now() - (crownLive.gameStart || Date.now());
-    const left = Math.max(0, 120000 - elapsed);
+    const left = Math.max(0, crownMatchDuration - elapsed);
     const mm = Math.floor(left/60000), ss = Math.floor((left%60000)/1000);
     const tEl = document.getElementById('crownTimeLeft');
     if(tEl) tEl.textContent = mm+':'+String(ss).padStart(2,'0');
@@ -2520,7 +2603,7 @@ function ownerDeleteRoom(roomId){
   function crownHostTick(){
     if(!crownLive || crownLive.state !== 'playing') return;
     const now = Date.now();
-    if(now - (crownLive.gameStart||now) >= 120000){
+    if(now - (crownLive.gameStart||now) >= crownMatchDuration){
       clearInterval(crownHostIv); crownHostIv = null;
       crownEndGame();
       return;
@@ -2742,18 +2825,333 @@ function ownerDeleteRoom(roomId){
   }
 
   // ══════════════════════════════════════════════════════════════
+  //  INFECTED MINI-GAME (العدوى)
+  // ══════════════════════════════════════════════════════════════
+  let infectedRoomId=null, infectedMaxPlayers=4, infectedMatchDuration=120000, infectedRoomRef=null, infectedStateRef=null, infectedIsHost=false;
+  let infectedListener=null, infectedCountdownIv=null, infectedLobbyWaiting=false, infectedCountdownStarted=false;
+  let infectedLive=null, infectedPlayingInited=false, infectedRenderFid=null, infectedHostIv=null, infectedSoloEndTriggered=false;
+  let infectedRewardApplied=false, infectedEndedShown=false;
+  let infectedIAmInfected=false, infectedSpeedMult=1;
+
+  function startInfectedGame(roomId, maxPlayers, matchDuration){
+    activeMiniGameType = 'infected';
+    infectedRoomId = roomId;
+    infectedMaxPlayers = maxPlayers;
+    infectedMatchDuration = matchDuration || 120000;
+    infectedRoomRef = mpDb.ref('duelRooms/' + roomId);
+    infectedStateRef = mpDb.ref('rooms/' + roomId + '/infected');
+    infectedIsHost = isRoomOwner;
+    infectedIAmInfected = false; infectedSpeedMult = 1;
+
+    document.querySelectorAll('.enemy,.coin,.powerup,.dash-ghost,.particle,.float-text,.bullet,.ebullet,.bp,.wbot,.sk-particle').forEach(el=>el.remove());
+    enemies=[];coins=[];pups=[];bullets=[];ebullets=[];wbots=[];
+    document.getElementById('boss').style.display='none';
+    document.getElementById('bossHpWrap').classList.remove('show');
+    wActive=false;bAlive=false;bReady=false;
+
+    document.getElementById('hud').style.display = 'none';
+    document.getElementById('gameArea').classList.remove('arena-waves');
+    document.getElementById('gameArea').classList.add('arena-duel');
+    hideAllGScreens();
+    cacheArena();
+    applyPlayerSkin();
+    px = AW/2 - 19; py = AH/2 - 19;
+    const p = PEL(); if(p){ p.style.left = px+'px'; p.style.top = py+'px'; p.classList.remove('infected-glow'); }
+    GR = true; paused = false;
+    lt = performance.now();
+    fid = requestAnimationFrame(ts=>{ lt=ts; loop(ts); });
+
+    document.getElementById('infectedLobbyScreen').style.display = 'block';
+    document.getElementById('infectedLobbyStatus').textContent = 'مستني لاعبين...';
+    infectedLobbyWaiting = true;
+    infectedCountdownStarted = false;
+    playBgMusic('duel');
+
+    infectedRoomRef.child('playerCount').on('value', snap=>{
+      if(!infectedLobbyWaiting || infectedCountdownStarted) return;
+      const count = snap.val() || 1;
+      const st = document.getElementById('infectedLobbyStatus');
+      if(st) st.textContent = `مستني لاعبين... (${count}/${infectedMaxPlayers})`;
+      if(count >= infectedMaxPlayers && infectedIsHost){
+        infectedStateRef.once('value').then(s=>{
+          if(!s.val() || s.val().state === 'lobby'){
+            infectedStateRef.set({ state:'countdown', countdownStart: firebase.database.ServerValue.TIMESTAMP });
+          }
+        });
+      }
+    });
+
+    infectedListener = infectedStateRef.on('value', snap=>{
+      const st = snap.val();
+      if(!st) return;
+      if(st.state === 'countdown') infectedRunCountdown(st.countdownStart);
+      else if(st.state === 'playing') infectedEnterPlaying(st);
+      else if(st.state === 'ended') infectedShowStage(st);
+    });
+  }
+
+  function infectedRunCountdown(startTs){
+    document.getElementById('infectedLobbyStatus').textContent = 'كلهم جاهزين! هنبدأ خلال:';
+    infectedCountdownStarted = true;
+    const numEl = document.getElementById('infectedCountdownNum');
+    numEl.style.display = 'block';
+    if(infectedCountdownIv) clearInterval(infectedCountdownIv);
+    let lastShown = null;
+    infectedCountdownIv = setInterval(()=>{
+      const now = Date.now();
+      const base = startTs || now;
+      const elapsed = Math.max(0, now - base);
+      const left = Math.max(0, 10 - Math.floor(elapsed/1000));
+      if(left !== lastShown){
+        lastShown = left;
+        numEl.textContent = left;
+        playClick();
+      }
+      if(left <= 0){
+        clearInterval(infectedCountdownIv);
+        if(infectedIsHost){
+          infectedStartMatch();
+        }
+      }
+    }, 250);
+  }
+
+  function infectedStartMatch(){
+    const ids = [mpPlayerId, ...Object.keys(mpOtherPlayers).filter(id=>id!==mpPlayerId)];
+    if(ids.length === 0) return;
+    const patientZero = ids[Math.floor(Math.random()*ids.length)];
+    const infected = {}; infected[patientZero] = true;
+    infectedStateRef.set({
+      state: 'playing',
+      gameStart: Date.now(),
+      infected,
+      infectedOrder: [patientZero],
+      lastTagAt: 0
+    });
+  }
+
+  function infectedEnterPlaying(st){
+    infectedLive = st;
+    if(infectedPlayingInited) return;
+    infectedPlayingInited = true;
+    infectedLobbyWaiting = false;
+    playBgMusic('boss', 0.7);
+    document.getElementById('infectedLobbyScreen').style.display = 'none';
+    document.getElementById('infectedStatusHud').style.display = 'block';
+    infectedRenderLoop();
+    if(infectedIsHost){
+      infectedHostIv = setInterval(infectedHostTick, 90);
+    }
+  }
+
+  function infectedRenderLoop(){
+    if(!infectedLive || infectedLive.state !== 'playing'){ infectedRenderFid = null; return; }
+    if(!infectedSoloEndTriggered && Object.keys(mpOtherPlayers).filter(id=>id!==mpPlayerId).length === 0){
+      infectedSoloEndTriggered = true;
+      if(infectedHostIv){ clearInterval(infectedHostIv); infectedHostIv = null; }
+      infectedEndGame();
+    }
+    const infMap = infectedLive.infected || {};
+    const ids = new Set(Object.keys(infMap));
+
+    const wasInfected = infectedIAmInfected;
+    infectedIAmInfected = !!infMap[mpPlayerId];
+    infectedSpeedMult = infectedIAmInfected ? 1.2 : 1;
+    const p = PEL();
+    if(p) p.classList.toggle('infected-glow', infectedIAmInfected);
+    if(infectedIAmInfected && !wasInfected){
+      flashFX('rgba(239,68,68,.4)'); playSFX('dom'); showToast('🦠 اتعديت! دلوقتي انت مصاب');
+    }
+
+    Object.keys(mpOtherPlayers).forEach(id=>{
+      if(id===mpPlayerId) return;
+      const el = document.getElementById('mp-'+id);
+      if(el) el.classList.toggle('infected-glow', ids.has(id));
+    });
+
+    const elapsed = Date.now() - (infectedLive.gameStart || Date.now());
+    const left = Math.max(0, infectedMatchDuration - elapsed);
+    const mm = Math.floor(left/60000), ss = Math.floor((left%60000)/1000);
+    const tEl = document.getElementById('infectedTimeLeft');
+    if(tEl) tEl.textContent = mm+':'+String(ss).padStart(2,'0');
+    const statusEl = document.getElementById('infectedMyStatus');
+    if(statusEl) statusEl.innerHTML = infectedIAmInfected ? '🔴 انت مصاب — اعدي غيرك!' : '🟢 سليم — اهرب!';
+    const cEl = document.getElementById('infectedCount');
+    if(cEl) cEl.textContent = ids.size;
+    const tcEl = document.getElementById('infectedTotalCount');
+    if(tcEl) tcEl.textContent = Object.keys(mpOtherPlayers).length+1;
+
+    infectedRenderFid = requestAnimationFrame(infectedRenderLoop);
+  }
+
+  function infectedHostTick(){
+    if(!infectedLive || infectedLive.state !== 'playing') return;
+    const now = Date.now();
+    const infMap = infectedLive.infected || {};
+    const allIds = [mpPlayerId, ...Object.keys(mpOtherPlayers).filter(id=>id!==mpPlayerId)];
+    const healthyIds = allIds.filter(id=>!infMap[id]);
+    if(now - (infectedLive.gameStart||now) >= infectedMatchDuration || healthyIds.length === 0){
+      clearInterval(infectedHostIv); infectedHostIv = null;
+      infectedEndGame();
+      return;
+    }
+    if(now - (infectedLive.lastTagAt||0) < 250) return;
+    const positions = {};
+    positions[mpPlayerId] = { x: px, y: py };
+    Object.keys(mpOtherPlayers).forEach(pid=>{ if(pid!==mpPlayerId) positions[pid] = { x: mpOtherPlayers[pid].x, y: mpOtherPlayers[pid].y }; });
+    const infectedIds = Object.keys(infMap);
+    for(const infId of infectedIds){
+      const a = positions[infId]; if(!a || a.x===undefined) continue;
+      for(const hId of healthyIds){
+        const b = positions[hId]; if(!b || b.x===undefined) continue;
+        const dx=(a.x+19)-(b.x+19), dy=(a.y+19)-(b.y+19);
+        if(Math.sqrt(dx*dx+dy*dy) < 42){
+          const order = (infectedLive.infectedOrder||[]).concat([hId]);
+          infectedStateRef.update({ ['infected/'+hId]: true, infectedOrder: order, lastTagAt: now });
+          return;
+        }
+      }
+    }
+  }
+
+  function infectedEndGame(){
+    infectedStateRef.once('value').then(snap=>{
+      const st = snap.val() || infectedLive || {};
+      const infMap = st.infected || {};
+      const order = st.infectedOrder || [];
+      const stillHere = new Set([mpPlayerId, ...Object.keys(mpOtherPlayers).filter(id=>id!==mpPlayerId)]);
+      let allIds = [...stillHere];
+      const healthy = allIds.filter(id=>!infMap[id]);
+      const infectedIds = allIds.filter(id=>infMap[id]);
+      let infectedRanked;
+      if(healthy.length === 0 && order.length){
+        const patientZero = order[0];
+        const rest = infectedIds.filter(id=>id!==patientZero).sort((a,b)=> order.indexOf(b) - order.indexOf(a));
+        infectedRanked = [patientZero, ...rest];
+      } else {
+        infectedRanked = infectedIds.sort((a,b)=> order.indexOf(b) - order.indexOf(a));
+      }
+      const ranked = [...healthy, ...infectedRanked].map(id=>({
+        id,
+        name: id === mpPlayerId ? (playerName || 'لاعب') : ((mpOtherPlayers[id] && mpOtherPlayers[id].name) || 'لاعب'),
+        score: healthy.includes(id) ? 1 : 0
+      }));
+      const results = {};
+      ranked.forEach((p, i)=>{
+        const rank = i+1;
+        let coins, gems;
+        if(rank===1){ coins=200; gems=5; }
+        else if(rank===2){ coins=150; gems=3; }
+        else if(rank===3){ coins=100; gems=1; }
+        else { coins = 30 + Math.floor(Math.random()*91); gems = 0; }
+        results[p.id] = { rank, name: p.name, score: p.score, coins, gems };
+      });
+      infectedStateRef.update({ state:'ended', results });
+    });
+  }
+
+  function infectedShowStage(st){
+    infectedLive = st;
+    if(infectedEndedShown) return;
+    infectedEndedShown = true;
+    if(infectedRenderFid){ cancelAnimationFrame(infectedRenderFid); infectedRenderFid = null; }
+    if(infectedHostIv){ clearInterval(infectedHostIv); infectedHostIv = null; }
+    document.getElementById('infectedStatusHud').style.display = 'none';
+    const p = PEL(); if(p) p.classList.remove('infected-glow');
+    Object.keys(mpOtherPlayers).forEach(id=>{ const el=document.getElementById('mp-'+id); if(el) el.classList.remove('infected-glow'); });
+    playBgMusic('duel');
+
+    const results = st.results || {};
+    const ranked = Object.keys(results).map(id=>({ id, ...results[id] })).sort((a,b)=> a.rank - b.rank);
+    const board = document.getElementById('crownStageBoard');
+    const medals = {1:'🥇',2:'🥈',3:'🥉'};
+    const iAmWinner = !!(ranked[0] && ranked[0].id === mpPlayerId);
+
+    const top4 = ranked.slice(0,4);
+
+    const podiumHtml = `<div class="crown-podium-row">` + top4.map(p=>{
+      const skin = crownSkinFor(p.id);
+      const boardSkin = crownBoardFor(p.id);
+      const medal = medals[p.rank] || ('#'+p.rank);
+      const tier = Math.min(p.rank,4);
+      const rewardTxt = [
+        p.coins>0?('<span class="crown-chip">🪙 <span class="crown-count-up" data-target="'+p.coins+'">0</span></span>'):'',
+        p.gems>0?('<span class="crown-chip">💎 <span class="crown-count-up" data-target="'+p.gems+'">0</span></span>'):''
+      ].filter(Boolean).join('');
+      return `
+      <div class="crown-spot-card tier-${tier}" style="--reveal-delay:${tier*150}ms">
+          ${p.rank===1?'<div class="crown-winner-crown">🦠</div>':''}
+          <div class="crown-spot-avatarwrap">
+            <img class="crown-podium-avatar" id="crownPodiumAvatar_${p.id}" src="${skinBaseFolder(skin.id)}/IDLE/P_0.png" style="--pglow:${skin.glow}">
+          </div>
+          <div class="crown-spot-rankbadge">${medal} المركز ${p.rank}</div>
+          <img class="crown-podium-vessel board-${boardSkin.id}" src="${boardSkin.img}">
+          <div class="crown-podium-info">
+            <div class="crown-podium-name">${p.name}</div>
+            <div class="crown-podium-score">${p.score>0?'🟢 نجا':'🧟 اتعدى'}</div>
+            <div class="crown-podium-reward">${rewardTxt}</div>
+          </div>
+        </div>`;
+    }).join('') + `</div>`;
+
+    board.innerHTML = podiumHtml;
+
+    const banner = document.getElementById('crownWinnerBanner');
+    if(banner) banner.style.display = iAmWinner ? 'block' : 'none';
+
+    document.getElementById('crownStageScreen').classList.add('open');
+    startCrownPodiumAnim(ranked);
+    animateCrownCountUps();
+    playSFX(iAmWinner ? 'win' : 'victory');
+    if(!lowGraphics) spawnCrownConfetti();
+
+    const myReward = results[mpPlayerId];
+    if(myReward && !infectedRewardApplied){
+      infectedRewardApplied = true;
+      totalCoins += myReward.coins;
+      gems += myReward.gems;
+      persistAll();
+      refreshGemDisplay();
+      setTimeout(()=>{
+        showToast(myReward.rank===1
+          ? `🏆 نجيت! +${myReward.coins} 🪙 +${myReward.gems} 💎`
+          : `🧟 المركز ${myReward.rank}! +${myReward.coins} 🪙 +${myReward.gems} 💎`);
+      }, 900);
+    }
+  }
+
+  function infectedFullCleanup(){
+    const lobbyEl = document.getElementById('infectedLobbyScreen'); if(lobbyEl) lobbyEl.style.display = 'none';
+    const hudEl = document.getElementById('infectedStatusHud'); if(hudEl) hudEl.style.display = 'none';
+    const numEl = document.getElementById('infectedCountdownNum'); if(numEl) numEl.style.display = 'none';
+    const p = PEL(); if(p) p.classList.remove('infected-glow');
+    Object.keys(mpOtherPlayers).forEach(id=>{ const el=document.getElementById('mp-'+id); if(el) el.classList.remove('infected-glow'); });
+    if(infectedRoomRef) infectedRoomRef.child('playerCount').off();
+    if(infectedStateRef) infectedStateRef.off();
+    if(infectedCountdownIv){ clearInterval(infectedCountdownIv); infectedCountdownIv = null; }
+    if(infectedHostIv){ clearInterval(infectedHostIv); infectedHostIv = null; }
+    if(infectedRenderFid){ cancelAnimationFrame(infectedRenderFid); infectedRenderFid = null; }
+    stopCrownPodiumAnim();
+    document.querySelectorAll('.crown-confetti').forEach(c=>c.remove());
+    infectedRoomId = null; infectedRoomRef = null; infectedStateRef = null; infectedIsHost = false;
+    infectedLive = null; infectedPlayingInited = false; infectedLobbyWaiting = false; infectedCountdownStarted = false;
+    infectedEndedShown = false; infectedRewardApplied = false; infectedSoloEndTriggered = false;
+    infectedIAmInfected = false; infectedSpeedMult = 1;
+  }
+
+  // ══════════════════════════════════════════════════════════════
   //  MATH MINI-GAME (اختبار الحساب)
   // ══════════════════════════════════════════════════════════════
-  let mathRoomId=null,mathMaxPlayers=4,mathRoomRef=null,mathStateRef=null,mathIsHost=false;
+  let mathRoomId=null,mathMaxPlayers=4,mathMatchDuration=120000,mathRoomRef=null,mathStateRef=null,mathIsHost=false;
   let mathListener=null,mathCountdownIv=null,mathLobbyWaiting=false,mathCountdownStarted=false;
   let mathLive=null,mathPlayingInited=false,mathRenderFid=null,mathHostIv=null,mathSoloEndTriggered=false;
   let mathRewardApplied=false,mathEndedShown=false,mathMode=false;
   let mathUsedKeys=new Set(),mathCurrentQuestion=null;
 
-  function startMathGame(roomId,maxPlayers){
+  function startMathGame(roomId,maxPlayers,matchDuration){
     activeMiniGameType='math';
     mathMode=true;
-    mathRoomId=roomId; mathMaxPlayers=maxPlayers;
+    mathRoomId=roomId; mathMaxPlayers=maxPlayers; mathMatchDuration=matchDuration||120000;
     mathRoomRef=mpDb.ref('duelRooms/'+roomId);
     mathStateRef=mpDb.ref('rooms/'+roomId+'/math');
     mathIsHost=isRoomOwner;
@@ -2855,7 +3253,7 @@ function ownerDeleteRoom(roomId){
       mathEndGame();
     }
     const elapsed=Date.now()-(mathLive.gameStart||Date.now());
-    const left=Math.max(0,120000-elapsed);
+    const left=Math.max(0,mathMatchDuration-elapsed);
     const mm=Math.floor(left/60000), ss=Math.floor((left%60000)/1000);
     const tEl=document.getElementById('mathTimeLeft');
     if(tEl) tEl.textContent=mm+':'+String(ss).padStart(2,'0');
@@ -2866,7 +3264,7 @@ function ownerDeleteRoom(roomId){
 
   function mathHostTick(){
     if(!mathLive||mathLive.state!=='playing') return;
-    if(Date.now()-(mathLive.gameStart||Date.now())>=120000){
+    if(Date.now()-(mathLive.gameStart||Date.now())>=mathMatchDuration){
       clearInterval(mathHostIv); mathHostIv=null;
       mathEndGame();
     }
@@ -2924,6 +3322,7 @@ function ownerDeleteRoom(roomId){
       const correctIdx=mathCurrentQuestion.choices.indexOf(mathCurrentQuestion.answer);
       const cBtn=document.getElementById('mathChoiceBtn'+correctIdx);
       if(cBtn) cBtn.classList.add('correct');
+      if(mathStateRef) mathStateRef.child('scores/'+mpPlayerId).transaction(v=>(v||0)-1);
     }
     setTimeout(()=>{ if(mathMode && mathLive && mathLive.state==='playing') mathNextQuestion(); },700);
   }
@@ -3513,13 +3912,16 @@ function ownerDeleteRoom(roomId){
     if(!shieldLive||shieldLive.state!=='playing'){ shieldRenderFid=null; return; }
     if(!shieldIsGhost){
       const shields=shieldLive.shields||{};
-      Object.keys(shields).forEach(key=>{
-        const s=shields[key];
-        if(s.takenBy) return;
-        if(rectsOv(px,py,38,38,s.x,s.y,34,34)){
-          shieldStateRef.child('shields/'+key+'/takenBy').transaction(v=> v===null?mpPlayerId:v);
-        }
-      });
+      const alreadyHasShield=Object.values(shields).some(s=>s.takenBy===mpPlayerId);
+      if(!alreadyHasShield){
+        Object.keys(shields).forEach(key=>{
+          const s=shields[key];
+          if(s.takenBy) return;
+          if(rectsOv(px,py,38,38,s.x,s.y,34,34)){
+            shieldStateRef.child('shields/'+key+'/takenBy').transaction(v=> v===null?mpPlayerId:v);
+          }
+        });
+      }
     }
     if(shieldIsGhost && shieldGhostOpacity>0.15){
       shieldGhostOpacity=Math.max(0.15, shieldGhostOpacity-0.0025);
@@ -3759,17 +4161,386 @@ function ownerDeleteRoom(roomId){
   }
 
   // ══════════════════════════════════════════════════════════════
+  //  HIDE THE FILE MINI-GAME (اخفاء الملف)
+  // ══════════════════════════════════════════════════════════════
+  let hidefileRoomId=null, hidefileMaxPlayers=4, hidefileMatchDuration=120000, hidefileRoomRef=null, hidefileStateRef=null, hidefileIsHost=false;
+  let hidefileListener=null, hidefileCountdownIv=null, hidefileLobbyWaiting=false, hidefileCountdownStarted=false;
+  let hidefileLive=null, hidefilePlayingInited=false, hidefileRenderFid=null, hidefileHostIv=null, hidefileSoloEndTriggered=false;
+  let hidefileRewardApplied=false, hidefileEndedShown=false, hidefileMode=false;
+  let hidefileIAmHider=false, hidefileLastPhase=null, hidefileHideTimer=null, hidefileHideDeadlineHandled=false;
+  let hidefileFoundNotified=false, hidefileFindTried=false, hidefileNextPulseAt=0;
+  let hidefileFrozen=false;
+
+  function startHideFileGame(roomId,maxPlayers,matchDuration){
+    activeMiniGameType='hidefile';
+    hidefileMode=true;
+    hidefileRoomId=roomId; hidefileMaxPlayers=maxPlayers; hidefileMatchDuration=matchDuration||120000;
+    hidefileRoomRef=mpDb.ref('duelRooms/'+roomId);
+    hidefileStateRef=mpDb.ref('rooms/'+roomId+'/hidefile');
+    hidefileIsHost=isRoomOwner;
+
+    document.querySelectorAll('.enemy,.coin,.powerup,.dash-ghost,.particle,.float-text,.bullet,.ebullet,.bp,.wbot,.sk-particle').forEach(el=>el.remove());
+    enemies=[];coins=[];pups=[];bullets=[];ebullets=[];wbots=[];
+    document.getElementById('boss').style.display='none';
+    document.getElementById('bossHpWrap').classList.remove('show');
+    wActive=false;bAlive=false;bReady=false;
+
+    document.getElementById('hud').style.display='none';
+    document.getElementById('gameArea').classList.remove('arena-waves');
+    document.getElementById('gameArea').classList.add('arena-duel');
+    hideAllGScreens();
+    cacheArena();
+    applyPlayerSkin();
+    px=AW/2-19; py=AH/2-19;
+    const p=PEL(); if(p){ p.style.left=px+'px'; p.style.top=py+'px'; }
+    GR=true; paused=false;
+    lt=performance.now();
+    fid=requestAnimationFrame(ts=>{ lt=ts; loop(ts); });
+
+    document.getElementById('hidefileLobbyScreen').style.display='block';
+    document.getElementById('hidefileLobbyStatus').textContent='مستني لاعبين...';
+    hidefileLobbyWaiting=true;
+    hidefileCountdownStarted=false;
+    playBgMusic('duel');
+
+    hidefileRoomRef.child('playerCount').on('value', snap=>{
+      if(!hidefileLobbyWaiting||hidefileCountdownStarted) return;
+      const count=snap.val()||1;
+      const st=document.getElementById('hidefileLobbyStatus');
+      if(st) st.textContent=`مستني لاعبين... (${count}/${hidefileMaxPlayers})`;
+      if(count>=hidefileMaxPlayers && hidefileIsHost){
+        hidefileStateRef.once('value').then(s=>{
+          if(!s.val()||s.val().state==='lobby'){
+            hidefileStateRef.set({ state:'countdown', countdownStart: firebase.database.ServerValue.TIMESTAMP });
+          }
+        });
+      }
+    });
+
+    hidefileListener=hidefileStateRef.on('value', snap=>{
+      const st=snap.val();
+      if(!st) return;
+      if(st.state==='countdown') hidefileRunCountdown(st.countdownStart);
+      else if(st.state==='playing') hidefileEnterPlaying(st);
+      else if(st.state==='ended') hidefileShowStage(st);
+    });
+  }
+
+  function hidefileRunCountdown(startTs){
+    document.getElementById('hidefileLobbyStatus').textContent='كلهم جاهزين! هنبدأ خلال:';
+    hidefileCountdownStarted=true;
+    const numEl=document.getElementById('hidefileCountdownNum');
+    numEl.style.display='block';
+    if(hidefileCountdownIv) clearInterval(hidefileCountdownIv);
+    let lastShown=null;
+    hidefileCountdownIv=setInterval(()=>{
+      const now=Date.now();
+      const base=startTs||now;
+      const elapsed=Math.max(0, now-base);
+      const left=Math.max(0, 10-Math.floor(elapsed/1000));
+      if(left!==lastShown){ lastShown=left; numEl.textContent=left; playClick(); }
+      if(left<=0){
+        clearInterval(hidefileCountdownIv);
+        if(hidefileIsHost) hidefileStartMatch();
+      }
+    },250);
+  }
+
+  function hidefileStartMatch(){
+    const ids=[mpPlayerId, ...Object.keys(mpOtherPlayers).filter(id=>id!==mpPlayerId)];
+    if(ids.length===0) return;
+    const hiderId=ids[Math.floor(Math.random()*ids.length)];
+    hidefileStateRef.set({
+      state:'playing',
+      hiderId,
+      phase:'hiding',
+      hideDeadline: Date.now()+8000,
+      filePos: null,
+      gameStart: null,
+      foundBy: null
+    });
+  }
+
+  function hidefileEnterPlaying(st){
+    hidefileLive=st;
+    if(!hidefilePlayingInited){
+      hidefilePlayingInited=true;
+      hidefileLobbyWaiting=false;
+      playBgMusic('boss',0.7);
+      document.getElementById('hidefileLobbyScreen').style.display='none';
+      document.getElementById('hidefileStatusHud').style.display='block';
+      hidefileIAmHider=(st.hiderId===mpPlayerId);
+      hidefileRenderLoop();
+      if(hidefileIsHost){ hidefileHostIv=setInterval(hidefileHostTick,300); }
+    }
+    hidefileHandlePhase(st);
+  }
+
+  function hidefileHandlePhase(st){
+    hidefileLive=st;
+    if(st.phase!==hidefileLastPhase){
+      hidefileLastPhase=st.phase;
+      const overlay=document.getElementById('hidefileBlindOverlay');
+      const hiderBox=document.getElementById('hidefileHiderBox');
+      const roleEl=document.getElementById('hidefileMyRole');
+      const timerRow=document.getElementById('hidefileTimerRow');
+      const heatEl=document.getElementById('hidefileHeatText');
+      if(st.phase==='hiding'){
+        hidefileFrozen=!hidefileIAmHider;
+        if(overlay) overlay.style.display=hidefileIAmHider?'none':'flex';
+        if(hiderBox) hiderBox.style.display=hidefileIAmHider?'block':'none';
+        if(timerRow) timerRow.style.display='none';
+        if(heatEl) heatEl.style.display='none';
+        if(roleEl) roleEl.textContent=hidefileIAmHider?'🗂️ انت المخبي — استخبى!':'🙈 حد بيخبي الملف...';
+        if(hidefileIAmHider && !hidefileHideDeadlineHandled){
+          const left=Math.max(0,(st.hideDeadline||Date.now())-Date.now());
+          if(hidefileHideTimer) clearTimeout(hidefileHideTimer);
+          hidefileHideTimer=setTimeout(()=>{ if(!hidefileHideDeadlineHandled) hidefileConfirmHideSpot(); }, left);
+        }
+      } else if(st.phase==='searching'){
+        hidefileFrozen=false;
+        if(overlay) overlay.style.display='none';
+        if(hiderBox) hiderBox.style.display='none';
+        if(timerRow) timerRow.style.display='block';
+        if(hidefileIAmHider){
+          if(roleEl) roleEl.textContent='🫥 خبيته! استنى النتيجة';
+          if(heatEl) heatEl.style.display='none';
+          const p=PEL(); if(p) p.style.opacity='0.5';
+        } else {
+          if(roleEl) roleEl.textContent='🔎 انت باحث — دور على الملف!';
+          if(heatEl) heatEl.style.display='block';
+        }
+      }
+    }
+    if(st.foundBy && !hidefileFoundNotified){
+      hidefileFoundNotified=true;
+      if(st.foundBy!==mpPlayerId){
+        const finderName=(mpOtherPlayers[st.foundBy]&&mpOtherPlayers[st.foundBy].name)||'حد';
+        showToast(`🔎 ${finderName} لقى الملف!`);
+      }
+    }
+  }
+
+  function hidefileConfirmHideSpot(){
+    if(!hidefileIAmHider || hidefileHideDeadlineHandled) return;
+    if(!hidefileLive || hidefileLive.phase!=='hiding') return;
+    hidefileHideDeadlineHandled=true;
+    if(hidefileHideTimer){ clearTimeout(hidefileHideTimer); hidefileHideTimer=null; }
+    hidefileStateRef.update({ phase:'searching', filePos:{x:px,y:py}, gameStart:Date.now() });
+  }
+
+  function hidefileRenderLoop(){
+    if(!hidefileLive||hidefileLive.state!=='playing'){ hidefileRenderFid=null; return; }
+    if(!hidefileSoloEndTriggered && Object.keys(mpOtherPlayers).filter(id=>id!==mpPlayerId).length===0){
+      hidefileSoloEndTriggered=true;
+      if(hidefileHostIv){ clearInterval(hidefileHostIv); hidefileHostIv=null; }
+      hidefileEndGame();
+    }
+    const st=hidefileLive;
+    if(st.phase==='hiding'){
+      const left=Math.max(0,Math.ceil(((st.hideDeadline||Date.now())-Date.now())/1000));
+      const numEl=document.getElementById('hidefileHideCountdown');
+      const num2El=document.getElementById('hidefileHideCountdown2');
+      if(numEl) numEl.textContent=left;
+      if(num2El) num2El.textContent=left;
+    } else if(st.phase==='searching'){
+      const elapsed=Date.now()-(st.gameStart||Date.now());
+      const left=Math.max(0,hidefileMatchDuration-elapsed);
+      const mm=Math.floor(left/60000), ss=Math.floor((left%60000)/1000);
+      const tEl=document.getElementById('hidefileTimeLeft');
+      if(tEl) tEl.textContent=mm+':'+String(ss).padStart(2,'0');
+
+      if(!hidefileIAmHider && !st.foundBy && st.filePos){
+        if(!hidefileFindTried && rectsOv(px,py,38,38,st.filePos.x,st.filePos.y,34,34)){
+          hidefileFindTried=true;
+          hidefileStateRef.child('foundBy').transaction(v=> v===null?mpPlayerId:v).then(res=>{
+            if(res.committed && res.snapshot.val()===mpPlayerId){
+              playSFX('win'); flashFX('rgba(34,197,94,.5)'); showToast('🎉 لقيت الملف!');
+            }
+          });
+        }
+        if(!hidefileFindTried && Date.now()>=hidefileNextPulseAt){
+          const dx=(px+19)-(st.filePos.x+17), dy=(py+19)-(st.filePos.y+17);
+          const dist=Math.hypot(dx,dy);
+          const maxDist=Math.hypot(AW,AH);
+          const heat=Math.max(0,Math.min(1,1-dist/maxDist));
+          hidefileNextPulseAt=Date.now()+(2200-heat*1750);
+          const r=Math.round(50+heat*205), g=Math.round(120*(1-heat)), b=Math.round(255*(1-heat));
+          flashFX(`rgba(${r},${g},${b},${(0.15+heat*0.35).toFixed(2)})`);
+          playSFX('nota');
+          const heatEl=document.getElementById('hidefileHeatText');
+          if(heatEl) heatEl.textContent = heat>0.75?'🔥🔥🔥 قريب جدًا!':heat>0.5?'🔥🔥 دافي أوي':heat>0.25?'🔥 دافي':'🧊 بعيد';
+        }
+      }
+    }
+    hidefileRenderFid=requestAnimationFrame(hidefileRenderLoop);
+  }
+
+  function hidefileHostTick(){
+    if(!hidefileLive||hidefileLive.state!=='playing') return;
+    const st=hidefileLive;
+    if(st.foundBy){
+      clearInterval(hidefileHostIv); hidefileHostIv=null;
+      hidefileEndGame();
+      return;
+    }
+    if(st.phase==='searching'){
+      const elapsed=Date.now()-(st.gameStart||Date.now());
+      if(elapsed>=hidefileMatchDuration){
+        clearInterval(hidefileHostIv); hidefileHostIv=null;
+        hidefileEndGame();
+        return;
+      }
+    }
+    if(st.phase==='hiding' && !st.filePos && Date.now()-(st.hideDeadline||Date.now())>=4000){
+      const hiderPos = st.hiderId===mpPlayerId ? {x:px,y:py} : (mpOtherPlayers[st.hiderId]||null);
+      const fx = hiderPos ? hiderPos.x : (AW/2-19);
+      const fy = hiderPos ? hiderPos.y : (AH/2-19);
+      hidefileStateRef.update({ phase:'searching', filePos:{x:fx,y:fy}, gameStart:Date.now() });
+    }
+  }
+
+  function hidefileEndGame(){
+    hidefileStateRef.once('value').then(snap=>{
+      const st=snap.val()||hidefileLive||{};
+      const hiderId=st.hiderId;
+      const foundBy=st.foundBy||null;
+      const stillHere=new Set([mpPlayerId, ...Object.keys(mpOtherPlayers).filter(id=>id!==mpPlayerId)]);
+      let allIds=[...stillHere];
+      if(hiderId && !allIds.includes(hiderId)) allIds.push(hiderId);
+      if(foundBy && !allIds.includes(foundBy)) allIds.push(foundBy);
+      let ranked;
+      if(foundBy){
+        const rest=allIds.filter(id=>id!==foundBy&&id!==hiderId);
+        ranked=[foundBy, hiderId, ...rest];
+      } else {
+        const rest=allIds.filter(id=>id!==hiderId);
+        ranked=[hiderId, ...rest];
+      }
+      const results={};
+      ranked.forEach((id,i)=>{
+        const rank=i+1;
+        let coins,gems;
+        if(rank===1){coins=200;gems=5;}
+        else if(rank===2){coins=150;gems=3;}
+        else if(rank===3){coins=100;gems=1;}
+        else{coins=30+Math.floor(Math.random()*91);gems=0;}
+        const role = id===hiderId?'hider':(foundBy&&id===foundBy?'finder':'searcher');
+        results[id]={
+          rank,
+          name: id===mpPlayerId?(playerName||'لاعب'):((mpOtherPlayers[id]&&mpOtherPlayers[id].name)||'لاعب'),
+          score: (role==='finder'||(role==='hider'&&!foundBy))?1:0,
+          role,
+          coins, gems
+        };
+      });
+      hidefileStateRef.update({ state:'ended', results });
+    });
+  }
+
+  function hidefileShowStage(st){
+    hidefileLive=st;
+    if(hidefileEndedShown) return;
+    hidefileEndedShown=true;
+    if(hidefileRenderFid){ cancelAnimationFrame(hidefileRenderFid); hidefileRenderFid=null; }
+    if(hidefileHostIv){ clearInterval(hidefileHostIv); hidefileHostIv=null; }
+    if(hidefileHideTimer){ clearTimeout(hidefileHideTimer); hidefileHideTimer=null; }
+    document.getElementById('hidefileStatusHud').style.display='none';
+    document.getElementById('hidefileBlindOverlay').style.display='none';
+    document.getElementById('hidefileHiderBox').style.display='none';
+    const pEl=PEL(); if(pEl) pEl.style.opacity='';
+    playBgMusic('duel');
+
+    const results=st.results||{};
+    const ranked=Object.keys(results).map(id=>({id,...results[id]})).sort((a,b)=>a.rank-b.rank);
+    const board=document.getElementById('crownStageBoard');
+    const medals={1:'🥇',2:'🥈',3:'🥉'};
+    const iAmWinner=!!(ranked[0]&&ranked[0].id===mpPlayerId);
+    const top4=ranked.slice(0,4);
+    const roleTxt = p => p.role==='finder' ? '🔎 لقى الملف!' : p.role==='hider' ? (p.score>0?'🙈 خبّاه كويس':'😬 اتكشف') : '❌ ماوصلش';
+    const podiumHtml=`<div class="crown-podium-row">`+top4.map(p=>{
+      const skin=crownSkinFor(p.id);
+      const boardSkin=crownBoardFor(p.id);
+      const medal=medals[p.rank]||('#'+p.rank);
+      const tier=Math.min(p.rank,4);
+      const rewardTxt=[
+        p.coins>0?('<span class="crown-chip">🪙 <span class="crown-count-up" data-target="'+p.coins+'">0</span></span>'):'',
+        p.gems>0?('<span class="crown-chip">💎 <span class="crown-count-up" data-target="'+p.gems+'">0</span></span>'):''
+      ].filter(Boolean).join('');
+      return `
+      <div class="crown-spot-card tier-${tier}" style="--reveal-delay:${tier*150}ms">
+          ${p.rank===1?'<div class="crown-winner-crown">🗂️</div>':''}
+          <div class="crown-spot-avatarwrap">
+            <img class="crown-podium-avatar" id="crownPodiumAvatar_${p.id}" src="${skinBaseFolder(skin.id)}/IDLE/P_0.png" style="--pglow:${skin.glow}">
+          </div>
+          <div class="crown-spot-rankbadge">${medal} المركز ${p.rank}</div>
+          <img class="crown-podium-vessel board-${boardSkin.id}" src="${boardSkin.img}">
+          <div class="crown-podium-info">
+            <div class="crown-podium-name">${p.name}</div>
+            <div class="crown-podium-score">${roleTxt(p)}</div>
+            <div class="crown-podium-reward">${rewardTxt}</div>
+          </div>
+        </div>`;
+    }).join('')+`</div>`;
+    board.innerHTML=podiumHtml;
+    const banner=document.getElementById('crownWinnerBanner');
+    if(banner) banner.style.display=iAmWinner?'block':'none';
+    document.getElementById('crownStageScreen').classList.add('open');
+    startCrownPodiumAnim(ranked);
+    animateCrownCountUps();
+    playSFX(iAmWinner?'win':'victory');
+    if(!lowGraphics) spawnCrownConfetti();
+    const myReward=results[mpPlayerId];
+    if(myReward&&!hidefileRewardApplied){
+      hidefileRewardApplied=true;
+      totalCoins+=myReward.coins;
+      gems+=myReward.gems;
+      persistAll();
+      refreshGemDisplay();
+      setTimeout(()=>{
+        showToast(myReward.rank===1
+          ? `🏆 فزت! +${myReward.coins} 🪙 +${myReward.gems} 💎`
+          : `🎖 المركز ${myReward.rank}! +${myReward.coins} 🪙 +${myReward.gems} 💎`);
+      },900);
+    }
+  }
+
+  function hidefileFullCleanup(){
+    const lobbyEl=document.getElementById('hidefileLobbyScreen'); if(lobbyEl) lobbyEl.style.display='none';
+    const hudEl=document.getElementById('hidefileStatusHud'); if(hudEl) hudEl.style.display='none';
+    const overlayEl=document.getElementById('hidefileBlindOverlay'); if(overlayEl) overlayEl.style.display='none';
+    const hiderBoxEl=document.getElementById('hidefileHiderBox'); if(hiderBoxEl) hiderBoxEl.style.display='none';
+    const numEl=document.getElementById('hidefileCountdownNum'); if(numEl) numEl.style.display='none';
+    if(hidefileRoomRef) hidefileRoomRef.child('playerCount').off();
+    if(hidefileStateRef) hidefileStateRef.off();
+    if(hidefileCountdownIv){ clearInterval(hidefileCountdownIv); hidefileCountdownIv=null; }
+    if(hidefileHostIv){ clearInterval(hidefileHostIv); hidefileHostIv=null; }
+    if(hidefileRenderFid){ cancelAnimationFrame(hidefileRenderFid); hidefileRenderFid=null; }
+    if(hidefileHideTimer){ clearTimeout(hidefileHideTimer); hidefileHideTimer=null; }
+    stopCrownPodiumAnim();
+    document.querySelectorAll('.crown-confetti').forEach(c=>c.remove());
+    const p=PEL(); if(p) p.style.opacity='';
+    hidefileFrozen=false;
+    hidefileRoomId=null; hidefileRoomRef=null; hidefileStateRef=null; hidefileIsHost=false;
+    hidefileLive=null; hidefilePlayingInited=false; hidefileLobbyWaiting=false; hidefileCountdownStarted=false;
+    hidefileEndedShown=false; hidefileRewardApplied=false; hidefileSoloEndTriggered=false; hidefileMode=false;
+    hidefileIAmHider=false; hidefileLastPhase=null; hidefileHideDeadlineHandled=false; hidefileFoundNotified=false;
+    hidefileFindTried=false; hidefileNextPulseAt=0;
+  }
+
+  // ══════════════════════════════════════════════════════════════
   //  COINS MINI-GAME (العملات)
   // ══════════════════════════════════════════════════════════════
-  let coinsRoomId = null, coinsMaxPlayers = 4, coinsRoomRef = null, coinsStateRef = null, coinsIsHost = false;
+  let coinsRoomId = null, coinsMaxPlayers = 4, coinsMatchDuration = 120000, coinsRoomRef = null, coinsStateRef = null, coinsIsHost = false;
   let coinsListener = null, coinsCountdownIv = null, coinsLobbyWaiting = false, coinsCountdownStarted = false;
   let coinsLive = null, coinsPlayingInited = false, coinsRenderFid = null, coinsHostIv = null, coinsSoloEndTriggered = false;
   let coinsRewardApplied = false, coinsEndedShown = false;
 
-  function startCoinsGame(roomId, maxPlayers){
+  function startCoinsGame(roomId, maxPlayers, matchDuration){
     activeMiniGameType = 'coins';
     coinsRoomId = roomId;
     coinsMaxPlayers = maxPlayers;
+    coinsMatchDuration = matchDuration || 120000;
     coinsRoomRef = mpDb.ref('duelRooms/' + roomId);
     coinsStateRef = mpDb.ref('rooms/' + roomId + '/coins');
     coinsIsHost = isRoomOwner;
@@ -3930,7 +4701,7 @@ function ownerDeleteRoom(roomId){
     });
 
     const elapsed = Date.now() - (coinsLive.gameStart || Date.now());
-    const left = Math.max(0, 120000 - elapsed);
+    const left = Math.max(0, coinsMatchDuration - elapsed);
     const mm = Math.floor(left/60000), ss = Math.floor((left%60000)/1000);
     const tEl = document.getElementById('coinsTimeLeft');
     if(tEl) tEl.textContent = mm+':'+String(ss).padStart(2,'0');
@@ -3947,7 +4718,7 @@ function ownerDeleteRoom(roomId){
   function coinsHostTick(){
     if(!coinsLive || coinsLive.state !== 'playing') return;
     const now = Date.now();
-    if(now - (coinsLive.gameStart||now) >= 120000){
+    if(now - (coinsLive.gameStart||now) >= coinsMatchDuration){
       clearInterval(coinsHostIv); coinsHostIv = null;
       coinsEndGame();
       return;
@@ -4111,6 +4882,8 @@ function ownerDeleteRoom(roomId){
     if(activeMiniGameType === 'coins'){ coinsFullCleanup(); }
     else if(activeMiniGameType === 'math'){ mathFullCleanup(); }
     else if(activeMiniGameType === 'shield'){ shieldFullCleanup(); }
+    else if(activeMiniGameType === 'infected'){ infectedFullCleanup(); }
+    else if(activeMiniGameType === 'hidefile'){ hidefileFullCleanup(); }
     else { crownFullCleanup(); }
     activeMiniGameType = null;
     finalizeLeave(true);
@@ -4139,10 +4912,12 @@ function ownerDeleteRoom(roomId){
       closeFriendChat();
       closeDuelsList();
       openGameplay();
-      if(data.game === 'crown'){ startCrownGame(roomId, data.maxPlayers || 4); }
-      else if(data.game === 'coins'){ startCoinsGame(roomId, data.maxPlayers || 4); }
-      else if(data.game === 'math'){ startMathGame(roomId, data.maxPlayers || 4); }
+      if(data.game === 'crown'){ startCrownGame(roomId, data.maxPlayers || 4, data.matchDuration || 120000); }
+      else if(data.game === 'coins'){ startCoinsGame(roomId, data.maxPlayers || 4, data.matchDuration || 120000); }
+      else if(data.game === 'math'){ startMathGame(roomId, data.maxPlayers || 4, data.matchDuration || 120000); }
       else if(data.game === 'shield'){ startShieldGame(roomId, data.maxPlayers || 4); }
+      else if(data.game === 'infected'){ startInfectedGame(roomId, data.maxPlayers || 4, data.matchDuration || 120000); }
+      else if(data.game === 'hidefile'){ startHideFileGame(roomId, data.maxPlayers || 4, data.matchDuration || 120000); }
       else if(data.game === 'wave'){ startWaveGame(roomId, data.maxPlayers || 4); }
       else{ startDuelGame(); }
 
@@ -4405,6 +5180,10 @@ function appendChatMessage(msg){
     if(!currentRoomId) return;
     if(crownRoomId) crownFullCleanup();
     if(coWaveRoomId) coWaveFullCleanup();
+    if(mathRoomId) mathFullCleanup();
+    if(shieldRoomId) shieldFullCleanup();
+    if(coinsRoomId) coinsFullCleanup();
+    if(infectedRoomId) infectedFullCleanup();
     const roomId = currentRoomId;
     if(mpPlayersListenerRef){ mpPlayersListenerRef.off(); mpPlayersListenerRef = null; }
     if(mpMyPlayerListenerRef){ mpMyPlayerListenerRef.off(); mpMyPlayerListenerRef = null; }
@@ -5413,6 +6192,7 @@ let HS           = saveData.hs || 0;
 let totalCoins   = saveData.totalCoins || 0;
 let gems         = saveData.gems || 0;
 let ownedSkins   = saveData.ownedSkins || ['purple'];
+if(localStorage.getItem('404_owner_mode')==='1' && !ownedSkins.includes('god')) ownedSkins.push('god');
 let equippedSkin = saveData.equippedSkin || 'purple';
 let avatarData = saveData.avatar || null; // base64 data URL أو null لو مفيش صورة
 let ownedPowers  = saveData.ownedPowers || [];
@@ -6505,7 +7285,7 @@ const SKINS_DEF = [
   { id:'fire',   name:'النار',    icon:'🔥', skinImg:'Player/SKINS/Flame.png', color:'#f97316', color2:'#991b1b', glow:'rgba(249,115,22,.9)', dashColor:'rgba(249,115,22,.6)', dashColor2:'rgba(153,27,27,.5)', price:0, gemPrice:5, rarity:'نادر', ability:'🔥 2 طلقات نارية + حرق • الداش يشعل', abilityFull:'2 طلقات تشعل الأعداء 5 ثوانٍ.', abilityDesc:'fire', particleCSS:'fire', bulletCount:2, burnDmg:true },
   { id:'light',  name:'الضوء',    icon:'✨', skinImg:'Player/SKINS/Light.png', color:'#fef08a', color2:'#eab308', glow:'rgba(254,240,138,1)', dashColor:'rgba(254,240,138,.6)', dashColor2:'rgba(234,179,8,.4)', price:0, gemPrice:5, rarity:'ملحمي', ability:'☀️ 2 طلقات ضوئية • سرعة أعلى • بوشن ×2', abilityFull:'2 طلقات. سرعة +40%. بوشن ×2.', abilityDesc:'light', particleCSS:'light', bulletCount:2, speedBoost:1.4, puMult:2 },
   { id:'shadow', name:'الظل',     icon:'👤', skinImg:'Player/SKINS/SHADOW.png', color:'#818cf8', color2:'#1e1b4b', glow:'rgba(129,140,248,1)', dashColor:'rgba(99,102,241,.6)', dashColor2:'rgba(30,27,75,.6)', price:0, gemPrice:5, rarity:'أسطوري', ability:'🌑 5 قلوب • الداش يجمد الزمن • E: الظل المطلق', abilityFull:'الأقوى. 5 قلوب. الداش يوقف الزمن 3ث.', abilityDesc:'shadow', particleCSS:'shadow', bulletCount:3, puMult:6 },
-  { id:'god', name:'إله القوة', icon:'⚡', skinImg:'VIPS/GOD.png', color:'#3b82f6', color2:'#1e3a8a', glow:'rgba(59,130,246,1)', dashColor:'rgba(59,130,246,.6)', dashColor2:'rgba(30,58,138,.6)', price:0, gemPrice:5, rarity:'خرافي', ability:'⚡ 7 قلوب زرقاء • بوشن 5 دقايق • 3 بوتات كهربائية', abilityFull:'7 قلوب. البوشن بيفضل 5 دقايق. 3 بوتات تتبعك وتقتل الأعداء.', abilityDesc:'god', particleCSS:'god', bulletCount:1, puMult:60 },
+  { id:'god', name:'إله القوة', icon:'⚡', skinImg:'VIPS/GOD.png', color:'#3b82f6', color2:'#1e3a8a', glow:'rgba(59,130,246,1)', dashColor:'rgba(59,130,246,.6)', dashColor2:'rgba(30,58,138,.6)', price:0, gemPrice:5, rarity:'خرافي', ability:'⚡ 7 قلوب زرقاء • بوشن 5 دقايق • 3 بوتات كهربائية', abilityFull:'7 قلوب. البوشن بيفضل 5 دقايق. 3 بوتات تتبعك وتقتل الأعداء.', abilityDesc:'god', particleCSS:'god', bulletCount:3, puMult:60 },
 ];
 
 const POWERS = [
@@ -6514,7 +7294,7 @@ const POWERS = [
   { id:'fire',   name:'النار',  rarity:'نادر',     rarityEn:'RARE',      icon:'<img src="Player/SKINS/Flame.png" style="width:64px;height:64px;image-rendering:pixelated">', skinImg:'Flame.png',  cost:5, color:'#f97316', color2:'#dc2626', desc:'2 طلقات نارية + حرق 5ث • الداش يحرق',           bullets:2, bulletColor:'#f97316', bulletGlow:'rgba(249,115,22,.9)', burnDmg:true, dashBurn:true },
   { id:'light',  name:'الضوء',  rarity:'ملحمي',    rarityEn:'EPIC',      icon:'<img src="Player/SKINS/Light.png" style="width:64px;height:64px;image-rendering:pixelated">', skinImg:'Light.png',  cost:5, color:'#fde68a', color2:'#f59e0b', desc:'2 طلقات ضوء سريعة • سرعة أعلى • بوشن 2× أطول',  bullets:2, bulletColor:'#fde68a', bulletGlow:'rgba(253,230,138,1)',  speedBoost:1.4, puMult:2 },
   { id:'shadow', name:'الظل',   rarity:'أسطوري',   rarityEn:'LEGENDARY', icon:'<img src="Player/SKINS/SHADOW.png" style="width:64px;height:64px;image-rendering:pixelated">', skinImg:'SHADOW.png', cost:5, color:'#818cf8', color2:'#1e1b4b', desc:'الداش يوقف الزمن 3ث • طلقتين • بوشن 6× أطول',   bullets:3, bulletColor:'#818cf8', bulletGlow:'rgba(129,140,248,.9)', timeStop:true, puMult:6, shadowBot:true },
-  { id:'god', name:'إله القوة', rarity:'خرافي', rarityEn:'MYTHICAL', icon:'<img src="VIPS/GOD.png" style="width:64px;height:64px;image-rendering:pixelated">', skinImg:'GOD.png', imgPath:'VIPS/GOD.png', cost:5, color:'#b90000', color2:'#1e3a8a', desc:'7 قلوب زرقاء • بوشن 5 دقايق • 3 بوتات كهربائية', bullets:1, bulletColor:'#b90000', bulletGlow:'rgba(59,130,246,.9)', puMult:60, godBot:true },
+  { id:'god', name:'إله القوة', rarity:'خرافي', rarityEn:'MYTHICAL', icon:'<img src="VIPS/GOD.png" style="width:64px;height:64px;image-rendering:pixelated">', skinImg:'GOD.png', imgPath:'VIPS/GOD.png', cost:5, color:'#b90000', color2:'#1e3a8a', desc:'7 قلوب زرقاء • بوشن 5 دقايق • 3 بوتات كهربائية', bullets:3, bulletColor:'#b90000', bulletGlow:'rgba(59,130,246,.9)', puMult:60, godBot:true },
 ];
 
 const BOARDS_DEF = [
@@ -6554,7 +7334,7 @@ function buildShopGrid(gridId, coinsId, gemsId){
             : `<button class="shop-buy-btn btn-cantbuy" disabled>${sk.price}🪙 🔒</button>`;
             card.innerHTML=`${badge}
       <div class="skin-preview" style="background:transparent;box-shadow:none">
-        <img src="${sk.skinImg}" style="width:64px;height:64px;image-rendering:pixelated">
+        <img src="${sk.skinImg}" style="width:100%;height:100%;object-fit:contain;image-rendering:pixelated">
       </div>
       <div class="skin-name" style="color:${sk.color}">${sk.name}</div>
       <div class="skin-ability">${sk.ability}</div>
@@ -6918,8 +7698,11 @@ function startSkinParticles(sk){
 
 function applyActivePower(){
   const sk=getSkin();
-  const elementalIds=['water','wind','fire','light','shadow','god'];
-  activePower=(elementalIds.includes(sk.abilityDesc) && (!duelMode||coWaveMode))?sk.abilityDesc:null;
+  const elementalIds=['water','wind','fire','light'];
+  const duelSyncedIds=['shadow','god'];
+  activePower=(elementalIds.includes(sk.abilityDesc) && (!duelMode||coWaveMode))?sk.abilityDesc
+             :(duelSyncedIds.includes(sk.abilityDesc))?sk.abilityDesc
+             :null;
   burnEnemies=[]; shadowBots.forEach(b=>{try{b.el.remove();}catch{}}); shadowBots=[];
   enemyTimeScale=1; shadowUltCD=0; shadowUltActive=false; elemCD=0; godUltCD=0; godUltActive=false;
   const gaEl=document.getElementById('gameArea'); if(gaEl) gaEl.classList.remove('time-invert');
@@ -6948,7 +7731,7 @@ let GR=false,paused=false;
 let score=0,lives=3,maxLives=3,combo=1,wave=1,coins_=0,kills=0;
 let _netEnemySeq=1;
 let activePower=null,burnEnemies=[],shadowBots=[];
-let enemyTimeScale=1,shadowUltCD=0,shadowUltActive=false,duelSlowUntil=0,duelFreezeUntil=0;
+let enemyTimeScale=1,shadowUltCD=0,shadowUltActive=false,duelSlowUntil=0,duelFreezeUntil=0,shadowSlowUntil=0;
 const SHADOW_ULT_CD=1800;
 let elemCD=0,godUltCD=0,godUltActive=false;
 const GOD_ULT_CD=1800;
@@ -6989,7 +7772,7 @@ function cacheArena(){
   const topOffset=hdr?hdr.getBoundingClientRect().bottom:86;
   const availW=window.innerWidth;
   const availH=window.innerHeight-topOffset;
-  arenaScale=Math.max(0.1,Math.min(availW/WORLD_W,availH/WORLD_H))*1.2;
+  arenaScale=Math.max(0.1,Math.min(availW/WORLD_W,availH/WORLD_H));
   const offX=(availW-WORLD_W*arenaScale)/2;
   const offY=(availH-WORLD_H*arenaScale)/2;
   ga.style.width=WORLD_W+'px'; ga.style.height=WORLD_H+'px';
@@ -7146,6 +7929,7 @@ function loop(ts){
 // ══════════════════════════════════════════════════════════════
 function movePlayer(dt){
   if(duelMode && Date.now()<duelFreezeUntil) return;
+  if(hidefileFrozen) return;
   let kx=0,ky=0;
   if(K['ArrowUp']||K['KeyW']) ky=-1;
   if(K['ArrowDown']||K['KeyS']) ky=1;
@@ -7158,7 +7942,7 @@ function movePlayer(dt){
   const lightBoost=(activePower==='light')?1.4:1;
   const duelSlow=(duelMode && Date.now()<duelSlowUntil)?DUEL_ULT_SLOW_SCALE:1;
   const speedSkillMult=1+((skills.speed||0)*0.02);
-  const spd=(isYellow?6.8:isGodSpd?7.2:4.8)*(spOn?1.7:1)*lightBoost*duelSlow*speedSkillMult;
+  const spd=(isYellow?6.8:isGodSpd?7.2:4.8)*(spOn?1.7:1)*lightBoost*duelSlow*speedSkillMult*(typeof infectedSpeedMult!=='undefined'?infectedSpeedMult:1);
   const p=PEL();
   if(dashing&&dashLeft>0){
     dashLeft-=dt;
@@ -7185,9 +7969,9 @@ function movePlayer(dt){
 
 function tryDash(){
   if(crownLobbyWaiting || coinsLobbyWaiting || mathMode) return;
-  if(getSkin().id==='god' && duelMode && !coWaveMode){ tryGodDash(); return; }
+  if(getSkin().id==='god'){ tryGodDash(); return; }
   if(dashCD>0) return;
-  if(getSkin().id==='shadow' && duelMode && !coWaveMode){ shadowDuelTeleport(); return; }
+  if(getSkin().id==='shadow' && !coWaveMode){ shadowDuelTeleport(); return; }
   let vx=0,vy=0;
   if(joyActive){vx=joyVx;vy=joyVy;}
   else{
@@ -7217,10 +8001,9 @@ function tryDash(){
   dashCD = dashCDMax; inv=true; invT=dashLeft+8;
   const p=PEL(); if(p) p.style.filter='brightness(2.2) saturate(2)';
   for(let i=0;i<4;i++) setTimeout(()=>mkGhost(),i*45);
-  flashFX('rgba(194,0,251,.2)');
   if(activePower==='water'){ enemies.forEach(e=>{const dx=(e.x+e.t.w/2)-(px+19),dy=(e.y+e.t.h/2)-(py+19),d=Math.sqrt(dx*dx+dy*dy)||1;if(d<80){e.x+=dx/d*60;e.y+=dy/d*60;}});}
   if(activePower==='fire'){ enemies.forEach(e=>{const dx=(e.x+e.t.w/2)-(px+19),dy=(e.y+e.t.h/2)-(py+19),d=Math.sqrt(dx*dx+dy*dy)||1;if(d<60&&!burnEnemies.find(x=>x.e===e))burnEnemies.push({e,t:0});});}
-    if(activePower==='shadow'){enemyTimeScale=0.45;showToast('🌑 الزمن اتبطأ...');setTimeout(()=>{enemyTimeScale=1;},3000);}
+    if(activePower==='shadow' && !shadowUltActive){enemyTimeScale=0.45;shadowSlowUntil=Date.now()+3000;showToast('🌑 الزمن اتبطأ...');setTimeout(()=>{if(!shadowUltActive && Date.now()>=shadowSlowUntil) enemyTimeScale=1;},3000);}
 }
 
 function mkGhost(){
@@ -7246,6 +8029,7 @@ function shadowDuelTeleport(){
   flashFX('rgba(129,140,248,.35)');
   inv=true; invT=15;
   dashCDMax=Math.max(180,DUEL_DASH_CD['shadow']-(skills.dashcd*6)); dashCD=dashCDMax;
+  if(!shadowUltActive){enemyTimeScale=0.45;shadowSlowUntil=Date.now()+3000;showToast('🌑 الزمن اتبطأ...');setTimeout(()=>{if(!shadowUltActive && Date.now()>=shadowSlowUntil) enemyTimeScale=1;},3000);}
 }
 function tryGodDash(){
   if(godDashCharges<=0) return;
@@ -7925,6 +8709,10 @@ function godUltimate(){
   enemyTimeScale=0;
   enemies.forEach(e=>{ if(e.el) spawnFreezeRing(e.el); });
   if(duelMode && mpPlayerRef){
+    Object.keys(mpOtherPlayers||{}).forEach(id=>{
+      const opEl=document.getElementById('mp-'+id);
+      if(opEl) spawnFreezeRing(opEl);
+    });
     mpPlayerRef.update({ godUltCastAt: Date.now() });
   }
   for(let i=0;i<3;i++) setTimeout(()=>{ shootCD=0; shoot(); }, i*120);
