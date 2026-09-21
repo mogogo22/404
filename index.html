@@ -6663,6 +6663,7 @@ function validUsername(u){
 function applyAccountData(username, acc){
   currentAccount = username;
   const d = acc.data || {};
+  if(d.skills){ Object.keys(d.skills).forEach(k=>{ if(isNaN(d.skills[k])) d.skills[k]=0; }); }
   playerName = d.displayName || username;
   HS            = d.hs || 0;
   totalCoins    = d.totalCoins || 0;
@@ -8031,7 +8032,7 @@ let enemyTimeScale=1,shadowUltCD=0,shadowUltActive=false,duelSlowUntil=0,duelFre
 const SHADOW_ULT_CD=1800;
 let elemCD=0,godUltCD=0,godUltActive=false;
 const GOD_ULT_CD=1800;
-let gravUltCD=0,gravZoneCasterId=null,gravZoneEndAt=0,gravZoneRings={},gravKnockbackFid=null;
+let gravUltCD=0,gravZoneCasterId=null,gravZoneEndAt=0,gravZoneRings={},gravKnockbackFid=null,wavesGravZoneUntil=0;
 const GRAV_ULT_CD=1800,GRAV_ZONE_RADIUS=150,GRAV_ZONE_DUR=10000,GRAV_ZONE_SLOW_SCALE=0.12,GRAV_PULL_RADIUS=270;
 const ELEM_CD={water:900,wind:900,fire:1200,light:1500};
 const ELEM_META={
@@ -8438,6 +8439,16 @@ function gravityTeleport(){
   shakeScreen(7,240);
   dashCDMax=Math.max(180,DUEL_DASH_CD['gravity']-(skills.dashcd*6)); dashCD=dashCDMax;
   spawnGravityRipple(px,py);
+  enemies.forEach(e=>{
+    const dx=(e.x+e.t.w/2)-(px+19), dy=(e.y+e.t.h/2)-(py+19);
+    const d=Math.hypot(dx,dy)||1;
+    if(d<160){
+      const nx=dx/d, ny=dy/d, push=120*(1-d/160*0.4);
+      e.x=Math.max(0,Math.min(AW-e.t.w, e.x+nx*push));
+      e.y=Math.max(0,Math.min(AH-e.t.h, e.y+ny*push));
+      mkBoom(e.x+e.t.w/2,e.y+e.t.h/2,'#8b5cf6',3);
+    }
+  });
   if(duelMode && mpPlayerRef){ mpPlayerRef.update({ gravDashAt: Date.now(), gravDashX: px, gravDashY: py }); }
 }
 function tryGodDash(){
@@ -8617,10 +8628,20 @@ function splitEnemy(e){
 
 function moveEnemies(dt){
   const edt=dt*enemyTimeScale;
+  const inGravWavesZone = Date.now()<wavesGravZoneUntil;
   for(let i=enemies.length-1;i>=0;i--){
     const e=enemies[i]; if(!e.el.parentNode){enemies.splice(i,1);continue;}
     if(e.t.type==='t'||e.t.type==='m'){const dx=px-e.x,dy=py-e.y,d=Math.sqrt(dx*dx+dy*dy)||1;e.vx+=(dx/d)*.07*edt;e.vy+=(dy/d)*.07*edt;const sp=Math.sqrt(e.vx*e.vx+e.vy*e.vy);if(sp>1){e.vx/=sp;e.vy/=sp;}}
-    const fs=e.spd*(slOn?.35:1); e.x+=e.vx*fs*edt; e.y+=e.vy*fs*edt;
+    let gravSlow=1;
+    if(inGravWavesZone){
+      const gdx=(px+19)-(e.x+e.t.w/2), gdy=(py+19)-(e.y+e.t.h/2), gd=Math.hypot(gdx,gdy)||1;
+      if(gd<GRAV_ZONE_RADIUS){
+        gravSlow=GRAV_ZONE_SLOW_SCALE;
+        const pullSpd=e.spd*0.6*gravSlow;
+        e.x+=(gdx/gd)*pullSpd*edt; e.y+=(gdy/gd)*pullSpd*edt;
+      }
+    }
+    const fs=e.spd*(slOn?.35:1)*gravSlow; e.x+=e.vx*fs*edt; e.y+=e.vy*fs*edt;
     if(e.x<=0){e.x=0;e.vx=Math.abs(e.vx)||0.5;} if(e.x>=AW-e.t.w){e.x=AW-e.t.w;e.vx=-(Math.abs(e.vx)||0.5);}
     if(e.y<=0){e.y=0;e.vy=Math.abs(e.vy)||0.5;} if(e.y>=AH-e.t.h){e.y=AH-e.t.h;e.vy=-(Math.abs(e.vy)||0.5);}
     e.el.style.left=e.x+'px'; e.el.style.top=e.y+'px';
@@ -9142,6 +9163,7 @@ function gravityUltimate(){
   if(crownLobbyWaiting) return;
   if(activePower!=='gravity'||gravUltCD>0) return;
   gravUltCD=GRAV_ULT_CD;
+  wavesGravZoneUntil=Date.now()+GRAV_ZONE_DUR;
   spawnUltimateBurst(px,py,'rgba(139,92,246,.9)','rgba(76,29,149,.9)');
   shakeScreen(18,1500);
   playSFX('dom');
