@@ -6663,13 +6663,13 @@ function validUsername(u){
 function applyAccountData(username, acc){
   currentAccount = username;
   const d = acc.data || {};
-  if(d.skills){ Object.keys(d.skills).forEach(k=>{ if(isNaN(d.skills[k])) d.skills[k]=0; }); }
   playerName = d.displayName || username;
   HS            = d.hs || 0;
   totalCoins    = d.totalCoins || 0;
   totalXP       = d.xp || 0;
   skillPoints   = d.skillPoints || 0;
-  skills        = d.skills || { dashcd:0, shoot:0, magnet:0 };
+  skills        = Object.assign({ dashcd:0, shoot:0, magnet:0, speed:0 }, d.skills || {});
+  Object.keys(skills).forEach(k=>{ if(isNaN(skills[k])) skills[k]=0; });
   gems          = d.gems || 0;
   ownedSkins    = d.ownedSkins || ['purple'];
   equippedSkin  = d.equippedSkin || 'purple';
