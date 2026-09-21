@@ -6516,7 +6516,7 @@ const LEVEL_TITLES = [
   {lvl:85, title:'خارج نطاق التصنيف'},
   {lvl:90, title:'أسطورة لا تُمحى'},
   {lvl:95, title:'الحارس الأخير'},
-  {lvl:100,title:'404 — النسخة النهائية'}
+  {lvl:100,title:'المعلم زبم'}
 ];
 function xpForLevel(lvl){ return Math.round(55*Math.pow(lvl,1.42)); }
 function xpProgress(xp){
@@ -10134,7 +10134,7 @@ function renderFriendsList(){
       <div style="display:flex;align-items:center;gap:8px">
         <img id="friendAvatar-${id}" src="" alt="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid rgba(34,197,94,.4);background:rgba(34,197,94,.1);display:none">
         <div id="friendAvatarPlaceholder-${id}" style="width:32px;height:32px;border-radius:50%;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.4);display:flex;align-items:center;justify-content:center;font-size:14px">👤</div>
-        <span style="font-size:13px;color:#22c55e;font-weight:700">${escapeHtml(id)}</span>
+        <span id="friendName-${id}" style="font-size:13px;color:#22c55e;font-weight:700">${escapeHtml(id)}</span>
       </div>
       <div style="display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end">
         <button onclick="openFriendChat('${id}')" title="دردشة" style="width:32px;height:32px;border-radius:8px;background:rgba(34,211,238,.15);border:1px solid #22d3ee;color:#22d3ee;cursor:pointer;font-size:15px">💬</button>
@@ -10152,6 +10152,12 @@ function renderFriendsList(){
       const ph = document.getElementById('friendAvatarPlaceholder-'+fid);
       if(img){ img.src = url; img.style.display = 'block'; }
       if(ph){ ph.style.display = 'none'; }
+    }).catch(()=>{});
+    accRef(fid).child('data').child('displayName').once('value').then(snap=>{
+      const dn = snap.val();
+      if(!dn) return;
+      const nameEl = document.getElementById('friendName-'+fid);
+      if(nameEl) nameEl.textContent = dn;
     }).catch(()=>{});
   });
   renderBlockedList();
