@@ -7523,6 +7523,10 @@ function backToMenu(){
 function refreshMenuDisplays(){
   refreshTopDisplays();
   updateMenuSkinPreview();
+  const hs = document.getElementById('hs-settings');
+  const cs = document.getElementById('coins-settings');
+  if(hs) hs.textContent = HS;
+  if(cs) cs.textContent = totalCoins.toLocaleString();
 }
 function updateMenuSkinPreview(){
   const img=document.getElementById('menuSkinPreview');
