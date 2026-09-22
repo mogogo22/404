@@ -1384,6 +1384,12 @@ body.mirror-controls #dpadZone { right:auto; left:14px; }
       <div class="menu-item" id="reportsMenuItem" tabindex="0" role="button" style="display:none" onclick="menuAction('reports')" onkeydown="if(event.key==='Enter')menuAction('reports')">
         <span class="item-emoji">🚩</span><span class="item-icon">►</span><span>مشاكل وبلاغات <span id="reportsBadge" style="display:none;background:#ef4444;color:#fff;border-radius:50%;font-size:9px;padding:2px 6px;margin-inline-start:4px">0</span></span>
       </div>
+      <div class="menu-item" id="grantMenuItem" tabindex="0" role="button" style="display:none" onclick="menuAction('grant')" onkeydown="if(event.key==='Enter')menuAction('grant')">
+        <span class="item-emoji">💰</span><span class="item-icon">►</span><span>إعطاء عملات وجواهر</span>
+      </div>
+      <div class="menu-item" tabindex="0" role="button" onclick="menuAction('leaderboard')" onkeydown="if(event.key==='Enter')menuAction('leaderboard')">
+        <span class="item-emoji">🏆</span><span class="item-icon">►</span><span>لوحة المتصدرين</span>
+      </div>
       <div class="menu-item" tabindex="0" role="button" onclick="menuAction('settings')" onkeydown="if(event.key==='Enter')menuAction('settings')">
         <span class="item-emoji">⚙️</span><span class="item-icon">►</span><span>الإعدادات</span>
       </div>
@@ -1588,7 +1594,23 @@ body.mirror-controls #dpadZone { right:auto; left:14px; }
     <div id="reportsListBox"></div>
   </div>
 </div>
-
+<!-- ══ PANEL: LEADERBOARD ══ -->
+<div class="overlay-panel" id="panel-leaderboard">
+  <div class="panel-box" style="max-width:420px">
+    <button class="panel-close" onclick="closePanel('leaderboard')">✕ إغلاق</button>
+    <div class="panel-title">◈ لوحة المتصدرين</div>
+    <div id="leaderboardListBox"></div>
+  </div>
+</div>
+<!-- ══ PANEL: GRANT CURRENCY (OWNER) ══ -->
+<div class="overlay-panel" id="panel-grant">
+  <div class="panel-box" style="max-width:460px">
+    <button class="panel-close" onclick="closePanel('grant')">✕ إغلاق</button>
+    <div class="panel-title">◈ إعطاء عملات وجواهر</div>
+    <input id="grantSearchInput" type="text" placeholder="اكتب اسم اللاعب..." oninput="onGrantSearchInput()" style="width:100%;box-sizing:border-box;font-size:12px;font-family:var(--font-ar);background:rgba(0,13,8,.7);color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:9px;margin-bottom:10px">
+    <div id="grantSearchBox"></div>
+  </div>
+</div>
 <!-- ══ PANEL: CREDITS ══ -->
 <div class="overlay-panel" id="panel-credits">
   <div class="panel-box">
@@ -1694,6 +1716,15 @@ body.mirror-controls #dpadZone { right:auto; left:14px; }
     <div style="font-family:var(--font-px);font-size:12px;color:#ff9800;letter-spacing:2px;margin-bottom:16px">⏱ تايم اوت</div>
     <div id="timeoutNoticeText" style="font-size:13px;color:#ddd;margin-bottom:22px;line-height:1.8;font-family:var(--font-ar)"></div>
     <button onclick="closeTimeoutNoticeModal()" style="width:100%;padding:11px;font-family:var(--font-px);font-size:9px;letter-spacing:1px;background:rgba(255,152,0,.15);border:1px solid #ff9800;color:#ff9800;cursor:pointer;border-radius:6px">تمام</button>
+  </div>
+</div>
+<!-- ══ GIFT NOTICE MODAL (عملات/جواهر من الأونر) ══ -->
+<div id="giftNoticeModal" style="display:none;position:fixed;inset:0;background:rgba(0,5,3,.9);z-index:950;align-items:center;justify-content:center">
+  <div style="background:var(--night2);border:1px solid #ffd700;box-shadow:0 0 40px rgba(255,215,0,.5);padding:2rem 1.8rem;max-width:360px;width:88%;text-align:center;border-radius:10px">
+    <div style="font-size:34px;margin-bottom:10px">🎁</div>
+    <div style="font-family:var(--font-px);font-size:12px;color:#ffd700;letter-spacing:2px;margin-bottom:16px">هدية من الأونر</div>
+    <div id="giftNoticeText" style="font-size:13px;color:#ddd;margin-bottom:22px;line-height:1.8;font-family:var(--font-ar)"></div>
+    <button onclick="closeGiftNoticeModal()" style="width:100%;padding:11px;font-family:var(--font-px);font-size:9px;letter-spacing:1px;background:rgba(255,215,0,.15);border:1px solid #ffd700;color:#ffd700;cursor:pointer;border-radius:6px">يا سلام! 🙏</button>
   </div>
 </div>
 <!-- ══ GENERIC CONFIRM MODAL ══ -->
@@ -5698,7 +5729,38 @@ function updateReportsBadge(){
   const badge = document.getElementById('reportsBadge');
   if(badge){ badge.style.display = total>0 ? 'inline-block' : 'none'; badge.textContent = total; }
 }
-
+async function renderLeaderboard(){
+  const box = document.getElementById('leaderboardListBox');
+  if(!box) return;
+  box.innerHTML = '<div style="text-align:center;color:#666;font-size:11px;padding:20px">جاري التحميل...</div>';
+  try{
+    const unSnap = await mpDb.ref('usernames').once('value');
+    const usernames = Object.keys(unSnap.val() || {});
+    if(usernames.length===0){
+      box.innerHTML = '<div style="text-align:center;color:#666;font-size:11px;padding:20px">مفيش لاعبين لسه</div>';
+      return;
+    }
+    const dataSnaps = await Promise.all(
+      usernames.map(u => accRef(u).child('data').once('value').catch(()=>null))
+    );
+    const list = usernames.map((username,i)=>{
+      const d = dataSnaps[i] ? (dataSnaps[i].val() || {}) : {};
+      return { username, name: d.displayName || username, hs: d.hs || 0 };
+    }).sort((a,b)=> b.hs - a.hs).slice(0, 10);
+    const medals = ['🥇','🥈','🥉'];
+    box.innerHTML = list.map((p,i)=>{
+      const rankLabel = medals[i] || ('#'+(i+1));
+      const isMe = p.username === currentAccount;
+      return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid ${isMe?'#38bdf8':'rgba(255,255,255,.1)'};border-radius:8px;margin-bottom:8px;background:${isMe?'rgba(56,189,248,.08)':'rgba(255,255,255,.03)'}">
+        <span style="font-family:var(--font-px);font-size:11px;min-width:28px;text-align:center">${rankLabel}</span>
+        <span style="flex:1;font-size:13px;color:#eee;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(p.name)}</span>
+        <span style="font-family:var(--font-px);font-size:10px;color:var(--sky)">${p.hs.toLocaleString()}</span>
+      </div>`;
+    }).join('');
+  }catch(e){
+    box.innerHTML = '<div style="text-align:center;color:#ef4444;font-size:11px;padding:20px">حصل خطأ في التحميل</div>';
+  }
+}
 function micAllowed(){
     return !!ownerMode || micApprovalStatus === 'approved';
   }
@@ -6692,6 +6754,7 @@ function applyAccountData(username, acc){
   if(typeof initMicRequestListener==='function') initMicRequestListener();
   if(typeof initNameChangeListener==='function') initNameChangeListener();
   if(typeof attachModerationListeners==='function') attachModerationListeners();
+  if(typeof initGiftListener==='function') initGiftListener();
 }
 
 async function signupAccount(username, password, isOwner){
@@ -6734,6 +6797,7 @@ function logoutAccount(){
   if(typeof detachMicRequestListener==='function') detachMicRequestListener();
   if(typeof detachNameChangeListener==='function') detachNameChangeListener();
   if(typeof detachModerationListeners==='function') detachModerationListeners();
+  if(typeof detachGiftListener==='function') detachGiftListener();
   localStorage.removeItem(ACC_KEY);
 }
 function doLogout(){
@@ -6772,6 +6836,49 @@ const TIMEOUT_OPTIONS = [
 let myTimeoutUntil = 0;
 let myBanListenerRef = null;
 let myTimeoutListenerRef = null;
+let giftInboxRef = null;
+
+// ══════════════════════════════════════════════════════════════
+//  GIFTS (Owner → Player): بيبعت إشعار لما الأونر يدّي عملات/جواهر
+// ══════════════════════════════════════════════════════════════
+function initGiftListener(){
+  if(!currentAccount) return;
+  if(giftInboxRef) giftInboxRef.off();
+  giftInboxRef = mpDb.ref('giftInbox/' + currentAccount);
+  giftInboxRef.on('child_added', snap=>{
+    const g = snap.val();
+    const giftRef = snap.ref;
+    if(!g){ giftRef.remove().catch(()=>{}); return; }
+    const gCoins = g.coins || 0;
+    const gGems  = g.gems  || 0;
+    if(gCoins) totalCoins += gCoins;
+    if(gGems)  gems += gGems;
+    writeSave({ hs:HS, totalCoins, xp:totalXP, skillPoints, skills, gems, ownedSkins, equippedSkin, ownedPowers, equippedPower, ownedBoards, equippedBoard, playerName, redeemedCodes, v:1 });
+    if(typeof refreshMenuDisplays==='function') refreshMenuDisplays();
+    if(typeof refreshGemDisplay==='function') refreshGemDisplay();
+    if(typeof refreshTopDisplays==='function') refreshTopDisplays();
+    openGiftNoticeModal(gCoins, gGems);
+    giftRef.remove().catch(()=>{});
+  });
+}
+function detachGiftListener(){
+  if(giftInboxRef){ giftInboxRef.off(); giftInboxRef = null; }
+}
+function openGiftNoticeModal(gCoins, gGems){
+  const box = document.getElementById('giftNoticeModal');
+  const txt = document.getElementById('giftNoticeText');
+  if(!box || !txt) return;
+  const parts = [];
+  if(gCoins) parts.push(`🪙 ${gCoins.toLocaleString()} عملة`);
+  if(gGems)  parts.push(`💎 ${gGems.toLocaleString()} جوهرة`);
+  txt.textContent = 'وصلك من صاحب اللعبة: ' + parts.join(' و ');
+  box.style.display = 'flex';
+  if(typeof playSFX==='function') playSFX('buySkin');
+}
+function closeGiftNoticeModal(){
+  const box = document.getElementById('giftNoticeModal');
+  if(box) box.style.display = 'none';
+}
 
 function banMessageText(){
   return 'اتحظر حسابك من اللعبة، متقدرش تسجل دخول بيه تاني. لو فيه استفسار كلم صاحب اللعبة.';
@@ -6876,7 +6983,57 @@ function ownerRemoveBan(username){
     .then(()=>{ showToast('✅ اتفك الحظر عن '+username); onFriendSearchInput(); })
     .catch(err=> showToast('❌ فشل: '+err.message));
 }
-
+function ownerRemoveBan(username){
+  if(!ownerMode || !username) return;
+  mpDb.ref('moderation/bans/'+username).remove()
+    .then(()=>{ showToast('✅ اتفك الحظر عن '+username); onFriendSearchInput(); })
+    .catch(err=> showToast('❌ فشل: '+err.message));
+}
+let grantSearchTimer;
+function onGrantSearchInput(){
+  const inp = document.getElementById('grantSearchInput');
+  const box = document.getElementById('grantSearchBox');
+  if(!inp || !box) return;
+  const q = normalizeArabicSearch(inp.value);
+  clearTimeout(grantSearchTimer);
+  if(!q){ box.innerHTML=''; return; }
+  box.innerHTML = '<div style="padding:9px;font-size:11px;color:#667">بيدوّر...</div>';
+  grantSearchTimer = setTimeout(async ()=>{
+    try{
+      const snap = await mpDb.ref('usernames').once('value');
+      const all = snap.val() || {};
+      const matches = Object.keys(all).filter(u=> normalizeArabicSearch(u).includes(q)).slice(0, 15);
+      if(matches.length===0){ box.innerHTML = '<div style="padding:9px;font-size:11px;color:#667">مفيش نتايج</div>'; return; }
+      box.innerHTML = matches.map(u=>`
+        <div style="padding:9px 8px;border-bottom:1px solid rgba(255,255,255,.05)">
+          <div style="font-size:12px;color:${socialNameColor(u)};margin-bottom:6px">${escapeHtml(u)}</div>
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            <input id="grantCoins-${u}" type="number" placeholder="عدد العملات" style="width:110px;font-size:10px;font-family:var(--font-ar);background:rgba(0,13,8,.7);color:#fff;border:1px solid rgba(255,215,0,.4);border-radius:5px;padding:5px">
+            <input id="grantGems-${u}" type="number" placeholder="عدد الجواهر" style="width:110px;font-size:10px;font-family:var(--font-ar);background:rgba(0,13,8,.7);color:#fff;border:1px solid rgba(0,255,255,.4);border-radius:5px;padding:5px">
+            <button onclick="ownerGrantCurrency('${u}')" style="font-family:var(--font-px);font-size:6px;padding:6px 10px;background:rgba(34,197,94,.15);border:1px solid #22c55e;color:#22c55e;cursor:pointer;border-radius:5px">إرسال</button>
+          </div>
+        </div>`).join('');
+    }catch(e){ box.innerHTML = '<div style="padding:9px;font-size:11px;color:#f66">فشل البحث</div>'; }
+  }, 250);
+}
+function ownerGrantCurrency(username){
+  if(!ownerMode || !username) return;
+  const coinsInput = document.getElementById('grantCoins-'+username);
+  const gemsInput = document.getElementById('grantGems-'+username);
+  const coins = parseInt(coinsInput.value, 10) || 0;
+  const gems = parseInt(gemsInput.value, 10) || 0;
+  if(coins===0 && gems===0){ showToast('❌ اكتب رقم عملات أو جواهر الأول'); return; }
+  const updates = {};
+  if(coins!==0) updates.totalCoins = firebase.database.ServerValue.increment(coins);
+  if(gems!==0) updates.gems = firebase.database.ServerValue.increment(gems);
+  accRef(username).child('data').update(updates)
+    .then(()=>{
+      mpDb.ref('giftInbox/'+username).push({ coins, gems, ts: Date.now(), from: playerName || 'Owner' }).catch(()=>{});
+      showToast(`✅ اتبعت ${coins?coins+' عملة ':''}${gems?gems+' جوهرة ':''}لـ ${username}`);
+      coinsInput.value=''; gemsInput.value='';
+    })
+    .catch(err=> showToast('❌ فشل: '+err.message));
+}
 let authMode = 'login';
 function switchAuthTab(mode){
   authMode = mode;
@@ -7448,6 +7605,10 @@ function menuAction(action){
       openPanel('skills');
       renderSkillsPanel();
       break;
+    case 'leaderboard':
+      openPanel('leaderboard');
+      renderLeaderboard();
+      break;
     case 'settings':
       openPanel('settings');
       break;
@@ -7462,11 +7623,17 @@ function menuAction(action){
     case 'reportbug':
       openReportBugModal();
       break;
-    case 'reports':
+      case 'reports':
       if(!ownerMode) break;
       reportsTab = 'players';
       openPanel('reports');
       renderReportsList();
+      break;
+    case 'grant':
+      if(!ownerMode) break;
+      openPanel('grant');
+      { const gi=document.getElementById('grantSearchInput'); if(gi) gi.value=''; }
+      { const gb=document.getElementById('grantSearchBox'); if(gb) gb.innerHTML=''; }
       break;
     case 'restart':
       openPanel('confirm');
@@ -9696,6 +9863,8 @@ function refreshOwnerUI(){
   if(micMenuItem) micMenuItem.style.display = ownerMode ? 'flex' : 'none';
   const reportsMenuItem = document.getElementById('reportsMenuItem');
   if(reportsMenuItem) reportsMenuItem.style.display = ownerMode ? 'flex' : 'none';
+  const grantMenuItem = document.getElementById('grantMenuItem');
+  if(grantMenuItem) grantMenuItem.style.display = ownerMode ? 'flex' : 'none';
   if(ownerMode) initReportsListener();
   if(!ownerMode){
     document.getElementById('ownerCmdPanel').classList.remove('open');
