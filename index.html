@@ -1959,7 +1959,7 @@ body.mirror-controls #dpadZone { right:auto; left:14px; }
   <div id="hidefileHeatText" style="display:none;margin-top:2px">🧊 بعيد</div>
 </div>
 
-<div id="hidefileBlindOverlay" style="position:fixed;inset:0;z-index:590;background:rgba(0,4,2,.94);display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;pointer-events:none">
+<div id="hidefileBlindOverlay" style="position:fixed;inset:0;z-index:590;background:#000402;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;pointer-events:none">
   <div style="font-size:40px;margin-bottom:10px">🙈</div>
   <div style="font-family:var(--font-ar);color:#fff;font-size:15px">حد بيخبي الملف دلوقتي... متبصش!</div>
   <div id="hidefileHideCountdown" style="font-family:var(--font-px);font-size:22px;color:#38bdf8;margin-top:8px">8</div>
@@ -6577,7 +6577,7 @@ const LEVEL_TITLES = [
   {lvl:80, title:'إله الجليتش'},
   {lvl:85, title:'خارج نطاق التصنيف'},
   {lvl:90, title:'أسطورة لا تُمحى'},
-  {lvl:95, title:'الحارس الأخير'},
+  {lvl:95, title:'بسمتي'},
   {lvl:100,title:'المعلم زبم'}
 ];
 function xpForLevel(lvl){ return Math.round(55*Math.pow(lvl,1.42)); }
@@ -6851,13 +6851,16 @@ function initGiftListener(){
     if(!g){ giftRef.remove().catch(()=>{}); return; }
     const gCoins = g.coins || 0;
     const gGems  = g.gems  || 0;
-    if(gCoins) totalCoins += gCoins;
-    if(gGems)  gems += gGems;
-    writeSave({ hs:HS, totalCoins, xp:totalXP, skillPoints, skills, gems, ownedSkins, equippedSkin, ownedPowers, equippedPower, ownedBoards, equippedBoard, playerName, redeemedCodes, v:1 });
-    if(typeof refreshMenuDisplays==='function') refreshMenuDisplays();
-    if(typeof refreshGemDisplay==='function') refreshGemDisplay();
-    if(typeof refreshTopDisplays==='function') refreshTopDisplays();
-    openGiftNoticeModal(gCoins, gGems);
+    accRef(currentAccount).child('data').once('value').then(dataSnap=>{
+      const d = dataSnap.val() || {};
+      totalCoins = d.totalCoins || 0;
+      gems       = d.gems || 0;
+      writeSave({ hs:HS, totalCoins, xp:totalXP, skillPoints, skills, gems, ownedSkins, equippedSkin, ownedPowers, equippedPower, ownedBoards, equippedBoard, playerName, redeemedCodes, v:1 });
+      if(typeof refreshMenuDisplays==='function') refreshMenuDisplays();
+      if(typeof refreshGemDisplay==='function') refreshGemDisplay();
+      if(typeof refreshTopDisplays==='function') refreshTopDisplays();
+      openGiftNoticeModal(gCoins, gGems);
+    });
     giftRef.remove().catch(()=>{});
   });
 }
