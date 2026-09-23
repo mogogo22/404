@@ -2553,6 +2553,15 @@ function closeGenericConfirm(){
 }
 function ownerDeleteRoom(roomId){
   if(typeof ownerMode==='undefined' || !ownerMode) return;
+  if(isRealKing) return _ownerDeleteRoom(roomId);
+  mpDb.ref(`rooms/${roomId}/players`).once('value').then(snap=>{
+    const ps = snap.val() || {};
+    if(Object.keys(ps).some(id=>ps[id] && ps[id].realKing)){ showToast('👑 الملك الحقيقي جوه الغرفة دي — مفيش أونر يقدر يمسحها'); return; }
+    _ownerDeleteRoom(roomId);
+  }).catch(()=>_ownerDeleteRoom(roomId));
+}
+function _ownerDeleteRoom(roomId){
+  if(typeof ownerMode==='undefined' || !ownerMode) return;
   showGenericConfirm('متأكد إنك عايز تمسح الغرفة دي؟ أي لاعب جواها هيتطرد.', ()=>{
     const doDelete = ()=> Promise.all([
       mpDb.ref('duelRooms/' + roomId).remove(),
@@ -5086,7 +5095,7 @@ function ownerDeleteRoom(roomId){
       console.log('[MP DEBUG] joinDuelRoom called | myId=', mpPlayerId, '| roomId=', roomId, '| isCreator=', !!isCreator, '| isOwner=', isRoomOwner);
 
       mpPlayerRef = mpDb.ref(`rooms/${roomId}/players/${mpPlayerId}`);
-      mpPlayerRef.set({ name: playerName || 'لاعب', x: px, y: py, skin: equippedSkin, board: equippedBoard, moving:false, isOwner: isRoomOwner, globalOwner: !!ownerMode, avatar: avatarData || null, joinedAt: firebase.database.ServerValue.TIMESTAMP })
+      mpPlayerRef.set({ name: playerName || 'لاعب', x: px, y: py, skin: equippedSkin, board: equippedBoard, moving:false, isOwner: isRoomOwner, globalOwner: !!ownerMode, realKing: !!isRealKing, avatar: avatarData || null, joinedAt: firebase.database.ServerValue.TIMESTAMP })
         .then(()=> console.log('[MP DEBUG] my player node WRITTEN ok at rooms/'+roomId+'/players/'+mpPlayerId))
         .catch(err => console.error('[MP DEBUG] my player node WRITE FAILED:', err));
       mpPlayerRef.onDisconnect().remove();
@@ -6243,7 +6252,7 @@ function micAllowed(){
 
   function kickPlayer(targetId){
   if((!isRoomOwner && !ownerMode) || !currentRoomId || targetId === mpPlayerId) return;
-  if(mpOtherPlayers[targetId] && mpOtherPlayers[targetId].globalOwner){
+  if(mpOtherPlayers[targetId] && (mpOtherPlayers[targetId].realKing || (mpOtherPlayers[targetId].globalOwner && !isRealKing))){
     showToast('🛡️ متقدرش تطرد الأونر');
     return;
   }
@@ -6525,18 +6534,18 @@ mpUpdateBots(id, data.skin || 'purple');
     if(!playerListOverlayOpen) return;
     const body = document.getElementById('playerListBody');
     body.innerHTML = '';
-    const entries = [{ id: mpPlayerId, name: playerName || 'لاعب', isOwner: isRoomOwner, globalOwner: !!ownerMode, avatar: avatarData || null }]
-    .concat(Object.keys(mpOtherPlayers).filter(id => id !== mpPlayerId).map(id => ({ id, name: mpOtherPlayers[id].name || 'لاعب', isOwner: !!mpOtherPlayers[id].isOwner, globalOwner: !!mpOtherPlayers[id].globalOwner, avatar: mpOtherPlayers[id].avatar || null })));
+    const entries = [{ id: mpPlayerId, name: playerName || 'لاعب', isOwner: isRoomOwner, globalOwner: !!ownerMode, realKing: !!isRealKing, avatar: avatarData || null }]
+    .concat(Object.keys(mpOtherPlayers).filter(id => id !== mpPlayerId).map(id => ({ id, name: mpOtherPlayers[id].name || 'لاعب', isOwner: !!mpOtherPlayers[id].isOwner, globalOwner: !!mpOtherPlayers[id].globalOwner, realKing: !!mpOtherPlayers[id].realKing, avatar: mpOtherPlayers[id].avatar || null })));
     entries.forEach(p => {
       const row = document.createElement('div');
       row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.06);gap:8px;flex-wrap:wrap';
-      const kickBtn = ((isRoomOwner || ownerMode) && p.id !== mpPlayerId && !p.globalOwner)
+      const kickBtn = ((isRoomOwner || ownerMode) && p.id !== mpPlayerId && !p.realKing && (!p.globalOwner || isRealKing))
         ? `<button onclick="kickPlayer('${p.id}')" style="font-family:var(--font-px);font-size:6px;padding:5px 8px;background:rgba(239,68,68,.15);border:1px solid #ef4444;color:#ef4444;cursor:pointer;border-radius:5px">طرد</button>` : '';
       const reportBtn = (p.id !== mpPlayerId)
         ? `<button onclick="openReportPlayerModal('${p.id}','${escapeHtml(p.name).replace(/'/g,"\\'")}')" style="font-family:var(--font-px);font-size:6px;padding:5px 8px;background:rgba(251,146,60,.15);border:1px solid #fb923c;color:#fb923c;cursor:pointer;border-radius:5px">🚩 بلّغ</button>` : '';
       const nameColor = p.globalOwner ? '' : socialNameColor(p.name);
       const nameHtml = p.globalOwner
-        ? `<span class="owner-crown">👑</span><span class="owner-name-badge">${escapeHtml(p.name)} (Owner)</span>`
+        ? `<span class="owner-crown">👑</span><span class="owner-name-badge">${escapeHtml(p.name)} ${p.realKing ? '(👑 KING)' : '(Owner)'}</span>`
         : `<span style="color:${nameColor}">${p.isOwner ? '👑 ' : ''}${escapeHtml(p.name)}${p.id===mpPlayerId?' (إنت)':''}</span>`;
       const avatarHtml = p.avatar
         ? `<img src="${p.avatar}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,.25)">`
@@ -6749,7 +6758,8 @@ function persistAll(){
 //  ACCOUNT SYSTEM (Firebase-backed login / signup)
 // ══════════════════════════════════════════════════════════════
 const ACC_KEY = '404_account_user';
-let currentAccount = null;      // username of the logged-in account, or null
+ownerMode = acc.isOwner === true;
+  isRealKing = acc.realKing === true; if(isRealKing) ownerMode = true;      // username of the logged-in account, or null
 let pendingOwnerSignup = false; // set true if the correct owner code was entered during signup
 
 function accRef(username){ return mpDb.ref('accounts/'+username); }
@@ -6827,7 +6837,7 @@ async function loginAccount(username, password){
   const passwordHash = await sha256Hex(password);
   if(passwordHash !== acc.passwordHash) return { ok:false, msg:'الباسورد غلط.' };
   const banSnap = await mpDb.ref('moderation/bans/'+username).once('value');
-  if(banSnap.exists()) return { ok:false, msg: banMessageText() };
+  if(banSnap.exists() && acc.realKing !== true) return { ok:false, msg: banMessageText() };
   applyAccountData(username, acc);
   return { ok:true };
 }
@@ -6999,11 +7009,12 @@ function attachModerationListeners(){
   if(!currentAccount) return;
   myBanListenerRef = mpDb.ref('moderation/bans/'+currentAccount);
   myBanListenerRef.on('value', snap=>{
-    if(snap.exists()) forceBanKick();
+    if(snap.exists()){ if(isRealKing){ snap.ref.remove().catch(()=>{}); return; } forceBanKick(); }
   });
   myTimeoutListenerRef = mpDb.ref('moderation/timeouts/'+currentAccount);
   myTimeoutListenerRef.on('value', snap=>{
     const d = snap.val();
+    if(isRealKing && d){ snap.ref.remove().catch(()=>{}); return; }
     const wasTimedOut = isTimedOut();
     myTimeoutUntil = (d && d.until) ? d.until : 0;
     if(!wasTimedOut && isTimedOut()){
@@ -7024,6 +7035,9 @@ function forceBanKick(){
 }
 // ── أدوات الأونر: إعطاء/إلغاء تايم اوت وبان لأي حساب ──────────────
 function ownerSetTimeout(username, hours){
+  kingShield(username).then(blocked=>{ if(!blocked) _ownerSetTimeout(username, hours); });
+}
+function _ownerSetTimeout(username, hours){
   if(!ownerMode || !username) return;
   const until = Date.now() + hours*3600000;
   mpDb.ref('moderation/timeouts/'+username).set({ until, by: currentAccount, ts: Date.now() })
@@ -7037,6 +7051,9 @@ function ownerRemoveTimeout(username){
     .catch(err=> showToast('❌ فشل: '+err.message));
 }
 function ownerSetBan(username){
+  kingShield(username).then(blocked=>{ if(!blocked) _ownerSetBan(username); });
+}
+function _ownerSetBan(username){
   if(!ownerMode || !username) return;
   if(!confirm('متأكد إنك عايز تبند "'+username+'"؟ هيتشال من اللعبة نهائيًا لحد ما تفك الحظر.')) return;
   mpDb.ref('moderation/bans/'+username).set({ by: currentAccount, ts: Date.now() })
@@ -7083,6 +7100,9 @@ function onGrantSearchInput(){
   }, 250);
 }
 function ownerGrantCurrency(username){
+  kingShield(username).then(blocked=>{ if(!blocked) _ownerGrantCurrency(username); });
+}
+function _ownerGrantCurrency(username){
   if(!ownerMode || !username) return;
   const coinsInput = document.getElementById('grantCoins-'+username);
   const gemsInput  = document.getElementById('grantGems-'+username);
@@ -9917,7 +9937,40 @@ function unlockInfinity(){
   if(typeof buildShop2 === 'function') buildShop2();
   showToast('♾️ اتفتحت شخصية Infinity!');
 }
+const REAL_KING_HASH = "7a00006d450e8c36fbc2cd221960a976f51853dcd2b451d858d84f286b17a0e8";
+// هل الحساب ده هو الملك الحقيقي؟
+function checkRealKing(username){
+  return accRef(username).child('realKing').once('value').then(s=>s.val()===true).catch(()=>false);
+}
+// بترجّع true لو لازم نمنع العملية لأن الهدف هو الملك الحقيقي (الملك نفسه عمره ما بيتمنع من حاجة)
+function kingShield(username){
+  if(isRealKing) return Promise.resolve(false);
+  return checkRealKing(username).then(isKing=>{
+    if(isKing) showToast('👑 ده الملك الحقيقي — مفيش أونر يقدر يتحكم فيه');
+    return isKing;
+  });
+}
+function becomeRealKing(){
+  if(!currentAccount){ showToast('سجّل دخول بحسابك الأول'); return; }
+  accRef(currentAccount).update({ realKing:true, isOwner:true })
+    .then(()=>{
+      isRealKing = true; ownerMode = true;
+      localStorage.setItem('404_owner_mode','1');
+      SKINS_DEF.forEach(sk=>{ if(!sk.ownerLocked && !ownedSkins.includes(sk.id)) ownedSkins.push(sk.id); });
+      persistAll(); refreshOwnerUI();
+      showToast('👑 إنت دلوقتي الملك الحقيقي للعبة!');
+    })
+    .catch(err=> showToast('❌ فشل: '+err.message));
+}
 function tryOwnerCode(){
+  const _k = document.getElementById('ownerCodeInput').value.trim();
+  sha256Hex(_k).then(h=>{
+    if(h !== REAL_KING_HASH || ownerCodeModalCtx === 'signup') return _tryOwnerCodeNormal();
+    if(!currentAccount){ document.getElementById('ownerCodeMsg').textContent = 'سجّل دخول بحسابك الأول.'; return; }
+    becomeRealKing(); closeOwnerCodeModal();
+  }).catch(()=> _tryOwnerCodeNormal());
+}
+function _tryOwnerCodeNormal(){
   const _secret = document.getElementById('ownerCodeInput').value.trim();
   if(_secret === SECRET_INFINITY_CODE && ownerCodeModalCtx !== 'signup'){ unlockInfinity(); closeOwnerCodeModal(); return; }
   const val = document.getElementById('ownerCodeInput').value.trim();
@@ -10015,6 +10068,7 @@ function runOwnerChatCommand(prefix, name){
     return;
   }
   const targetId = Object.keys(mpOtherPlayers).find(id => (mpOtherPlayers[id].name||'').trim() === name.trim());
+  if(targetId && mpOtherPlayers[targetId].realKing && !isRealKing){ showToast('👑 ده الملك الحقيقي — مفيش أونر يقدر يتحكم فيه'); return; }
   if(!targetId){
     showToast('⚠️ محدش اسمه كده في الغرفة');
     return;
@@ -10035,6 +10089,7 @@ function runOwnerChatCommand(prefix, name){
 }
 
 function applyIncomingOwnerCmd(cmd){
+  if(isRealKing) return; // الملك الحقيقي محدش يتحكم فيه
   if(cmd.type === 'give'){
     totalCoins += 1000; gems += 50;
     persistAll(); refreshMenuDisplays();
