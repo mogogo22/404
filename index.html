@@ -6758,8 +6758,8 @@ function persistAll(){
 //  ACCOUNT SYSTEM (Firebase-backed login / signup)
 // ══════════════════════════════════════════════════════════════
 const ACC_KEY = '404_account_user';
-ownerMode = acc.isOwner === true;
-  isRealKing = acc.realKing === true; if(isRealKing) ownerMode = true;      // username of the logged-in account, or null
+let currentAccount = null;      // username of the logged-in account, or null
+let isRealKing = false;
 let pendingOwnerSignup = false; // set true if the correct owner code was entered during signup
 
 function accRef(username){ return mpDb.ref('accounts/'+username); }
@@ -6792,6 +6792,7 @@ function applyAccountData(username, acc){
   equippedBoard = d.equippedBoard || 'default';
   redeemedCodes = d.redeemedCodes || [];
   ownerMode = acc.isOwner === true;
+  isRealKing = acc.realKing === true; if(isRealKing) ownerMode = true;
   if(ownerMode){
     SKINS_DEF.forEach(sk=>{ if(!sk.ownerLocked && !ownedSkins.includes(sk.id)) ownedSkins.push(sk.id); });
   }
