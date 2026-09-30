@@ -699,6 +699,10 @@ header {
   50%{ transform:translate(-3px,2px) rotate(.4deg); }
   100%{ transform:translate(2px,-3px) rotate(-.4deg); }
 }
+.lava-tile { position:absolute; box-sizing:border-box; border:1px solid rgba(255,255,255,.08); background:rgba(30,20,10,.35); transition:background .45s ease, box-shadow .45s ease; }
+.lava-tile.gone { background:radial-gradient(circle,rgba(249,115,22,.55),rgba(127,29,29,.9)); box-shadow:0 0 14px rgba(249,115,22,.8) inset; animation:lavaGlow 1.2s ease-in-out infinite; }
+@keyframes lavaGlow { 0%,100%{filter:brightness(1)} 50%{filter:brightness(1.45)} }
+.lava-fallen .mp-body, #player.lava-fallen img { opacity:.35; filter:grayscale(1) brightness(.6); }
 .infected-glow .mp-body, #player.infected-glow img { animation:infectedPulse .6s ease-in-out infinite; }
 @keyframes infectedPulse {
   0%,100%{ filter:drop-shadow(0 0 8px #ef4444) drop-shadow(0 0 14px #b91c1c) saturate(1.6); }
@@ -1343,7 +1347,7 @@ body.mirror-controls #dpadZone { right:auto; left:14px; }
   .logo-sub{ margin-bottom:.6rem; font-size:clamp(6px,1vw,7px); }
   .menu-item{ padding:6px 16px; margin-bottom:2px; font-size:clamp(8px,1.2vw,9.5px); }
   .menu-footer{ margin-top:.5rem; font-size:7px; line-height:1.4; }
-  #menuSkinPreview{ display:none; }
+  #menuSkinPreview{ height:min(30vh,180px); left:4px; opacity:.85; }
   .panel-box{ padding:1.1rem 1.3rem; max-height:94vh; }
   .shop-panel-box{ padding:1rem 1.2rem; max-height:94vh; }
   .panel-title{ margin-bottom:1rem; padding-bottom:.6rem; }
@@ -1383,7 +1387,7 @@ body.mirror-controls #dpadZone { right:auto; left:14px; }
   .menu-item{ padding:5px 14px; margin-bottom:2px; font-size:8px; }
   .logo{ font-size:22px; }
   .menu-wrap{ padding:.3rem 1rem; }
-  #menuSkinPreview{ display:none; }
+  #menuSkinPreview{ height:min(26vh,150px); left:4px; opacity:.85; }
 }
 @media(pointer:coarse){
   #chatPanel{
@@ -1489,7 +1493,7 @@ body.mirror-controls #dpadZone { right:auto; left:14px; }
           style="width:100%;padding:10px 40px 10px 12px;border-radius:8px;border:1px solid rgba(194,0,251,.4);background:rgba(0,13,8,.6);color:#fff;font-size:13px;text-align:center;font-family:var(--font-ar)">
         <span onclick="toggleFieldVisibility('authPassword', this)" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:14px;user-select:none">👁️</span>
       </div>
-      <div style="position:relative;margin-bottom:10px" id="authPasswordConfirmWrap">
+      <div style="position:relative;margin-bottom:10px;display:none" id="authPasswordConfirmWrap">
         <input type="password" id="authPasswordConfirm" placeholder="تأكيد الباسورد" autocomplete="off"
           style="width:100%;padding:10px 40px 10px 12px;border-radius:8px;border:1px solid rgba(194,0,251,.4);background:rgba(0,13,8,.6);color:#fff;font-size:13px;text-align:center;font-family:var(--font-ar)">
         <span onclick="toggleFieldVisibility('authPasswordConfirm', this)" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:14px;user-select:none">👁️</span>
@@ -2088,6 +2092,19 @@ body.mirror-controls #dpadZone { right:auto; left:14px; }
   <div>🧟 مصابين: <span id="infectedCount">0</span> / <span id="infectedTotalCount">0</span></div>
 </div>
 
+<!-- ══ LAVA GAME UI ══ -->
+<div id="lavaLobbyScreen" style="position:fixed;top:96px;left:50%;transform:translateX(-50%);z-index:600;background:rgba(0,13,8,.88);border:1px solid #f97316;border-radius:10px;padding:8px 20px;text-align:center;pointer-events:none;display:none">
+  <div style="font-family:var(--font-px);font-size:9px;color:#f97316;letter-spacing:1px;margin-bottom:4px">🌋 الأرض بتختفي</div>
+  <div id="lavaLobbyStatus" style="font-family:var(--font-ar);color:#fff;font-size:12px">مستني لاعبين...</div>
+  <div id="lavaCountdownNum" style="font-family:var(--font-px);font-size:26px;color:#f97316;display:none;margin-top:2px">10</div>
+</div>
+
+<div id="lavaStatusHud" style="position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:600;background:rgba(0,13,8,.85);border:1px solid #f97316;border-radius:12px;padding:9px 20px;font-family:var(--font-ar);color:#fff;font-size:clamp(13px,3vw,17px);line-height:1.6;text-align:center;max-width:80vw;box-shadow:0 0 14px rgba(249,115,22,.3);display:none">
+  <div>⏱ <span id="lavaTimeLeft">2:00</span></div>
+  <div id="lavaMyStatus" style="color:#4ade80">🟩 ثابت — جري من الأرض اللي بتختفي!</div>
+  <div>🧍 ثابتين: <span id="lavaAliveCount">0</span> / <span id="lavaTotalCount">0</span></div>
+</div>
+
 <!-- ══ COINS GAME UI ══ -->
 <div id="coinsLobbyScreen" style="position:fixed;top:96px;left:50%;transform:translateX(-50%);z-index:600;background:rgba(0,13,8,.88);border:1px solid #f59e0b;border-radius:10px;padding:8px 20px;text-align:center;pointer-events:none;display:none">
   <div style="font-family:var(--font-px);font-size:9px;color:#f59e0b;letter-spacing:1px;margin-bottom:4px">🪙 العملات</div>
@@ -2229,6 +2246,7 @@ body.mirror-controls #dpadZone { right:auto; left:14px; }
 
   <div id="gameArea">
     <div id="gameBg"></div>
+    <div id="lavaGridWrap" style="position:absolute;left:0;top:0;width:100%;height:100%;z-index:2;pointer-events:none;display:none"></div>
     <div id="infiHallucOverlay"></div>
     <div id="infiScribbleOverlay"></div>
     <div id="crosshair"><div class="cr"></div></div>
@@ -2466,13 +2484,14 @@ let mpOwnerCmdRef = null;
   const MINI_GAMES = [
   { id:'crown', name:'تاج الملك',  img:'MiniGames/crown.png', players:[2,3,4,5,6,7,8,9,10], color:'#facc15', glow:'rgba(250,204,21,.35)' },
     { id:'infected', name:'العدوى', icon:'🦠', players:[2,3,4,5,6,7,8,9,10], color:'#ef4444', glow:'rgba(239,68,68,.4)' },
+    { id:'lava', name:'الأرض بتختفي', icon:'🌋', players:[2,3,4,5,6,7,8,9,10], color:'#f97316', glow:'rgba(249,115,22,.4)' },
     { id:'coins', name:'العملات',    img:'MiniGames/red.png', players:[4,6,8,10], color:'#f59e0b', glow:'rgba(245,158,11,.35)' },
     { id:'duel',  name:'أوضة الدردشة', icon:'🎤', players:[4,6,8,10], color:'#c200fb', glow:'rgba(194,0,251,.35)' },
     { id:'math',  name:'اختبار الحساب', icon:'🧮', players:[2,3,4,5,6,7,8,9,10], color:'#22c55e', glow:'rgba(34,197,94,.35)' },
     { id:'shield', name:'قنبلة الدروع', img:'Player/E/BOMB.png', players:[2,3,4,5,6,7,8,9,10], color:'#ef4444', glow:'rgba(239,68,68,.4)' },
     { id:'hidefile', name:'اخفاء الملف', icon:'🗂️', players:[2,3,4,5,6,7,8,9,10], color:'#38bdf8', glow:'rgba(56,189,248,.4)' },
   ];
-  const MG_ICON = { crown:'👑', coins:'🪙', duel:'🎤', math:'🧮', shield:'💣', infected:'🦠', hidefile:'🗂️' };
+  const MG_ICON = { crown:'👑', coins:'🪙', duel:'🎤', math:'🧮', shield:'💣', infected:'🦠', hidefile:'🗂️', lava:'🌋' };
   let selectedMiniGame = null;
   let roomsListenerRef = null;
   let mpChatRef = null;
@@ -2642,7 +2661,7 @@ let mpOwnerCmdRef = null;
       `).join('');
       document.getElementById('roomMaxSelect').value = selectedMiniGame.players[0];
     }
-    const timedGames = ['crown','coins','math','infected','hidefile'];
+    const timedGames = ['crown','coins','math','infected','hidefile','lava'];
     document.getElementById('roomDurationLabel').style.display = timedGames.includes(id) ? 'block' : 'none';
     document.getElementById('roomDurationGrid').style.display = timedGames.includes(id) ? 'grid' : 'none';
     selectMatchDuration(2);
@@ -3447,6 +3466,356 @@ function _ownerDeleteRoom(roomId){
     infectedLive = null; infectedPlayingInited = false; infectedLobbyWaiting = false; infectedCountdownStarted = false;
     infectedEndedShown = false; infectedRewardApplied = false; infectedSoloEndTriggered = false;
     infectedIAmInfected = false; infectedSpeedMult = 1;
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  //  LAVA MINI-GAME (الأرض بتختفي)
+  // ══════════════════════════════════════════════════════════════
+  let lavaRoomId=null, lavaMaxPlayers=4, lavaMatchDuration=120000, lavaRoomRef=null, lavaStateRef=null, lavaIsHost=false;
+  let lavaListener=null, lavaCountdownIv=null, lavaLobbyWaiting=false, lavaCountdownStarted=false;
+  let lavaLive=null, lavaPlayingInited=false, lavaRenderFid=null, lavaHostIv=null, lavaSoloEndTriggered=false;
+  let lavaRewardApplied=false, lavaEndedShown=false;
+  let lavaCols=6, lavaRows=6, lavaTileW=0, lavaTileH=0, lavaIAmFallen=false;
+
+  function startLavaGame(roomId, maxPlayers, matchDuration){
+    activeMiniGameType = 'lava';
+    lavaRoomId = roomId;
+    lavaMaxPlayers = maxPlayers;
+    lavaMatchDuration = matchDuration || 120000;
+    lavaRoomRef = mpDb.ref('duelRooms/' + roomId);
+    lavaStateRef = mpDb.ref('rooms/' + roomId + '/lava');
+    lavaIsHost = isRoomOwner;
+    lavaIAmFallen = false;
+
+    document.querySelectorAll('.enemy,.coin,.powerup,.dash-ghost,.particle,.float-text,.bullet,.ebullet,.bp,.wbot,.sk-particle').forEach(el=>el.remove());
+    enemies=[];coins=[];pups=[];bullets=[];ebullets=[];wbots=[];
+    document.getElementById('boss').style.display='none';
+    document.getElementById('bossHpWrap').classList.remove('show');
+    wActive=false;bAlive=false;bReady=false;
+
+    document.getElementById('hud').style.display = 'none';
+    document.getElementById('gameArea').classList.remove('arena-waves');
+    document.getElementById('gameArea').classList.add('arena-duel');
+    hideAllGScreens();
+    cacheArena();
+    applyPlayerSkin();
+    px = AW/2 - 19; py = AH/2 - 19;
+    const p = PEL(); if(p){ p.style.left = px+'px'; p.style.top = py+'px'; p.classList.remove('lava-fallen'); }
+    GR = true; paused = false;
+    lt = performance.now();
+    fid = requestAnimationFrame(ts=>{ lt=ts; loop(ts); });
+
+    document.getElementById('lavaLobbyScreen').style.display = 'block';
+    document.getElementById('lavaLobbyStatus').textContent = 'مستني لاعبين...';
+    lavaLobbyWaiting = true;
+    lavaCountdownStarted = false;
+    playBgMusic('duel');
+
+    lavaRoomRef.child('playerCount').on('value', snap=>{
+      if(!lavaLobbyWaiting || lavaCountdownStarted) return;
+      const count = snap.val() || 1;
+      const st = document.getElementById('lavaLobbyStatus');
+      if(st) st.textContent = `مستني لاعبين... (${count}/${lavaMaxPlayers})`;
+      if(count >= lavaMaxPlayers && lavaIsHost){
+        lavaStateRef.once('value').then(s=>{
+          if(!s.val() || s.val().state === 'lobby'){
+            lavaStateRef.set({ state:'countdown', countdownStart: firebase.database.ServerValue.TIMESTAMP });
+          }
+        });
+      }
+    });
+
+    lavaListener = lavaStateRef.on('value', snap=>{
+      const st = snap.val();
+      if(!st) return;
+      if(st.state === 'countdown') lavaRunCountdown(st.countdownStart);
+      else if(st.state === 'playing') lavaEnterPlaying(st);
+      else if(st.state === 'ended') lavaShowStage(st);
+    });
+  }
+
+  function lavaRunCountdown(startTs){
+    document.getElementById('lavaLobbyStatus').textContent = 'كلهم جاهزين! هنبدأ خلال:';
+    lavaCountdownStarted = true;
+    const numEl = document.getElementById('lavaCountdownNum');
+    numEl.style.display = 'block';
+    if(lavaCountdownIv) clearInterval(lavaCountdownIv);
+    let lastShown = null;
+    lavaCountdownIv = setInterval(()=>{
+      const now = Date.now();
+      const base = startTs || now;
+      const elapsed = Math.max(0, now - base);
+      const left = Math.max(0, 10 - Math.floor(elapsed/1000));
+      if(left !== lastShown){
+        lastShown = left;
+        numEl.textContent = left;
+        playClick();
+      }
+      if(left <= 0){
+        clearInterval(lavaCountdownIv);
+        if(lavaIsHost){
+          lavaStartMatch();
+        }
+      }
+    }, 250);
+  }
+
+  function lavaStartMatch(){
+    const total = lavaCols*lavaRows;
+    const tiles = {}; for(let i=0;i<total;i++) tiles[i]=true;
+    lavaStateRef.set({
+      state: 'playing',
+      gameStart: Date.now(),
+      tiles,
+      fallen: {},
+      fallenOrder: [],
+      lastDropAt: 0
+    });
+  }
+
+  function lavaBuildGrid(){
+    const wrap = document.getElementById('lavaGridWrap');
+    if(!wrap) return;
+    wrap.innerHTML = '';
+    wrap.style.display = 'block';
+    lavaTileW = AW / lavaCols; lavaTileH = AH / lavaRows;
+    for(let r=0;r<lavaRows;r++){
+      for(let c=0;c<lavaCols;c++){
+        const idx = r*lavaCols+c;
+        const t = document.createElement('div');
+        t.className = 'lava-tile';
+        t.id = 'lavaTile_'+idx;
+        t.style.left = (c*lavaTileW)+'px';
+        t.style.top = (r*lavaTileH)+'px';
+        t.style.width = lavaTileW+'px';
+        t.style.height = lavaTileH+'px';
+        wrap.appendChild(t);
+      }
+    }
+  }
+
+  function lavaEnterPlaying(st){
+    lavaLive = st;
+    if(lavaPlayingInited) return;
+    lavaPlayingInited = true;
+    lavaLobbyWaiting = false;
+    playBgMusic('boss', 0.7);
+    document.getElementById('lavaLobbyScreen').style.display = 'none';
+    document.getElementById('lavaStatusHud').style.display = 'block';
+    lavaBuildGrid();
+    lavaRenderLoop();
+    if(lavaIsHost){
+      lavaHostIv = setInterval(lavaHostTick, 200);
+    }
+  }
+
+  function lavaRenderLoop(){
+    if(!lavaLive || lavaLive.state !== 'playing'){ lavaRenderFid = null; return; }
+    if(!lavaSoloEndTriggered && Object.keys(mpOtherPlayers).filter(id=>id!==mpPlayerId).length === 0){
+      lavaSoloEndTriggered = true;
+      if(lavaHostIv){ clearInterval(lavaHostIv); lavaHostIv = null; }
+      lavaEndGame();
+    }
+    const tiles = lavaLive.tiles || {};
+    for(let i=0;i<lavaCols*lavaRows;i++){
+      const el = document.getElementById('lavaTile_'+i);
+      if(el) el.classList.toggle('gone', tiles[i]===false);
+    }
+    const fallenMap = lavaLive.fallen || {};
+    const wasFallen = lavaIAmFallen;
+    lavaIAmFallen = !!fallenMap[mpPlayerId];
+    const p = PEL();
+    if(p) p.classList.toggle('lava-fallen', lavaIAmFallen);
+    if(lavaIAmFallen && !wasFallen){
+      flashFX('rgba(249,115,22,.4)'); playSFX('dom'); showToast('🌋 وقعت! بقيت متفرج لحد ما الجولة تخلص');
+    }
+
+    Object.keys(mpOtherPlayers).forEach(id=>{
+      if(id===mpPlayerId) return;
+      const el = document.getElementById('mp-'+id);
+      if(el) el.classList.toggle('lava-fallen', !!fallenMap[id]);
+    });
+
+    const elapsed = Date.now() - (lavaLive.gameStart || Date.now());
+    const left = Math.max(0, lavaMatchDuration - elapsed);
+    const mm = Math.floor(left/60000), ss = Math.floor((left%60000)/1000);
+    const tEl = document.getElementById('lavaTimeLeft');
+    if(tEl) tEl.textContent = mm+':'+String(ss).padStart(2,'0');
+    const statusEl = document.getElementById('lavaMyStatus');
+    if(statusEl) statusEl.innerHTML = lavaIAmFallen ? '🌋 وقعت — استنى الجولة تخلص' : '🟩 ثابت — جري من الأرض اللي بتختفي!';
+    const total = Object.keys(mpOtherPlayers).length+1;
+    const fallenCount = Object.keys(fallenMap).length;
+    const aEl = document.getElementById('lavaAliveCount');
+    if(aEl) aEl.textContent = Math.max(0,total-fallenCount);
+    const tcEl = document.getElementById('lavaTotalCount');
+    if(tcEl) tcEl.textContent = total;
+
+    lavaRenderFid = requestAnimationFrame(lavaRenderLoop);
+  }
+
+  function lavaHostTick(){
+    if(!lavaLive || lavaLive.state !== 'playing') return;
+    const now = Date.now();
+    const gameStart = lavaLive.gameStart || now;
+    const elapsed = now - gameStart;
+    const tiles = lavaLive.tiles || {};
+    const fallenMap = lavaLive.fallen || {};
+    const allIds = [mpPlayerId, ...Object.keys(mpOtherPlayers).filter(id=>id!==mpPlayerId)];
+    const aliveIds = allIds.filter(id=>!fallenMap[id]);
+
+    if(elapsed >= lavaMatchDuration || aliveIds.length <= 1){
+      clearInterval(lavaHostIv); lavaHostIv = null;
+      lavaEndGame();
+      return;
+    }
+
+    const activeCount = Object.values(tiles).filter(v=>v!==false).length;
+    const minTiles = Math.max(4, aliveIds.length);
+    if(elapsed > 4000 && activeCount > minTiles){
+      const prog = Math.min(1, elapsed/lavaMatchDuration);
+      const dropInterval = 2200 - prog*1300;
+      if(now - (lavaLive.lastDropAt||0) >= dropInterval){
+        const activeIdx = Object.keys(tiles).filter(k=>tiles[k]!==false).map(Number);
+        if(activeIdx.length > minTiles){
+          const pick = activeIdx[Math.floor(Math.random()*activeIdx.length)];
+          lavaStateRef.update({ ['tiles/'+pick]: false, lastDropAt: now });
+        }
+      }
+    }
+
+    const positions = {};
+    positions[mpPlayerId] = { x: px, y: py };
+    Object.keys(mpOtherPlayers).forEach(pid=>{ if(pid!==mpPlayerId) positions[pid] = { x: mpOtherPlayers[pid].x, y: mpOtherPlayers[pid].y }; });
+    for(const id of aliveIds){
+      const pos = positions[id]; if(!pos || pos.x===undefined) continue;
+      const col = Math.min(lavaCols-1,Math.max(0,Math.floor((pos.x+19)/lavaTileW)));
+      const row = Math.min(lavaRows-1,Math.max(0,Math.floor((pos.y+19)/lavaTileH)));
+      const idx = row*lavaCols+col;
+      if(tiles[idx]===false){
+        const order = (lavaLive.fallenOrder||[]).concat([id]);
+        lavaStateRef.update({ ['fallen/'+id]: true, fallenOrder: order });
+      }
+    }
+  }
+
+  function lavaEndGame(){
+    lavaStateRef.once('value').then(snap=>{
+      const st = snap.val() || lavaLive || {};
+      const fallenMap = st.fallen || {};
+      const order = st.fallenOrder || [];
+      const stillHere = new Set([mpPlayerId, ...Object.keys(mpOtherPlayers).filter(id=>id!==mpPlayerId)]);
+      let allIds = [...stillHere];
+      const alive = allIds.filter(id=>!fallenMap[id]);
+      const fallenIds = allIds.filter(id=>fallenMap[id]);
+      const fallenRanked = fallenIds.sort((a,b)=> order.indexOf(b) - order.indexOf(a));
+      const ranked = [...alive, ...fallenRanked].map(id=>({
+        id,
+        name: id === mpPlayerId ? (playerName || 'لاعب') : ((mpOtherPlayers[id] && mpOtherPlayers[id].name) || 'لاعب'),
+        score: alive.includes(id) ? 1 : 0
+      }));
+      const results = {};
+      ranked.forEach((p, i)=>{
+        const rank = i+1;
+        let coins, gems;
+        if(rank===1){ coins=200; gems=5; }
+        else if(rank===2){ coins=150; gems=3; }
+        else if(rank===3){ coins=100; gems=1; }
+        else { coins = 30 + Math.floor(Math.random()*91); gems = 0; }
+        results[p.id] = { rank, name: p.name, score: p.score, coins, gems };
+      });
+      lavaStateRef.update({ state:'ended', results });
+    });
+  }
+
+  function lavaShowStage(st){
+    lavaLive = st;
+    if(lavaEndedShown) return;
+    lavaEndedShown = true;
+    if(lavaRenderFid){ cancelAnimationFrame(lavaRenderFid); lavaRenderFid = null; }
+    if(lavaHostIv){ clearInterval(lavaHostIv); lavaHostIv = null; }
+    document.getElementById('lavaStatusHud').style.display = 'none';
+    const wrap = document.getElementById('lavaGridWrap'); if(wrap){ wrap.style.display = 'none'; }
+    const p = PEL(); if(p) p.classList.remove('lava-fallen');
+    Object.keys(mpOtherPlayers).forEach(id=>{ const el=document.getElementById('mp-'+id); if(el) el.classList.remove('lava-fallen'); });
+    playBgMusic('duel');
+
+    const results = st.results || {};
+    const ranked = Object.keys(results).map(id=>({ id, ...results[id] })).sort((a,b)=> a.rank - b.rank);
+    const board = document.getElementById('crownStageBoard');
+    const medals = {1:'🥇',2:'🥈',3:'🥉'};
+    const iAmWinner = !!(ranked[0] && ranked[0].id === mpPlayerId);
+
+    const top4 = ranked.slice(0,4);
+
+    const podiumHtml = `<div class="crown-podium-row">` + top4.map(p=>{
+      const skin = crownSkinFor(p.id);
+      const boardSkin = crownBoardFor(p.id);
+      const medal = medals[p.rank] || ('#'+p.rank);
+      const tier = Math.min(p.rank,4);
+      const rewardTxt = [
+        p.coins>0?('<span class="crown-chip">🪙 <span class="crown-count-up" data-target="'+p.coins+'">0</span></span>'):'',
+        p.gems>0?('<span class="crown-chip">💎 <span class="crown-count-up" data-target="'+p.gems+'">0</span></span>'):''
+      ].filter(Boolean).join('');
+      return `
+      <div class="crown-spot-card tier-${tier}" style="--reveal-delay:${tier*150}ms">
+          ${p.rank===1?'<div class="crown-winner-crown">🌋</div>':''}
+          <div class="crown-spot-avatarwrap">
+            <img class="crown-podium-avatar" id="crownPodiumAvatar_${p.id}" src="${skinIdleSrc(skin.id,0)}" style="--pglow:${skin.glow}">
+          </div>
+          <div class="crown-spot-rankbadge">${medal} المركز ${p.rank}</div>
+          <img class="crown-podium-vessel board-${boardSkin.id}" src="${boardSkin.img}">
+          <div class="crown-podium-info">
+            <div class="crown-podium-name">${p.name}</div>
+            <div class="crown-podium-score">${p.score>0?'🟩 نجا':'🌋 وقع'}</div>
+            <div class="crown-podium-reward">${rewardTxt}</div>
+          </div>
+        </div>`;
+    }).join('') + `</div>`;
+
+    board.innerHTML = podiumHtml;
+
+    const banner = document.getElementById('crownWinnerBanner');
+    if(banner) banner.style.display = iAmWinner ? 'block' : 'none';
+
+    document.getElementById('crownStageScreen').classList.add('open');
+    startCrownPodiumAnim(ranked);
+    animateCrownCountUps();
+    playSFX(iAmWinner ? 'win' : 'victory');
+    if(!lowGraphics) spawnCrownConfetti();
+
+    const myReward = results[mpPlayerId];
+    if(myReward && !lavaRewardApplied){
+      lavaRewardApplied = true;
+      totalCoins += myReward.coins;
+      gems += myReward.gems;
+      persistAll();
+      refreshGemDisplay();
+      setTimeout(()=>{
+        showToast(myReward.rank===1
+          ? `🏆 نجيت! +${myReward.coins} 🪙 +${myReward.gems} 💎`
+          : `🌋 المركز ${myReward.rank}! +${myReward.coins} 🪙 +${myReward.gems} 💎`);
+      }, 900);
+    }
+  }
+
+  function lavaFullCleanup(){
+    const lobbyEl = document.getElementById('lavaLobbyScreen'); if(lobbyEl) lobbyEl.style.display = 'none';
+    const hudEl = document.getElementById('lavaStatusHud'); if(hudEl) hudEl.style.display = 'none';
+    const numEl = document.getElementById('lavaCountdownNum'); if(numEl) numEl.style.display = 'none';
+    const wrap = document.getElementById('lavaGridWrap'); if(wrap){ wrap.style.display = 'none'; wrap.innerHTML=''; }
+    const p = PEL(); if(p) p.classList.remove('lava-fallen');
+    Object.keys(mpOtherPlayers).forEach(id=>{ const el=document.getElementById('mp-'+id); if(el) el.classList.remove('lava-fallen'); });
+    if(lavaRoomRef) lavaRoomRef.child('playerCount').off();
+    if(lavaStateRef) lavaStateRef.off();
+    if(lavaCountdownIv){ clearInterval(lavaCountdownIv); lavaCountdownIv = null; }
+    if(lavaHostIv){ clearInterval(lavaHostIv); lavaHostIv = null; }
+    if(lavaRenderFid){ cancelAnimationFrame(lavaRenderFid); lavaRenderFid = null; }
+    stopCrownPodiumAnim();
+    document.querySelectorAll('.crown-confetti').forEach(c=>c.remove());
+    lavaRoomId = null; lavaRoomRef = null; lavaStateRef = null; lavaIsHost = false;
+    lavaLive = null; lavaPlayingInited = false; lavaLobbyWaiting = false; lavaCountdownStarted = false;
+    lavaEndedShown = false; lavaRewardApplied = false; lavaSoloEndTriggered = false;
+    lavaIAmFallen = false;
   }
 
   // ══════════════════════════════════════════════════════════════
@@ -5193,6 +5562,7 @@ function _ownerDeleteRoom(roomId){
     else if(activeMiniGameType === 'math'){ mathFullCleanup(); }
     else if(activeMiniGameType === 'shield'){ shieldFullCleanup(); }
     else if(activeMiniGameType === 'infected'){ infectedFullCleanup(); }
+    else if(activeMiniGameType === 'lava'){ lavaFullCleanup(); }
     else if(activeMiniGameType === 'hidefile'){ hidefileFullCleanup(); }
     else { crownFullCleanup(); }
     activeMiniGameType = null;
@@ -5227,6 +5597,7 @@ function _ownerDeleteRoom(roomId){
       else if(data.game === 'math'){ startMathGame(roomId, data.maxPlayers || 4, data.matchDuration || 120000); }
       else if(data.game === 'shield'){ startShieldGame(roomId, data.maxPlayers || 4); }
       else if(data.game === 'infected'){ startInfectedGame(roomId, data.maxPlayers || 4, data.matchDuration || 120000); }
+      else if(data.game === 'lava'){ startLavaGame(roomId, data.maxPlayers || 4, data.matchDuration || 120000); }
       else if(data.game === 'hidefile'){ startHideFileGame(roomId, data.maxPlayers || 4, data.matchDuration || 120000); }
       else if(data.game === 'wave'){ startWaveGame(roomId, data.maxPlayers || 4); }
       else{ startDuelGame(); }
@@ -5489,6 +5860,7 @@ function appendChatMessage(msg){
     if(shieldRoomId) shieldFullCleanup();
     if(coinsRoomId) coinsFullCleanup();
     if(infectedRoomId) infectedFullCleanup();
+    if(lavaRoomId) lavaFullCleanup();
     const roomId = currentRoomId;
     if(mpPlayersListenerRef){ mpPlayersListenerRef.off(); mpPlayersListenerRef = null; }
     if(mpMyPlayerListenerRef){ mpMyPlayerListenerRef.off(); mpMyPlayerListenerRef = null; }
@@ -7301,9 +7673,16 @@ function toggleFieldVisibility(id, eyeEl){
 let authMode = 'login';
 function switchAuthTab(mode){
   authMode = mode;
-  document.getElementById('authTabLogin').style.background   = mode==='login'  ? 'rgba(0,191,255,.12)' : 'transparent';
-  document.getElementById('authTabSignup').style.background  = mode==='signup' ? 'rgba(194,0,251,.12)' : 'transparent';
-  document.getElementById('authPasswordConfirm').style.display = mode==='signup' ? 'block' : 'none';
+  const loginBtn = document.getElementById('authTabLogin');
+  const signupBtn = document.getElementById('authTabSignup');
+  if(mode==='login'){
+    loginBtn.style.color='var(--sky)'; loginBtn.style.borderColor='var(--sky)'; loginBtn.style.background='rgba(0,191,255,.12)';
+    signupBtn.style.color='var(--gray)'; signupBtn.style.borderColor='var(--gray)'; signupBtn.style.background='transparent';
+  } else {
+    signupBtn.style.color='var(--purple)'; signupBtn.style.borderColor='var(--purple)'; signupBtn.style.background='rgba(194,0,251,.12)';
+    loginBtn.style.color='var(--gray)'; loginBtn.style.borderColor='var(--gray)'; loginBtn.style.background='transparent';
+  }
+  document.getElementById('authPasswordConfirmWrap').style.display = mode==='signup' ? 'block' : 'none';
   document.getElementById('authOwnerBtn').style.display = mode==='signup' ? 'inline-block' : 'none';
   document.getElementById('authOwnerStatus').style.display = (mode==='signup' && pendingOwnerSignup) ? 'inline' : 'none';
   document.getElementById('authSubmitBtn').textContent = mode==='login' ? 'دخول ►' : 'إنشاء حساب ►';
@@ -8825,7 +9204,7 @@ bindDpadBtn('dpadLeft','ArrowLeft');
 bindDpadBtn('dpadRight','ArrowRight');
 function castAbilityKey(){
   if(shieldIsGhost) return;
-  const gLive={crown:crownLive, coins:coinsLive, math:mathLive, shield:shieldLive, infected:infectedLive, hidefile:hidefileLive}[activeMiniGameType];
+  const gLive={crown:crownLive, coins:coinsLive, math:mathLive, shield:shieldLive, infected:infectedLive, hidefile:hidefileLive, lava:lavaLive}[activeMiniGameType];
   if(gLive && gLive.state!=='playing') return;
   if(activePower==='shadow') shadowUltimate();
   else if(activePower==='god') godUltimate();
@@ -8935,7 +9314,7 @@ function movePlayer(dt){
 }
 
 function tryDash(){
-  const gLive={crown:crownLive, coins:coinsLive, math:mathLive, shield:shieldLive, infected:infectedLive, hidefile:hidefileLive}[activeMiniGameType];
+  const gLive={crown:crownLive, coins:coinsLive, math:mathLive, shield:shieldLive, infected:infectedLive, hidefile:hidefileLive, lava:lavaLive}[activeMiniGameType];
   if(mathMode || (gLive && gLive.state!=='playing')) return;
   if(getSkin().id==='god'||getSkin().id==='infinity'){ tryGodDash(); return; }
   if(dashCD>0) return;
@@ -9487,7 +9866,7 @@ function winWavesGame(){
   document.getElementById('boss').style.display='none';
   document.getElementById('bossHpWrap').classList.remove('show');
   document.getElementById('bossChat').classList.remove('show');
-  if(score>HS)HS=score;persistAll();refreshTopDisplays();
+  HS+=score;persistAll();refreshTopDisplays();
   document.getElementById('goEmoji').textContent='👑';
   document.getElementById('goTitle').innerHTML='ملك الـWaves <span>!</span>';
   document.getElementById('goSub').textContent='خلّصت كل الـ4 بوصات! 🔥';
@@ -9689,7 +10068,7 @@ function tickShadowBots(dt){
 }
 
 // الحارس (Guardian) - إنفينيتي بس، بيتصمن بزرار Q، مايموتش، وبيروح بنفسه يقتل أي عدو أو بوص يقرب منه
-const GRD_W=64,GRD_H=104,GRD_SPD=12.4,GRD_AGGRO=200;
+const GRD_W=96,GRD_H=156,GRD_SPD=18,GRD_AGGRO=200,GRD_ORBIT_R=75,GRD_ORBIT_SPD=0.07;
 function toggleGuardianBot(){
   if(crownLobbyWaiting) return;
   if(getSkin().id!=='infinity'){ return; }
@@ -9702,7 +10081,7 @@ function spawnGuardianBot(){
   el.style.cssText=`position:absolute;width:${GRD_W}px;height:${GRD_H}px;z-index:9;pointer-events:none;filter:drop-shadow(0 0 12px rgba(107,114,128,.9));left:${px-GRD_W-6}px;top:${py+19-GRD_H/2}px`;
   el.innerHTML=`<img src="MOGO/DOM/secret_0.png" style="width:100%;height:100%;object-fit:contain;image-rendering:pixelated">`;
   document.getElementById('gameArea').appendChild(el);
-  guardianBot={el,x:px-GRD_W-6,y:py+19-GRD_H/2};
+  guardianBot={el,x:px-GRD_W-6,y:py+19-GRD_H/2,orbitAngle:0};
   guardianBossHitCD=0;
   let _f=0;
   guardianBot._iv=setInterval(()=>{
@@ -9749,9 +10128,12 @@ function tickGuardianBot(dt){
       }
     }
   } else {
-    // يتبعك عادي جنبك من غير ما يلف حواليك
-    const followX=px-GRD_W-6, followY=py+19-GRD_H/2;
-    b.x+=(followX-b.x)*0.07*dt; b.y+=(followY-b.y)*0.07*dt;
+    // بيلف حواليك في مدار دائري بدل ما يقف جمبك بس
+    b.orbitAngle=(b.orbitAngle||0)+GRD_ORBIT_SPD*dt;
+    const cx=px+19, cy=py+19;
+    const followX=cx+Math.cos(b.orbitAngle)*GRD_ORBIT_R-GRD_W/2;
+    const followY=cy+Math.sin(b.orbitAngle)*GRD_ORBIT_R-GRD_H/2;
+    b.x+=(followX-b.x)*0.25*dt; b.y+=(followY-b.y)*0.25*dt;
   }
   b.el.style.left=b.x+'px'; b.el.style.top=b.y+'px';
 }
@@ -10359,7 +10741,7 @@ function endGame(){
   document.getElementById('boss').style.display='none';
   document.getElementById('bossHpWrap').classList.remove('show');
   document.getElementById('bossChat').classList.remove('show');
-  if(score>HS)HS=score;persistAll();refreshTopDisplays();
+  HS+=score;persistAll();refreshTopDisplays();
   let em='😢',ti='انتهت الحياة',su='حاول تاني!';
   if(score>=2000){em='🏆';ti='أسطورة';su='نقطة مجنونة!';}
   else if(score>=800){em='🎉';ti='رائع جداً';su='أداء ممتاز!';}
