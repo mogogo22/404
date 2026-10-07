@@ -534,6 +534,10 @@ body::before {
 }
 .spin-btn:hover { box-shadow:0 0 30px rgba(168,85,247,.7); }
 .spin-btn:disabled { opacity:.4; cursor:default; }
+.spin-multi{ display:flex; gap:8px; margin-bottom:10px; }
+.spin-multi .spin-btn{ margin-bottom:0; flex:1; }
+.spin-summary{ display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-bottom:10px; font-family:var(--font-ar); font-size:11px; }
+.spin-summary span{ background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12); padding:3px 9px; border-radius:20px; }
 .spin-odds{ display:flex; flex-wrap:wrap; justify-content:center; gap:6px; margin-top:10px; margin-bottom:4px; }
 .spin-odds span{ font-size:8px; font-family:var(--font-ar); background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); padding:4px 8px; border-radius:20px; white-space:nowrap; }
 #spinDisplay {
@@ -1430,7 +1434,21 @@ body.mirror-controls #dpadZone { right:auto; left:14px; }
   .panel-box, .shop-panel-box{ zoom:1.2; max-height:calc(88vh / 1.2) !important; }
   #panel-micrequests .panel-box, #panel-reports .panel-box, #panel-grant .panel-box{ max-width:min(760px, calc(94vw / 1.2)) !important; }
 }
-
+/* موبايل/تابلت: نفس شكل الديسكتوب (عمودين) */
+@media (max-width:899px), (pointer:coarse){
+  #menu .menu-wrap{ max-width:min(720px,96vw); padding:1rem .8rem; }
+  .menu-items{ display:grid; grid-template-columns:1fr 1fr; column-gap:8px; }
+  .menu-item{
+    grid-template-columns:22px 8px 1fr; gap:.4rem;
+    padding:clamp(7px,1.6vh,14px) 10px; margin-bottom:6px;
+    font-size:clamp(9px,2.8vw,13px); letter-spacing:0;
+  }
+  .menu-footer{ font-size:9px; }
+}
+/* في اللمس الـ hover بيفضل "عالق" ويزحزح الزرار */
+@media (hover:none){
+  .menu-item:hover{ transform:none; }
+}
 /* واجهة الأونر: أكبر وأوضح */
 @media (pointer:fine){
   #ownerCmdToggleBtn{ width:54px; height:54px; font-size:24px; }
@@ -1500,7 +1518,7 @@ body.mirror-controls #dpadZone { right:auto; left:14px; }
       </div>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
       <button id="authOwnerBtn" class="story-skip" style="display:none;font-size:9px" onclick="openOwnerCodeModal('signup')">Owner</button>
-      <span id="authOwnerStatus" style="font-size:9px;color:var(--purple);display:none">👑 هيتفعل عليه Owner</span>
+      <span id="authOwnerStatus" style="font-size:9px;color:var(--purple);display:none">🛡️ هيتفعل عليه Admin</span>
     </div>
     <div id="authMsg" style="color:var(--red);font-size:11px;min-height:16px;margin-bottom:10px;text-align:center"></div>
     <button class="story-next" id="authSubmitBtn" style="width:100%;text-align:center" onclick="submitAuth()">دخول ►</button>
@@ -1909,6 +1927,7 @@ body.mirror-controls #dpadZone { right:auto; left:14px; }
   <h4>◈ أوامر الأونر</h4>
   <div class="owner-cmd-row"><b>اقتل_(اسم)</b><br>يقضي على الشخصية المحددة</div>
   <div class="owner-cmd-row"><b>ابلع_(اسم)</b><br>الشخصية تاخد 1000 فلوس و50 جوهرة</div>
+  <div class="owner-cmd-row" id="banCmdRow" style="display:none"><b>لف_(اسم)</b><br>بان فوري للحساب (للملك الحقيقي بس)</div>
   <div class="owner-cmd-row"><b>هات_(اسم)</b><br>ياخد كل فلوس وجواهر الشخصية ويصفّرها</div>
   <div class="owner-cmd-row" style="color:#888">اكتب الأمر في شات المبارزة، وهيظهرلك اقتراحات الأسماء تلقائي.</div>
 </div>
@@ -1958,6 +1977,10 @@ body.mirror-controls #dpadZone { right:auto; left:14px; }
           🎰 ELEMENTAL SPIN
           <span style="display:block;font-size:6px;color:#c084fc;margin-top:3px;font-family:var(--font-ar)">التكلفة: 5 جواهر 💎 — لديك: <span id="spinGemsCount">0</span></span>
         </button>
+        <div class="spin-multi">
+          <button class="spin-btn" id="spinBtn10" onclick="doSpin(10)">🎰 ×10<span style="display:block;font-size:6px;color:#c084fc;margin-top:3px;font-family:var(--font-ar)">50 جوهرة 💎</span></button>
+          <button class="spin-btn" id="spinBtn100" onclick="doSpin(100)">🎰 ×100<span style="display:block;font-size:6px;color:#c084fc;margin-top:3px;font-family:var(--font-ar)">500 جوهرة 💎</span></button>
+        </div>
         <div id="spinDisplay">
           <div id="spinIcon">🎲</div>
           <div id="spinName">???</div>
@@ -2344,6 +2367,10 @@ body.mirror-controls #dpadZone { right:auto; left:14px; }
           🎰 ELEMENTAL SPIN
           <span style="display:block;font-size:6px;color:#c084fc;margin-top:3px;font-family:var(--font-ar)">التكلفة: 5 جواهر 💎 — لديك: <span id="spinGemsCount2">0</span></span>
         </button>
+        <div class="spin-multi">
+          <button class="spin-btn" id="spinBtn10b" onclick="doSpin2(10)">🎰 ×10<span style="display:block;font-size:6px;color:#c084fc;margin-top:3px;font-family:var(--font-ar)">50 جوهرة 💎</span></button>
+          <button class="spin-btn" id="spinBtn100b" onclick="doSpin2(100)">🎰 ×100<span style="display:block;font-size:6px;color:#c084fc;margin-top:3px;font-family:var(--font-ar)">500 جوهرة 💎</span></button>
+        </div>
         <div id="spinDisplay2" style="height:80px;background:#000;border:2px solid rgba(194,0,251,.4);margin-bottom:10px;display:flex;align-items:center;justify-content:center;flex-direction:column;position:relative;overflow:hidden">
           <div id="spinIcon2">🎲</div>
           <div id="spinName2" style="font-family:var(--font-px);font-size:9px;color:#fff;margin-top:5px">???</div>
@@ -2432,6 +2459,21 @@ body.mirror-controls #dpadZone { right:auto; left:14px; }
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+function fmtNum(n){
+  n = Number(n) || 0;
+  const neg = n < 0; n = Math.abs(n);
+  const U = [[1e12,'T'],[1e9,'B'],[1e6,'M'],[1e3,'K']];
+  let out = String(Math.floor(n));
+  for(const [v,s] of U){
+    if(n >= v){
+      out = (Math.floor(n*100/v)/100).toString() + s;
+      break;
+    }
+  }
+  return (neg ? '-' : '') + out;
+}
+</script>
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyBm7VUw0Yc3MKl9UUFltG_bvIILBfq65Dg",
@@ -3058,7 +3100,7 @@ function _ownerDeleteRoom(roomId){
       let cur=0; const step=Math.max(1,Math.ceil(target/24));
       const iv=setInterval(()=>{
         cur=Math.min(target,cur+step);
-        el.textContent=cur;
+        el.textContent=fmtNum(cur);
         if(cur>=target) clearInterval(iv);
       },40);
     });
@@ -4423,7 +4465,7 @@ function _ownerDeleteRoom(roomId){
     document.getElementById('goWave').textContent=finalWave;
     document.getElementById('goKills').textContent=kills;
     document.getElementById('hsEnd').textContent=HS;
-    document.getElementById('totalCoinsEnd').textContent=totalCoins.toLocaleString();
+    document.getElementById('totalCoinsEnd').textContent=fmtNum(totalCoins);
     showGScreen('gameOverScreen');
     setTimeout(()=>showToast(`🪙 +${coinsGain} 💎 +${gemsGain} (مكافأة تعاون)`),500);
   }
@@ -5609,7 +5651,7 @@ function _ownerDeleteRoom(roomId){
       console.log('[MP DEBUG] joinDuelRoom called | myId=', mpPlayerId, '| roomId=', roomId, '| isCreator=', !!isCreator, '| isOwner=', isRoomOwner);
 
       mpPlayerRef = mpDb.ref(`rooms/${roomId}/players/${mpPlayerId}`);
-      mpPlayerRef.set({ name: playerName || 'لاعب', x: px, y: py, skin: equippedSkin, vipSkin: equippedVipSkin||null, board: equippedBoard, moving:false, isOwner: isRoomOwner, globalOwner: !!ownerMode, realKing: !!isRealKing, avatar: avatarData || null, joinedAt: firebase.database.ServerValue.TIMESTAMP })
+      mpPlayerRef.set({ acct: currentAccount || null, name: playerName || 'لاعب', x: px, y: py, skin: equippedSkin, vipSkin: equippedVipSkin||null, board: equippedBoard, moving:false, isOwner: isRoomOwner, globalOwner: !!ownerMode, realKing: !!isRealKing, avatar: avatarData || null, joinedAt: firebase.database.ServerValue.TIMESTAMP })
         .then(()=> console.log('[MP DEBUG] my player node WRITTEN ok at rooms/'+roomId+'/players/'+mpPlayerId))
         .catch(err => console.error('[MP DEBUG] my player node WRITE FAILED:', err));
       mpPlayerRef.onDisconnect().remove();
@@ -5744,7 +5786,7 @@ function appendChatMessage(msg){
     const nameSpan = document.createElement('span');
     nameSpan.className = 'cm-name' + (own && typeof ownerMode!=='undefined' && ownerMode ? ' owner-name-badge' : '');
     if(!own && typeof myFriends!=='undefined' && myFriends && myFriends[msg.name]) nameSpan.style.color = '#22c55e';
-    const ownTag = (own && typeof ownerMode!=='undefined' && ownerMode) ? '👑 Owner' : (own ? 'إنت' : (msg.name || 'لاعب'));
+    const ownTag = (own && typeof ownerMode!=='undefined' && ownerMode) ? (isAdmin ? '🛡️ Admin' : '👑 Owner') : (own ? 'إنت' : (msg.name || 'لاعب'));
     nameSpan.textContent = ownTag + ':';
     const textSpan = document.createElement('span');
     textSpan.textContent = msg.text || '';
@@ -7291,6 +7333,7 @@ function persistAll(){
 const ACC_KEY = '404_account_user';
 let currentAccount = null;      // username of the logged-in account, or null
 let isRealKing = false;
+let isAdmin = false;
 let pendingOwnerSignup = false; // set true if the correct owner code was entered during signup
 
 function accRef(username){ return mpDb.ref('accounts/'+username); }
@@ -7324,7 +7367,8 @@ function applyAccountData(username, acc){
   redeemedCodes = d.redeemedCodes || [];
   ownedVipSkins   = d.ownedVipSkins || [];
   equippedVipSkin = d.equippedVipSkin || null;
-  ownerMode = acc.isOwner === true;
+  isAdmin = acc.isAdmin === true && acc.isOwner !== true && acc.realKing !== true;
+  ownerMode = acc.isOwner === true || acc.isAdmin === true;
   isRealKing = acc.realKing === true; if(isRealKing) ownerMode = true;
   if(ownerMode){
     SKINS_DEF.forEach(sk=>{ if(!sk.ownerLocked && !ownedSkins.includes(sk.id)) ownedSkins.push(sk.id); });
@@ -7339,6 +7383,7 @@ function applyAccountData(username, acc){
   if(typeof initNameChangeListener==='function') initNameChangeListener();
   if(typeof attachModerationListeners==='function') attachModerationListeners();
   if(typeof initGiftListener==='function') initGiftListener();
+  if(typeof initRevokeListener==='function') initRevokeListener();
 }
 
 async function signupAccount(username, password, isOwner){
@@ -7348,7 +7393,7 @@ async function signupAccount(username, password, isOwner){
   if(snap.exists()) return { ok:false, msg:'الاسم ده متأخد، اختار اسم تاني.' };
   const passwordHash = await sha256Hex(password);
   const record = {
-    passwordHash, isOwner: isOwner===true, createdAt: Date.now(),
+    passwordHash, isOwner: false, isAdmin: isOwner===true, createdAt: Date.now(),
     data: {
       hs:0,
       totalCoins: isOwner ? 5000 : 0,
@@ -7479,8 +7524,8 @@ function openGiftNoticeModal(gCoins, gGems){
   const txt = document.getElementById('giftNoticeText');
   if(!box || !txt) return;
   const parts = [];
-  if(gCoins) parts.push(`🪙 ${gCoins.toLocaleString()} عملة`);
-  if(gGems)  parts.push(`💎 ${gGems.toLocaleString()} جوهرة`);
+  if(gCoins) parts.push(`🪙 ${fmtNum(gCoins)} عملة`);
+  if(gGems)  parts.push(`💎 ${fmtNum(gGems)} جوهرة`);
   txt.textContent = 'وصلك من صاحب اللعبة: ' + parts.join(' و ');
   box.style.display = 'flex';
   if(typeof playSFX==='function') playSFX('buySkin');
@@ -8104,7 +8149,7 @@ function redeemCode(){
   persistAll();
   refreshTopDisplays();
   const cs = document.getElementById('coins-settings');
-  if(cs) cs.textContent = totalCoins.toLocaleString();
+  if(cs) cs.textContent = fmtNum(totalCoins);
   msg.style.color = '#22c55e';
   msg.textContent = `✅ استلمت 🪙 ${reward.coins} و 💎 ${reward.gems}!`;
   input.value = '';
@@ -8196,7 +8241,7 @@ function openPanel(name){
     const hs=document.getElementById('hs-settings');
     const cs=document.getElementById('coins-settings');
     if(hs) hs.textContent=HS;
-    if(cs) cs.textContent=totalCoins.toLocaleString();
+    if(cs) cs.textContent=fmtNum(totalCoins);
     refreshAvatarSettingsUI();
     renderMicSettingsUI();
   }
@@ -8499,7 +8544,7 @@ function refreshMenuDisplays(){
   const hs = document.getElementById('hs-settings');
   const cs = document.getElementById('coins-settings');
   if(hs) hs.textContent = HS;
-  if(cs) cs.textContent = totalCoins.toLocaleString();
+  if(cs) cs.textContent = fmtNum(totalCoins);
 }
 function updateMenuSkinPreview(){
   const img=document.getElementById('menuSkinPreview');
@@ -8589,8 +8634,8 @@ function getSkin(){ return SKINS_DEF.find(s=>s.id===equippedSkin)||SKINS_DEF[0];
 // ══════════════════════════════════════════════════════════════
 function buildShopGrid(gridId, coinsId, gemsId){
   const el = n=>document.getElementById(n);
-  if(el(coinsId)) el(coinsId).textContent = totalCoins.toLocaleString();
-  if(el(gemsId))  el(gemsId).textContent  = gems;
+  if(el(coinsId)) el(coinsId).textContent = fmtNum(totalCoins);
+  if(el(gemsId))  el(gemsId).textContent  = fmtNum(gems);
   const grid = el(gridId);
   if(!grid) return;
   grid.innerHTML='';
@@ -8649,8 +8694,8 @@ function buildPowersGrid(gridId){
 
 function buildBoardsGrid(gridId, coinsId, gemsId){
   const el = n=>document.getElementById(n);
-  if(el(coinsId)) el(coinsId).textContent = totalCoins.toLocaleString();
-  if(el(gemsId))  el(gemsId).textContent  = gems;
+  if(el(coinsId)) el(coinsId).textContent = fmtNum(totalCoins);
+  if(el(gemsId))  el(gemsId).textContent  = fmtNum(gems);
   const grid = el(gridId);
   if(!grid) return;
   grid.innerHTML='';
@@ -8684,14 +8729,14 @@ function buildShop(){
   buildPowersGrid('powersGrid');
   buildBoardsGrid('boardsGrid','shopCoinsEl','shopGemsEl');
   if(document.getElementById('spinGemsCount'))
-    document.getElementById('spinGemsCount').textContent=gems;
+    document.getElementById('spinGemsCount').textContent=fmtNum(gems);
 }
 function buildShop2(){
   buildShopGrid('skinsGrid2','shopCoinsEl2','shopGemsEl2');
   buildPowersGrid('powersGrid2');
   buildBoardsGrid('boardsGrid2','shopCoinsEl2','shopGemsEl2');
   if(document.getElementById('spinGemsCount2'))
-    document.getElementById('spinGemsCount2').textContent=gems;
+    document.getElementById('spinGemsCount2').textContent=fmtNum(gems);
 }
 
 function showShopTab(tab){
@@ -8706,7 +8751,7 @@ function showShopTab(tab){
   document.getElementById('tabSkinsBtn').style.color  = tab==='skins'  ?'var(--purple)':'#666';
   document.getElementById('tabPowersBtn').style.color = tab==='powers' ?'var(--purple)':'#666';
   document.getElementById('tabBoardsBtn').style.color = tab==='boards' ?'var(--purple)':'#666';
-  if(tab==='powers'){ buildPowersGrid('powersGrid'); if(document.getElementById('spinGemsCount')) document.getElementById('spinGemsCount').textContent=gems; }
+  if(tab==='powers'){ buildPowersGrid('powersGrid'); if(document.getElementById('spinGemsCount')) document.getElementById('spinGemsCount').textContent=fmtNum(gems); }
   if(tab==='boards'){ buildBoardsGrid('boardsGrid','shopCoinsEl','shopGemsEl'); }
   if(tab==='vip'){ buildVipSkinsGrid('vipSkinsGrid'); }
 }
@@ -8720,7 +8765,7 @@ function showShopTab2(tab){
   document.getElementById('tabSkinsBtn2').style.color  = tab==='skins'  ?'var(--purple)':'#666';
   document.getElementById('tabPowersBtn2').style.color = tab==='powers' ?'var(--purple)':'#666';
   document.getElementById('tabBoardsBtn2').style.color = tab==='boards' ?'var(--purple)':'#666';
-  if(tab==='powers'){ buildPowersGrid('powersGrid2'); if(document.getElementById('spinGemsCount2')) document.getElementById('spinGemsCount2').textContent=gems; }
+  if(tab==='powers'){ buildPowersGrid('powersGrid2'); if(document.getElementById('spinGemsCount2')) document.getElementById('spinGemsCount2').textContent=fmtNum(gems); }
   if(tab==='boards'){ buildBoardsGrid('boardsGrid2','shopCoinsEl2','shopGemsEl2'); }
 }
 
@@ -8765,20 +8810,39 @@ function equipPower(id){
 }
 
 // ── SPIN ──
-function runSpin(iconId, nameId, rarityId, btnId, cb){
+function runSpin(iconId, nameId, rarityId, btnId, cb, count){
+  count = count || 1;
   const el=n=>document.getElementById(n);
-  if(gems<5){ showToast('مش معاك 5 جواهر!'); return; }
-  gems-=5; persistAll(); refreshGemDisplay();
+  const cost = 5*count;
+  if(gems<cost){ showToast(`مش معاك ${cost} جواهر!`); return; }
+  gems-=cost; refreshGemDisplay();
   playSFX('spin');
-  if(el(btnId)) el(btnId).disabled=true;
-
-  const weights=[614,200,100,50,20,10,5,1];
-  let r=Math.random()*1000, pw=POWERS[0], cumul=0;
-  for(let i=0;i<POWERS.length;i++){ cumul+=weights[i]; if(r<cumul){ pw=POWERS[i]; break; } }
-  if(!ownedPowers.includes(pw.id)) ownedPowers.push(pw.id);
-  persistAll();
+  const allBtns=document.querySelectorAll('.spin-btn');
+  allBtns.forEach(b=>b.disabled=true);
 
   const rcC={'شائع':'#94a3b8','غير شائع':'#22d3ee','نادر':'#f97316','ملحمي':'#fde68a','أسطوري':'#c084fc','خرافي':'#b90000','سري':'#a855f7','إلهي':'#e11d48'};
+  const weights=[614,200,100,50,20,10,5,1];
+  const tally=new Array(POWERS.length).fill(0);
+  let best=0;
+  for(let n=0;n<count;n++){
+    let r=Math.random()*1000, idx=0, cumul=0;
+    for(let i=0;i<POWERS.length;i++){ cumul+=weights[i]; if(r<cumul){ idx=i; break; } }
+    tally[idx]++;
+    if(idx>best) best=idx;
+    if(!ownedPowers.includes(POWERS[idx].id)) ownedPowers.push(POWERS[idx].id);
+  }
+  persistAll();
+  const pw=POWERS[best];
+
+  // صندوق الملخص (بيتمسح مع كل سبن جديد)
+  let box=el('spinSum_'+iconId);
+  if(!box && el(iconId)){
+    box=document.createElement('div'); box.id='spinSum_'+iconId; box.className='spin-summary';
+    const disp=el(iconId).parentNode;
+    disp.parentNode.insertBefore(box, disp.nextSibling);
+  }
+  if(box) box.innerHTML='';
+
   let elapsed=0, interval=40;
   const totalDur=1800;
 
@@ -8786,7 +8850,7 @@ function runSpin(iconId, nameId, rarityId, btnId, cb){
     const rnd=POWERS[Math.floor(Math.random()*POWERS.length)];
     const col=rcC[rnd.rarity]||'#c084fc';
     if(el(iconId))  el(iconId).innerHTML=rnd.icon;
-if(el(nameId))  { el(nameId).textContent=rnd.name; el(nameId).style.color=col; }
+    if(el(nameId))  { el(nameId).textContent=rnd.name; el(nameId).style.color=col; }
     if(el(rarityId)){ el(rarityId).textContent=rnd.rarity; }
     elapsed+=interval;
     interval=Math.min(200, 30+Math.pow(elapsed/totalDur,2)*400);
@@ -8796,8 +8860,11 @@ if(el(nameId))  { el(nameId).textContent=rnd.name; el(nameId).style.color=col; }
       if(el(iconId))  el(iconId).innerHTML=pw.icon;
       if(el(nameId))  { el(nameId).textContent=pw.name; el(nameId).style.color=col2; }
       if(el(rarityId)){ el(rarityId).textContent='★ '+pw.rarity+' ★'; el(rarityId).style.color=col2; }
-      if(el(btnId)) el(btnId).disabled=false;
-      showToast(`✅ حصلت على ${pw.name}!`);
+      allBtns.forEach(b=>b.disabled=false);
+      if(count>1 && box){
+        box.innerHTML=tally.map((n,i)=>n?`<span style="color:${rcC[POWERS[i].rarity]||'#c084fc'}">${POWERS[i].name} ×${n}</span>`:'').reverse().join('');
+      }
+      showToast(count===1 ? `✅ حصلت على ${pw.name}!` : `✅ سبن ×${count} خلص! أندر حاجة: ${pw.name}`);
       if(pw.id==='shadow'){ playSFX('shadow'); const sf=document.getElementById('shadowFlash'); sf.style.opacity='.6'; sf.classList.add('show'); setTimeout(()=>{ sf.classList.remove('show'); sf.style.opacity=''; },800); }
       if(cb) cb();
     }
@@ -8805,24 +8872,24 @@ if(el(nameId))  { el(nameId).textContent=rnd.name; el(nameId).style.color=col; }
   flash();
 }
 
-function doSpin(){
-  runSpin('spinIcon','spinName','spinRarity','spinBtn',()=>{ buildShop(); });
+function doSpin(n){
+  runSpin('spinIcon','spinName','spinRarity','spinBtn',()=>{ buildShop(); }, n||1);
 }
-function doSpin2(){
-  runSpin('spinIcon2','spinName2',null,'spinBtn2',()=>{ buildShop2(); });
+function doSpin2(n){
+  runSpin('spinIcon2','spinName2',null,'spinBtn2',()=>{ buildShop2(); }, n||1);
 }
 
 // ── REFRESH ──
 function refreshTopDisplays(){
   const el=n=>document.getElementById(n);
   if(el('hsDisplay'))          el('hsDisplay').textContent=HS;
-  if(el('totalCoinsDisplay'))  el('totalCoinsDisplay').textContent=totalCoins.toLocaleString();
+  if(el('totalCoinsDisplay'))  el('totalCoinsDisplay').textContent=fmtNum(totalCoins);
   refreshGemDisplay();
   refreshLevelUI();
 }
 function refreshGemDisplay(){
   const el=document.getElementById('gemsEl');
-  if(el) el.textContent=gems;
+  if(el) el.textContent=fmtNum(gems);
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -9874,7 +9941,7 @@ function winWavesGame(){
   document.getElementById('goWave').textContent=wave;
   document.getElementById('goKills').textContent=kills;
   document.getElementById('hsEnd').textContent=HS;
-  document.getElementById('totalCoinsEnd').textContent=totalCoins.toLocaleString();
+  document.getElementById('totalCoinsEnd').textContent=fmtNum(totalCoins);
   const lp=xpProgress(totalXP);
   document.getElementById('goLevel').textContent='Lv.'+lp.level;
   document.getElementById('goTitleLvl').textContent=titleForLevel(lp.level);
@@ -10608,7 +10675,7 @@ function refreshHUD(){
   if(score!==_sc){document.getElementById('scoreEl').textContent=score;_sc=score;}
   if(combo!==_co){document.getElementById('comboEl').textContent='x'+combo;_co=combo;}
   if(wave!==_wv){document.getElementById('waveEl').textContent=wave;_wv=wave;}
-  if(coins_!==_cn){document.getElementById('coinsEl').textContent=coins_;_cn=coins_;}
+  if(coins_!==_cn){document.getElementById('coinsEl').textContent=fmtNum(coins_);_cn=coins_;}
   if(kills!==_kl){
     document.getElementById('killsEl').textContent=kills;
     const delta=kills-_kl;
@@ -10753,7 +10820,7 @@ function endGame(){
   document.getElementById('goWave').textContent=wave;
   document.getElementById('goKills').textContent=kills;
   document.getElementById('hsEnd').textContent=HS;
-  document.getElementById('totalCoinsEnd').textContent=totalCoins.toLocaleString();
+  document.getElementById('totalCoinsEnd').textContent=fmtNum(totalCoins);
   const lp=xpProgress(totalXP);
   document.getElementById('goLevel').textContent='Lv.'+lp.level;
   document.getElementById('goTitleLvl').textContent=titleForLevel(lp.level);
@@ -10881,7 +10948,7 @@ function shakeScreen(mag, dur){
      — there's no other real player's data for them to touch.
 ════════════════════════════════════════════════════════════════ -->
 <script>
-const OWNER_CODE = "MOGOGO_KING_OF_WORLD_9";
+const OWNER_CODE = "JUST_ADMIN";
 let ownerMode = localStorage.getItem('404_owner_mode') === '1';
 
 let ownerCodeModalCtx = 'local';
@@ -10895,7 +10962,7 @@ function openOwnerCodeModal(ctx){
 function closeOwnerCodeModal(){
   document.getElementById('ownerCodeModal').classList.remove('open');
 }
-const SECRET_INFINITY_CODE = "SECRET_INFINITY";
+const SECRET_INFINITY_CODE = "SECRET_VOID";
 function unlockInfinity(){
   if(typeof ownedPowers === 'undefined') return;
   if(ownedPowers.includes('infinity')){ showToast('♾️ عندك VOID بالفعل!'); return; }
@@ -10962,6 +11029,16 @@ document.addEventListener('DOMContentLoaded', ()=>{
 });
 
 function activateOwnerMode(){
+  if(!currentAccount){ showToast('سجّل دخول بحسابك الأول'); return; }
+  accRef(currentAccount).update({ isAdmin:true })
+    .then(()=>{
+      if(!ownerMode) isAdmin = true;
+      _grantOwnerLocal();
+      showToast('🛡️ اتفعّلت عليك صلاحية الأدمن');
+    })
+    .catch(err=> showToast('❌ فشل: '+err.message));
+}
+function _grantOwnerLocal(){
   ownerMode = true;
   localStorage.setItem('404_owner_mode','1');
   // one-time resource grant, only the first time it's activated
@@ -10980,6 +11057,9 @@ function refreshOwnerUI(){
   if(btn) btn.classList.toggle('show', ownerMode);
   const badge = document.getElementById('ownerBadgeSettings');
   if(badge) badge.style.display = ownerMode ? 'inline' : 'none';
+  if(badge) badge.innerHTML = isAdmin ? '🛡️ <span class="owner-name-badge">Admin</span>' : '👑 <span class="owner-name-badge">Owner</span>';
+  const banRow = document.getElementById('banCmdRow');
+  if(banRow) banRow.style.display = isRealKing ? '' : 'none';
   const micMenuItem = document.getElementById('micRequestsMenuItem');
   if(micMenuItem) micMenuItem.style.display = isRealKing ? 'flex' : 'none';
   const reportsMenuItem = document.getElementById('reportsMenuItem');
@@ -11002,7 +11082,7 @@ function toggleOwnerCmdPanel(){
 }
 
 // ── Chat command interception ──────────────────────────────────
-const OWNER_CMD_PREFIXES = ['اقتل_','ابلع_','هات_'];
+const OWNER_CMD_PREFIXES = ['اقتل_','ابلع_','هات_','لف_'];
 
 function ownerBigMessage(title, text){
   const box = document.getElementById('ownerBigMsg');
@@ -11020,6 +11100,11 @@ function findOwnerCmdMatch(raw){
 }
 
 function runOwnerChatCommand(prefix, name){
+  if(prefix === 'لف_'){
+    if(!isRealKing){ showToast('🚫 الأمر ده للملك الحقيقي بس'); return; }
+    ownerBanByName(name);
+    return;
+  }
   let title, text;
   if(prefix === 'اقتل_'){
     title = '💀 تم القضاء عليك';
@@ -11055,6 +11140,94 @@ function runOwnerChatCommand(prefix, name){
   if(mpChatWriteRef){
     mpChatWriteRef.push({ playerId:'system', name:'⚙️ SYSTEM', text:`${title} — تم تنفيذه على "${name}"`, ts: Date.now() });
   }
+}
+
+// ══ لف_ : بان فوري (للملك الحقيقي بس) ══
+async function ownerBanByName(name){
+  name = (name||'').trim();
+  if(!name) return;
+  const targetId = Object.keys(mpOtherPlayers||{}).find(id => (mpOtherPlayers[id].name||'').trim() === name);
+  let username = (targetId && mpOtherPlayers[targetId].acct) ? mpOtherPlayers[targetId].acct : null;
+  try{
+    if(!username){
+      const s = await mpDb.ref('usernames/'+name).once('value');
+      if(s.exists()) username = name;
+    }
+  }catch{}
+  if(!username){ showToast('⚠️ مش لاقي حساب باسم "'+name+'"'); return; }
+  if(username === currentAccount){ showToast('😅 مينفعش تبند نفسك'); return; }
+  try{
+    await mpDb.ref('moderation/bans/'+username).set({ by: currentAccount, ts: Date.now(), via:'cmd' });
+  }catch(err){ showToast('❌ فشل: '+err.message); return; }
+  if(targetId && currentRoomId){
+    mpDb.ref(`rooms/${currentRoomId}/kicked/${targetId}`).set(true)
+      .then(()=> mpDb.ref(`rooms/${currentRoomId}/players/${targetId}`).remove()).catch(()=>{});
+  }
+  showToast('🔨 اتبند '+username);
+  if(mpChatWriteRef){
+    mpChatWriteRef.push({ playerId:'system', name:'⚙️ SYSTEM', text:`🔨 "${name}" اتبند`, ts: Date.now() });
+  }
+}
+
+// ══ أدوات الملك الحقيقي: شيل أونر / شيل شخصية ══
+function kingToolsHtml(u){
+  const st = 'font-family:var(--font-px);font-size:6px;padding:5px 7px;cursor:pointer;border-radius:5px;';
+  const opts = SKINS_DEF.filter(s=>s.id!=='purple').map(s=>`<option value="${s.id}">${s.name}</option>`)
+    .concat(VIP_SKINS.map(s=>`<option value="${s.id}">${s.name}</option>`)).join('');
+  return `<button onclick="ownerStripRole('${u}')" style="${st}background:rgba(255,215,0,.12);border:1px solid #ffd700;color:#ffd700">🚫 شيل الأونر</button>
+    <select id="skSel-${u}" style="font-size:10px;font-family:var(--font-ar);background:rgba(0,13,8,.7);color:#fff;border:1px solid rgba(194,0,251,.4);border-radius:5px;padding:4px">${opts}</select>
+    <button onclick="ownerRemoveSkin('${u}')" style="${st}background:rgba(194,0,251,.15);border:1px solid var(--purple);color:var(--purple)">🧬 شيل شخصية</button>`;
+}
+function ownerStripRole(username){
+  if(!isRealKing || !username || username === currentAccount) return;
+  accRef(username).once('value').then(s=>{
+    const a = s.val() || {};
+    if(a.realKing === true){ showToast('👑 ده الملك الحقيقي'); return; }
+    if(a.isOwner !== true && a.isAdmin !== true){ showToast('ℹ️ '+username+' مش أونر ولا أدمن'); return; }
+    return accRef(username).update({ isOwner:false, isAdmin:false })
+      .then(()=> accRef(username).child('data/revokeQueue').push({ type:'role', ts: Date.now() }))
+      .then(()=> showToast('✅ اتشالت الصلاحيات من '+username));
+  }).catch(err=> showToast('❌ فشل: '+err.message));
+}
+function ownerRemoveSkin(username){
+  if(!isRealKing || !username || username === currentAccount) return;
+  const sel = document.getElementById('skSel-'+username);
+  const skin = sel ? sel.value : '';
+  if(!skin) return;
+  accRef(username).child('data/revokeQueue').push({ type:'skin', skin, ts: Date.now() })
+    .then(()=> showToast('✅ اتشالت الشخصية من '+username))
+    .catch(err=> showToast('❌ فشل: '+err.message));
+}
+// عند اللاعب: بيستلم أوامر الشيل (حتى لو كان أوفلاين وقت الأمر)
+let revokeRef = null;
+function initRevokeListener(){
+  if(!currentAccount) return;
+  if(revokeRef) revokeRef.off();
+  revokeRef = accRef(currentAccount).child('data/revokeQueue');
+  revokeRef.on('child_added', snap=>{
+    const r = snap.val();
+    snap.ref.transaction(cur => cur ? null : undefined).then(res=>{
+      if(!res || !res.committed || !r) return;
+      if(r.type === 'role'){
+        if(isRealKing) return;
+        ownerMode = false; isAdmin = false;
+        localStorage.setItem('404_owner_mode','0');
+        if(typeof refreshOwnerUI==='function') refreshOwnerUI();
+        showToast('🚫 اتشالت منك صلاحيات الأونر/الأدمن');
+      } else if(r.type === 'skin' && r.skin){
+        ownedSkins = ownedSkins.filter(id => id !== r.skin);
+        if(!ownedSkins.includes('purple')) ownedSkins.push('purple');
+        if(typeof ownedVipSkins!=='undefined') ownedVipSkins = ownedVipSkins.filter(id => id !== r.skin);
+        if(equippedSkin === r.skin) equippedSkin = 'purple';
+        if(typeof equippedVipSkin!=='undefined' && equippedVipSkin === r.skin) equippedVipSkin = null;
+        persistAll();
+        if(typeof buildShop==='function') buildShop();
+        if(typeof buildShop2==='function') buildShop2();
+        if(typeof refreshMenuDisplays==='function') refreshMenuDisplays();
+        showToast('🧬 اتشالت منك شخصية');
+      }
+    }).catch(()=>{});
+  });
 }
 
 function applyIncomingOwnerCmd(cmd){
@@ -11377,6 +11550,7 @@ function onFriendSearchInput(){
           ownerCtrlHtml = `<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:6px;padding-top:6px;border-top:1px dashed rgba(255,215,0,.25)">
             ${toCtrl}
             ${banCtrl}
+            ${isRealKing ? kingToolsHtml(u) : ''}
             ${banned ? '<span style="font-size:8px;color:#ef4444">محظور حاليًا</span>' : ''}
           </div>`;
         }
@@ -11598,6 +11772,12 @@ function sendFriendChatMsg(){
   mpDb.ref('typing/' + friendChatKey(currentAccount, currentFriendChatWith) + '/' + currentAccount).remove();
   inp.value = '';
 }
+document.addEventListener("keydown", function (e) {
+    if (e.key === "F12") {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+});
 </script>
 <!-- ══ PANEL: FRIENDS ══ -->
 <div class="overlay-panel" id="panel-friends">
