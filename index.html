@@ -7524,9 +7524,10 @@ function openGiftNoticeModal(gCoins, gGems){
   const txt = document.getElementById('giftNoticeText');
   if(!box || !txt) return;
   const parts = [];
-  if(gCoins) parts.push(`🪙 ${fmtNum(gCoins)} عملة`);
-  if(gGems)  parts.push(`💎 ${fmtNum(gGems)} جوهرة`);
-  txt.textContent = 'وصلك من صاحب اللعبة: ' + parts.join(' و ');
+  if(gCoins) parts.push(`🪙 ${fmtNum(Math.abs(gCoins))} عملة`);
+  if(gGems)  parts.push(`💎 ${fmtNum(Math.abs(gGems))} جوهرة`);
+  const _taken = (gCoins < 0 || gGems < 0);
+  txt.textContent = (_taken ? 'اتسحب منك من صاحب اللعبة: ' : 'وصلك من صاحب اللعبة: ') + parts.join(' و ');
   box.style.display = 'flex';
   if(typeof playSFX==='function') playSFX('buySkin');
 }
@@ -7666,11 +7667,29 @@ function onGrantSearchInput(){
           <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
             <input id="grantCoins-${u}" type="number" placeholder="عدد العملات" style="width:110px;font-size:10px;font-family:var(--font-ar);background:rgba(0,13,8,.7);color:#fff;border:1px solid rgba(255,215,0,.4);border-radius:5px;padding:5px">
             <input id="grantGems-${u}" type="number" placeholder="عدد الجواهر" style="width:110px;font-size:10px;font-family:var(--font-ar);background:rgba(0,13,8,.7);color:#fff;border:1px solid rgba(0,255,255,.4);border-radius:5px;padding:5px">
+            <button onclick="ownerTakeCurrency('${u}')" style="font-family:var(--font-px);font-size:6px;padding:6px 10px;background:rgba(239,68,68,.15);border:1px solid #ef4444;color:#ef4444;cursor:pointer;border-radius:5px">سحب</button>
             <button onclick="ownerGrantCurrency('${u}')" style="font-family:var(--font-px);font-size:6px;padding:6px 10px;background:rgba(34,197,94,.15);border:1px solid #22c55e;color:#22c55e;cursor:pointer;border-radius:5px">إرسال</button>
           </div>
         </div>`).join('');
     }catch(e){ box.innerHTML = '<div style="padding:9px;font-size:11px;color:#f66">فشل البحث</div>'; }
   }, 250);
+}
+function ownerTakeCurrency(username){
+  kingShield(username).then(blocked=>{ if(!blocked) _ownerTakeCurrency(username); });
+}
+function _ownerTakeCurrency(username){
+  if(!ownerMode || !username) return;
+  const coinsInput = document.getElementById('grantCoins-'+username);
+  const gemsInput  = document.getElementById('grantGems-'+username);
+  const coinsAmt = Math.abs(parseInt(coinsInput.value, 10) || 0);
+  const gemsAmt  = Math.abs(parseInt(gemsInput.value, 10) || 0);
+  if(coinsAmt===0 && gemsAmt===0){ showToast('❌ اكتب رقم عملات أو جواهر الأول'); return; }
+  accRef(username).child('data/giftQueue').push({ coins: -coinsAmt, gems: -gemsAmt, ts: Date.now(), from: playerName || 'Owner' })
+    .then(()=>{
+      showToast(`✅ اتسحب ${coinsAmt?coinsAmt+' عملة ':''}${gemsAmt?gemsAmt+' جوهرة ':''}من ${username}`);
+      coinsInput.value=''; gemsInput.value='';
+    })
+    .catch(err=> showToast('❌ فشل: '+err.message));
 }
 function ownerGrantCurrency(username){
   kingShield(username).then(blocked=>{ if(!blocked) _ownerGrantCurrency(username); });
@@ -11216,6 +11235,8 @@ function initRevokeListener(){
         showToast('🚫 اتشالت منك صلاحيات الأونر/الأدمن');
       } else if(r.type === 'skin' && r.skin){
         ownedSkins = ownedSkins.filter(id => id !== r.skin);
+        ownedPowers = ownedPowers.filter(id => id !== r.skin);
+        if(equippedPower === r.skin) equippedPower = null;
         if(!ownedSkins.includes('purple')) ownedSkins.push('purple');
         if(typeof ownedVipSkins!=='undefined') ownedVipSkins = ownedVipSkins.filter(id => id !== r.skin);
         if(equippedSkin === r.skin) equippedSkin = 'purple';
@@ -11224,6 +11245,9 @@ function initRevokeListener(){
         if(typeof buildShop==='function') buildShop();
         if(typeof buildShop2==='function') buildShop2();
         if(typeof refreshMenuDisplays==='function') refreshMenuDisplays();
+        if(typeof applyPlayerSkin==='function') applyPlayerSkin();
+        if(typeof applyActivePower==='function') applyActivePower();
+        if(typeof updateMenuSkinPreview==='function') updateMenuSkinPreview();
         showToast('🧬 اتشالت منك شخصية');
       }
     }).catch(()=>{});
