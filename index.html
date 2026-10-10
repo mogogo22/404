@@ -1904,10 +1904,10 @@ body.mirror-controls #dpadZone { right:auto; left:14px; }
 <!-- ══ GIFT NOTICE MODAL (عملات/جواهر من الأونر) ══ -->
 <div id="giftNoticeModal" style="display:none;position:fixed;inset:0;background:rgba(0,5,3,.9);z-index:950;align-items:center;justify-content:center">
   <div style="background:var(--night2);border:1px solid #ffd700;box-shadow:0 0 40px rgba(255,215,0,.5);padding:2rem 1.8rem;max-width:360px;width:88%;text-align:center;border-radius:10px">
-    <div style="font-size:34px;margin-bottom:10px">🎁</div>
-    <div style="font-family:var(--font-px);font-size:12px;color:#ffd700;letter-spacing:2px;margin-bottom:16px">هدية من الأونر</div>
+    <div id="giftNoticeIcon" style="font-size:34px;margin-bottom:10px">🎁</div>
+    <div id="giftNoticeTitle" style="font-family:var(--font-px);font-size:12px;color:#ffd700;letter-spacing:2px;margin-bottom:16px">هدية من الأونر</div>
     <div id="giftNoticeText" style="font-size:13px;color:#ddd;margin-bottom:22px;line-height:1.8;font-family:var(--font-ar)"></div>
-    <button onclick="closeGiftNoticeModal()" style="width:100%;padding:11px;font-family:var(--font-px);font-size:9px;letter-spacing:1px;background:rgba(255,215,0,.15);border:1px solid #ffd700;color:#ffd700;cursor:pointer;border-radius:6px">يا سلام! 🙏</button>
+    <button id="giftNoticeBtn" onclick="closeGiftNoticeModal()" style="width:100%;padding:11px;font-family:var(--font-px);font-size:9px;letter-spacing:1px;background:rgba(255,215,0,.15);border:1px solid #ffd700;color:#ffd700;cursor:pointer;border-radius:6px">يا سلام! 🙏</button>
   </div>
 </div>
 <!-- ══ GENERIC CONFIRM MODAL ══ -->
@@ -1949,7 +1949,7 @@ body.mirror-controls #dpadZone { right:auto; left:14px; }
         style="width:160px;height:160px;image-rendering:pixelated">
     </div>
     <div class="panel-title">◈ المتجر
-      <span style="float:left;font-size:8px;color:var(--orange)">🪙 <span id="shopCoinsEl">0</span> &nbsp; 💎 <span id="shopGemsEl">0</span></span>
+      <span dir="ltr" style="float:left;font-size:8px;color:var(--orange)">🪙 <span id="shopCoinsEl">0</span> &nbsp; 💎 <span id="shopGemsEl">0</span></span>
     </div>
     <!-- tabs -->
     <div style="display:flex;gap:6px;margin-bottom:14px">
@@ -2353,7 +2353,7 @@ body.mirror-controls #dpadZone { right:auto; left:14px; }
     <div class="gscreen-card" style="max-width:540px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
         <div style="font-family:var(--font-px);font-size:11px;color:var(--purple)">◈ المتجر</div>
-        <div style="font-family:var(--font-px);font-size:8px;color:var(--orange)">🪙 <span id="shopCoinsEl2">0</span> &nbsp;💎 <span id="shopGemsEl2">0</span></div>
+        <div dir="ltr" style="font-family:var(--font-px);font-size:8px;color:var(--orange)">🪙 <span id="shopCoinsEl2">0</span> &nbsp;💎 <span id="shopGemsEl2">0</span></div>
       </div>
       <div style="display:flex;gap:6px;margin-bottom:12px">
         <button id="tabSkinsBtn2" onclick="showShopTab2('skins')" style="flex:1;padding:7px;font-family:var(--font-px);font-size:6px;cursor:pointer;background:rgba(194,0,251,.15);border:2px solid var(--purple);color:var(--purple)">🎨 SKINS</button>
@@ -7323,7 +7323,7 @@ try{
 function persistAll(){
   writeSave({ hs:HS, totalCoins, xp:totalXP, skillPoints, skills, gems, ownedSkins, equippedSkin, ownedPowers, equippedPower, ownedBoards, equippedBoard, playerName, avatar: avatarData, redeemedCodes, wavesKingTitle, ownedVipSkins, equippedVipSkin, v:1 });
   if(currentAccount){
-    accRef(currentAccount).child('data').update({ hs:HS, totalCoins, xp:totalXP, skillPoints, skills, gems, ownedSkins, equippedSkin, ownedPowers, equippedPower, ownedBoards, equippedBoard, avatar: avatarData, redeemedCodes, wavesKingTitle, ownedVipSkins, equippedVipSkin }).catch(()=>{});
+    accRef(currentAccount).child('data').update({ hs:HS, totalCoins, xp:totalXP, skillPoints, skills, gems, ownedSkins, equippedSkin, ownedPowers, equippedPower, ownedBoards, equippedBoard, avatar: avatarData, redeemedCodes, wavesKingTitle, ownedVipSkins, ownedVipSkins, equippedVipSkin }).catch(err=>{ console.error('[persistAll] فشل الحفظ:', err); });
   }
 }
 
@@ -7520,6 +7520,24 @@ function detachGiftListener(){
   if(giftInboxRef){ giftInboxRef.off(); giftInboxRef = null; }
 }
 function openGiftNoticeModal(gCoins, gGems){
+  const box = document.getElementById('giftNoticeModal');
+  const txt = document.getElementById('giftNoticeText');
+  if(!box || !txt) return;
+  const taken = (gCoins < 0 || gGems < 0);
+  const parts = [];
+  if(gCoins) parts.push(`🪙 ${fmtNum(Math.abs(gCoins))} عملة`);
+  if(gGems)  parts.push(`💎 ${fmtNum(Math.abs(gGems))} جوهرة`);
+  txt.textContent = (taken ? 'اتسحب منك: ' : 'وصلك من صاحب اللعبة: ') + parts.join(' و ');
+  const ico = document.getElementById('giftNoticeIcon');
+  const ttl = document.getElementById('giftNoticeTitle');
+  const btn = document.getElementById('giftNoticeBtn');
+  if(ico) ico.textContent = taken ? '💸' : '🎁';
+  if(ttl){ ttl.textContent = taken ? 'سحب من الأونر' : 'هدية من الأونر'; ttl.style.color = taken ? '#ef4444' : '#ffd700'; }
+  if(btn) btn.textContent = taken ? 'حاضر 😔' : 'يا سلام! 🙏';
+  box.style.display = 'flex';
+  if(!taken && typeof playSFX==='function') playSFX('buySkin');
+}
+function _oldOpenGiftNoticeModal(gCoins, gGems){
   const box = document.getElementById('giftNoticeModal');
   const txt = document.getElementById('giftNoticeText');
   if(!box || !txt) return;
