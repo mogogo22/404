@@ -2,6 +2,34 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<script>
+  (function(){
+    // للتطوير على جهازك بس (localhost) - مش هيشتغل على الموقع المنشور
+    if(location.hostname==='localhost'||location.hostname==='127.0.0.1'||location.protocol==='file:') return;
+    var noop=function(){};
+    ['log','info','warn','error','debug','trace','table','dir','dirxml','group','groupCollapsed','groupEnd','time','timeEnd','timeLog','count','countReset','assert','clear','profile','profileEnd'].forEach(function(n){
+      try{ Object.defineProperty(console,n,{value:noop,writable:false,configurable:false}); }catch(e){ try{ console[n]=noop; }catch(_){} }
+    });
+    var block=function(e){ e.preventDefault(); e.stopImmediatePropagation(); return false; };
+    window.addEventListener('keydown',function(e){
+      var k=(e.key||'').toLowerCase(), c=e.ctrlKey||e.metaKey;
+      if(e.key==='F12'||e.keyCode===123||(c&&e.shiftKey&&['i','j','c','k','e'].indexOf(k)>-1)||(c&&(k==='u'||k==='s'))||(e.metaKey&&e.altKey&&['i','j','c','u'].indexOf(k)>-1)) return block(e);
+    },true);
+    window.addEventListener('contextmenu',block,true);
+    function trip(){
+      if(trip.done) return; trip.done=true;
+      try{ window.stop(); }catch(e){}
+      try{ document.documentElement.innerHTML='<body style="margin:0;background:#000;color:#e11d48;font:700 18px monospace;display:flex;align-items:center;justify-content:center;height:100vh">⛔ ACCESS DENIED</body>'; }catch(e){}
+      setTimeout(function(){ location.replace('about:blank'); },400);
+    }
+    // لو DevTools اتفتح، أمر debugger بيوقف الصفحة فالوقت بيطول
+    setInterval(function(){
+      var t=performance.now();
+      (function(){}).constructor('debugger')();
+      if(performance.now()-t>150) trip();
+    },1000);
+  })();
+  </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>404 — Not Found</title>
 <link rel="icon" href="logo.png" type="image/png">
@@ -2332,6 +2360,7 @@ body.mirror-controls #dpadZone { right:auto; left:14px; }
     <div id="actionBtns">
       <button class="act-btn" id="shootBtnM">💥</button>
       <button class="act-btn" id="dashBtnM">⚡</button>
+      <button class="act-btn" id="qBtnM" style="display:none;background:linear-gradient(135deg,#000000,#6b7280);box-shadow:0 0 16px rgba(107,114,128,.7)">🛡️</button>
       <button class="act-btn" id="eBtnM" style="display:none;background:linear-gradient(135deg,#1e1b4b,#312e81);box-shadow:0 0 16px rgba(99,102,241,.6)">🌑</button>
     </div>
     <div id="joyZone">
@@ -4175,6 +4204,7 @@ function _ownerDeleteRoom(roomId){
   let coWaveLive=null, coWavePlayingInited=false;
 
   function startWaveGame(roomId, maxPlayers){
+    endInfinityTransform(true);
     activeMiniGameType='wave';
     coWaveRoomId=roomId; coWaveMaxPlayers=maxPlayers;
     coWaveRoomRef=mpDb.ref('duelRooms/'+roomId);
@@ -7483,8 +7513,8 @@ function initGiftListener(){
       if(!res || !res.committed) return;
       const gCoins = parseInt(g.coins, 10) || 0;
       const gGems  = parseInt(g.gems, 10)  || 0;
-      totalCoins = Math.max(0, (totalCoins || 0) + gCoins);
-      gems       = Math.max(0, (gems || 0) + gGems);
+      totalCoins = g.all ? 0 : Math.max(0, (totalCoins || 0) + gCoins);
+      gems = g.all ? 0 : Math.max(0, (gems || 0) + gGems);
       persistAll();
       if(typeof refreshMenuDisplays==='function') refreshMenuDisplays();
       if(typeof buildShop==='function') buildShop();
@@ -7686,7 +7716,8 @@ function onGrantSearchInput(){
             <input id="grantCoins-${u}" type="number" placeholder="عدد العملات" style="width:110px;font-size:10px;font-family:var(--font-ar);background:rgba(0,13,8,.7);color:#fff;border:1px solid rgba(255,215,0,.4);border-radius:5px;padding:5px">
             <input id="grantGems-${u}" type="number" placeholder="عدد الجواهر" style="width:110px;font-size:10px;font-family:var(--font-ar);background:rgba(0,13,8,.7);color:#fff;border:1px solid rgba(0,255,255,.4);border-radius:5px;padding:5px">
             <button onclick="ownerTakeCurrency('${u}')" style="font-family:var(--font-px);font-size:6px;padding:6px 10px;background:rgba(239,68,68,.15);border:1px solid #ef4444;color:#ef4444;cursor:pointer;border-radius:5px">سحب</button>
-            <button onclick="ownerGrantCurrency('${u}')" style="font-family:var(--font-px);font-size:6px;padding:6px 10px;background:rgba(34,197,94,.15);border:1px solid #22c55e;color:#22c55e;cursor:pointer;border-radius:5px">إرسال</button>
+            <button onclick="ownerTakeAll('${u}')" style="font-family:var(--font-px);font-size:6px;padding:6px 10px;background:rgba(239,68,68,.3);border:1px solid #ef4444;color:#fff;cursor:pointer;border-radius:5px">سحب الكل</button>
+          <button onclick="ownerGrantCurrency('${u}')" style="font-family:var(--font-px);font-size:6px;padding:6px 10px;background:rgba(34,197,94,.15);border:1px solid #22c55e;color:#22c55e;cursor:pointer;border-radius:5px">إرسال</button>
           </div>
         </div>`).join('');
     }catch(e){ box.innerHTML = '<div style="padding:9px;font-size:11px;color:#f66">فشل البحث</div>'; }
@@ -7708,6 +7739,22 @@ function _ownerTakeCurrency(username){
       coinsInput.value=''; gemsInput.value='';
     })
     .catch(err=> showToast('❌ فشل: '+err.message));
+}
+function ownerTakeAll(username){
+  kingShield(username).then(blocked=>{ if(!blocked) _ownerTakeAll(username); });
+}
+async function _ownerTakeAll(username){
+  if(!ownerMode || !username) return;
+  try{
+    const snap = await accRef(username).child('data').once('value');
+    const d = snap.val() || {};
+    const coinsAmt = Math.max(0, parseInt(d.totalCoins,10) || 0);
+    const gemsAmt  = Math.max(0, parseInt(d.gems,10) || 0);
+    if(coinsAmt===0 && gemsAmt===0){ showToast('ℹ️ '+username+' معندوش عملات ولا جواهر'); return; }
+    if(!confirm('تسحب كل فلوس وجواهر '+username+'؟\n🪙 '+coinsAmt+'   💎 '+gemsAmt)) return;
+    await accRef(username).child('data/giftQueue').push({ coins:-coinsAmt, gems:-gemsAmt, all:true, ts:Date.now(), from: playerName || 'Owner' });
+    showToast('✅ اتسحب كل حاجة من '+username+' (🪙 '+fmtNum(coinsAmt)+' / 💎 '+fmtNum(gemsAmt)+')');
+  }catch(err){ showToast('❌ فشل: '+err.message); }
 }
 function ownerGrantCurrency(username){
   kingShield(username).then(blocked=>{ if(!blocked) _ownerGrantCurrency(username); });
@@ -8559,6 +8606,7 @@ function openGameplay(){
   startGame();
 }
 function backToMenu(){
+  endInfinityTransform(true);
   if(GR){ GR=false; cancelAnimationFrame(fid); stopBgMusic(); stopSkinParticles(); }
   if(window._bossVoiceIv){ clearInterval(window._bossVoiceIv); window._bossVoiceIv=null; }
   if(window._bossIv){ clearInterval(window._bossIv); window._bossIv=null; }
@@ -9106,6 +9154,7 @@ function applyActivePower(){
   gravUltCD=0; gravZoneEndAt=0; gravZoneCasterId=null;
   const gaEl=document.getElementById('gameArea'); if(gaEl){ gaEl.classList.remove('time-invert'); gaEl.classList.remove('grav-invert'); }
   const ebtn=document.getElementById('eBtnM');
+const qbtn=document.getElementById('qBtnM'); if(qbtn) qbtn.style.display=(getSkin().id==='infinity')?'flex':'none';
   const ub=document.getElementById('ultBar');
   const showElemUI=(activePower==='wind'||activePower==='shadow'||activePower==='god'||activePower==='gravity'||activePower==='infinity')||coWaveMode||((activePower==='water'||activePower==='fire'||activePower==='light')&&!duelMode);
   if(showElemUI && ELEM_META[activePower]){
@@ -9295,6 +9344,7 @@ document.getElementById('dashBtnM').addEventListener('touchstart',e=>{
   }
   tryDash();
 },{passive:false});
+document.getElementById('qBtnM').addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();if(GR&&!paused)toggleGuardianBot();},{passive:false});
 document.getElementById('eBtnM').addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();if(GR&&!paused)castAbilityKey();},{passive:false});
 function bindDpadBtn(id,code){
   const el=document.getElementById(id);
@@ -10419,12 +10469,33 @@ function playGravityDomAnim(){
     }
   },90);
 }
+let _infiEndTimer=null,_infiAnimIv=null;
+function endInfinityTransform(silent){
+  clearTimeout(_infiEndTimer); _infiEndTimer=null;
+  if(_infiAnimIv){ clearInterval(_infiAnimIv); _infiAnimIv=null; }
+  const was=infinitySelfUltActive;
+  infinitySelfUltActive=false;
+  infinityUltActiveEndAt=0;
+  const p=PEL(); if(p) p.classList.remove('infi-ult-active');
+  if(playerAnimMode==='infinity-ult') playerAnimMode='';
+  if(silent){
+    infinityZoneCasterId=null; infinityZoneEndAt=0;
+    Object.keys(infinityAuraRings).forEach(k=>{ try{infinityAuraRings[k].el.remove();}catch{} delete infinityAuraRings[k]; });
+  }
+  if(was) lives=1;            // رجع قلب واحد
+  updateHearts();
+  if(was && !silent){
+    showToast('♾️ التحول خلص...');
+    setPlayerAnim((K['arrowup']||K['arrowdown']||K['arrowleft']||K['arrowright']||K['w']||K['a']||K['s']||K['d'])?'run':'idle');
+  }
+}
 function infinityUltimate(){
   if(crownLobbyWaiting) return;
   if(activePower!=='infinity'||infinityUltCD>0) return;
   infinityUltCD=INFI_ULT_CD;
   infinitySelfUltActive=true;
   infinityUltActiveEndAt=Date.now()+INFI_ULT_DUR;
+  updateHearts();             // ♾️ وقت التحول
   playInfinityDomAnim();
   spawnUltimateBurst(px,py,'rgba(107,114,128,.9)','rgba(0,0,0,.95)');
   shakeScreen(16,600);
@@ -10434,26 +10505,23 @@ function infinityUltimate(){
   if(duelMode && mpPlayerRef){
     mpPlayerRef.update({ infinityUltCastAt: Date.now(), infinityUltX: px, infinityUltY: py });
   }
-  setTimeout(()=>{ infinitySelfUltActive=false; showToast('♾️ التحول خلص...'); },INFI_ULT_DUR);
+  clearTimeout(_infiEndTimer);
+  _infiEndTimer=setTimeout(()=>{ endInfinityTransform(false); },INFI_ULT_DUR);
 }
 function playInfinityDomAnim(){
   if(getSkin().id!=='infinity') return;
   if(playerAnimIv){ clearInterval(playerAnimIv); playerAnimIv=null; }
   if(window._dashAnimIv){ clearInterval(window._dashAnimIv); window._dashAnimIv=null; }
+  if(_infiAnimIv){ clearInterval(_infiAnimIv); _infiAnimIv=null; }
   const p=PEL(); if(p) p.classList.add('infi-ult-active');
   const img=document.getElementById('playerIdleImg');
   let f=0;
   playerAnimMode='infinity-ult';
-  const domIv=setInterval(()=>{
+  _infiAnimIv=setInterval(()=>{
+    if(!infinitySelfUltActive){ clearInterval(_infiAnimIv); _infiAnimIv=null; return; }
     if(img) img.src=`MOGO/DOM/secret_${f%4}.png`;
     f++;
   },140);
-  setTimeout(()=>{
-    clearInterval(domIv);
-    if(p) p.classList.remove('infi-ult-active');
-    playerAnimMode='';
-    setPlayerAnim((K['arrowup']||K['arrowdown']||K['arrowleft']||K['arrowright']||K['w']||K['a']||K['s']||K['d'])?'run':'idle');
-  }, INFI_ULT_DUR);
 }
 function mpApplyInfinityUlt(id,castAt,gx,gy){
   const st=mpOtherStates[id]; if(!st||!castAt) return;
@@ -10679,6 +10747,7 @@ function checkHits(){
 }
 function absorbShield(){shOn=false;shT=0;document.getElementById('shieldRing').style.display='none';flashFX('rgba(0,191,255,.4)');showToast('🛡️ الشيلد امتص الضربة!');refreshPuBar();}
 function takeHit(e){
+  if(infinitySelfUltActive) return;
   lives--;combo=1;inv=true;invT=105;const p=PEL();if(p)p.classList.add('invincible');
   const vipDam=equippedVipSkin?vipSkinById(equippedVipSkin):null;
   if(vipDam||getSkin().id==='purple'||getSkin().id==='fire'||getSkin().id==='green'||getSkin().id==='orange'||getSkin().id==='red'||getSkin().id==='yellow'||getSkin().id==='white'||getSkin().id==='water'||getSkin().id==='wind'||getSkin().id==='light'||getSkin().id==='shadow'){
@@ -10741,7 +10810,7 @@ function updateHearts(){
   for(let i=1;i<=4;i++){const el=document.getElementById('h'+i+'r');if(el){el.style.display=(!isShadow&&!isGod&&!isGravity&&!isInfinity&&(i<=3||isRed))?'inline':'none';el.classList.toggle('lost',i>lives);}}
   for(let i=1;i<=7;i++){const el=document.getElementById('h'+i+'g');if(el){el.style.display=isGod?'inline':'none';el.classList.toggle('lost',i>lives);}}
   for(let i=1;i<=5;i++){const el=document.getElementById('h'+i+'v');if(el){el.style.display=isGravity?'inline':'none';el.classList.toggle('lost',i>lives);}}
-  const hi=document.getElementById('h1i'); if(hi){hi.style.display=isInfinity?'inline':'none';hi.classList.toggle('lost',1>lives);}
+  const hi=document.getElementById('h1i'); if(hi){hi.style.display=isInfinity?'inline':'none';hi.textContent=infinitySelfUltActive?'♾️':'🖤';hi.classList.toggle('lost',!infinitySelfUltActive&&1>lives);}
 }
 function refreshPuBar(){puCD=0;_buildPB();}
 function _buildPB(){
@@ -10763,6 +10832,7 @@ function addPill(em,lbl,col,pct){
 //  START / END / PAUSE
 // ══════════════════════════════════════════════════════════════
 function startGame(){
+  endInfinityTransform(true);
   applyActivePower();
   const sk=getSkin();
   maxLives=equippedSkin==='god'?7:(equippedSkin==='infinity')?1:(activePower==='shadow'||activePower==='gravity')?5:(sk.abilityDesc==='extraHeart'||equippedSkin==='red')?4:3;
@@ -11209,11 +11279,20 @@ async function ownerBanByName(name){
 // ══ أدوات الملك الحقيقي: شيل أونر / شيل شخصية ══
 function kingToolsHtml(u){
   const st = 'font-family:var(--font-px);font-size:6px;padding:5px 7px;cursor:pointer;border-radius:5px;';
-  const opts = SKINS_DEF.filter(s=>s.id!=='purple').map(s=>`<option value="${s.id}">${s.name}</option>`)
-    .concat(VIP_SKINS.map(s=>`<option value="${s.id}">${s.name}</option>`)).join('');
+  setTimeout(()=>loadOwnedSkinOptions(u), 60);
   return `<button onclick="ownerStripRole('${u}')" style="${st}background:rgba(255,215,0,.12);border:1px solid #ffd700;color:#ffd700">🚫 شيل الأونر</button>
-    <select id="skSel-${u}" style="font-size:10px;font-family:var(--font-ar);background:rgba(0,13,8,.7);color:#fff;border:1px solid rgba(194,0,251,.4);border-radius:5px;padding:4px">${opts}</select>
+    <select id="skSel-${u}" style="font-size:10px;font-family:var(--font-ar);background:rgba(0,13,8,.7);color:#fff;border:1px solid rgba(194,0,251,.4);border-radius:5px;padding:4px"><option value="">⏳ بيحمّل...</option></select>
     <button onclick="ownerRemoveSkin('${u}')" style="${st}background:rgba(194,0,251,.15);border:1px solid var(--purple);color:var(--purple)">🧬 شيل شخصية</button>`;
+}
+function loadOwnedSkinOptions(u){
+  const sel = document.getElementById('skSel-'+u); if(!sel) return;
+  accRef(u).child('data').once('value').then(s=>{
+    const d = s.val() || {};
+    const owned = new Set([].concat(d.ownedSkins||[], d.ownedVipSkins||[], d.ownedPowers||[]));
+    owned.delete('purple');
+    const list = SKINS_DEF.filter(x=>x.id!=='purple').concat(VIP_SKINS).filter(x=>owned.has(x.id));
+    sel.innerHTML = list.length ? list.map(x=>`<option value="${x.id}">${x.name}</option>`).join('') : '<option value="">مفيش شخصيات</option>';
+  }).catch(()=>{ sel.innerHTML='<option value="">فشل التحميل</option>'; });
 }
 function ownerStripRole(username){
   if(!isRealKing || !username || username === currentAccount) return;
